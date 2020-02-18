@@ -1,0 +1,18 @@
+{
+  "run_name": "emotion_alco_audio_transfer_learning",
+  "epochs": 50000,
+  "batch_size": 32,
+  "learning_rate": 0.00001,
+  "threshold": 0.5,
+  "images_basepath": "",
+  "train_data_file": "",
+  "test_data_file": "",
+  "network_metrics_basepath": "results/",
+  "network_save_path": "alco_trained_models/",
+  "tensorboard_summary_path": "tensorboard_summary",
+  "network_restore_path": "",
+  "normalise": false,
+  "num_classes": 1,
+  "network_save_interval": 5,
+  "display_interval": 50
+}
