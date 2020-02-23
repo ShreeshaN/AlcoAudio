@@ -1,5 +1,9 @@
 torch
 numpy
 pandas
+tensorboardx
+tensorboard
 pandas
 librosa
+opencv-python
+matplotlib
