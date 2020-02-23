@@ -75,9 +75,9 @@ class ConvNet(nn.Module):
         bias = prepare_bias(weights[11])
         self.conv6.weight = torch.nn.Parameter(weight, requires_grad=True)
         self.conv6.bias = torch.nn.Parameter(bias, requires_grad=True)
-        self.fc1 = nn.Linear(23 * 128, 512)
-        self.fc2 = nn.Linear(512, 256)
-        self.fc3 = nn.Linear(256, 1)
+        self.fc1 = nn.Linear(15 * 128, 512)
+        self.fc2 = nn.Linear(512, 128)
+        self.fc3 = nn.Linear(128, 1)
 
     def forward(self, x):
         """

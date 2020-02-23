@@ -31,6 +31,7 @@ class ConvNetRunner:
         self.run_name = args.run_name + '_' + str(time.time()).split('.')[0]
         self.current_run_basepath = args.network_metrics_basepath + '/' + self.run_name + '/'
         self.learning_rate = args.learning_rate
+        self.transfer_learning_rate = args.transfer_learning_rate
         self.epochs = args.epochs
         self.test_net = args.test_net
         self.train_net = args.train_net
@@ -64,7 +65,10 @@ class ConvNetRunner:
         self.network = ConvNet(self.weights).to(self.device)
 
         self.loss_function = nn.BCELoss()
-        self.optimiser = optim.Adam(self.network.parameters(), lr=args.learning_rate)
+
+        self.optimiser = optim.Adam(
+                [{'params': list(self.network.parameters())[:12], 'lr': self.transfer_learning_rate},
+                 {'params': list(self.network.parameters())[12:], 'lr': self.learning_rate}])
 
         if self.train_net:
             self.network.train()
@@ -157,7 +161,7 @@ class ConvNetRunner:
         test_data, test_labels = self.data_reader(self.train_data_file, should_batch=False, shuffle=False,
                                                   normalise=self.normalise())
         test_predictions = self.network(test_data).detach()
-        test_predictions = nn.Sigmoid()(test_predictions)
-        test_accuracy = self.accuracy_fn(test_predictions, test_labels, self.threshold)
+        test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
+        test_accuracy = accuracy_fn(test_predictions, test_labels, self.threshold)
         print(f"Accuracy: {test_accuracy}")
         print(f"Accuracy: {test_accuracy}", file=self.log_file)

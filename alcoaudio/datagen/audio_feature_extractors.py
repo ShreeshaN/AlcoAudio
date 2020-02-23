@@ -18,39 +18,50 @@ from pydub import AudioSegment
 from pydub.utils import make_chunks
 
 
-def melspectrogram_features(audio):
-    # audio, sample_rate = librosa.load(file, res_type='kaiser_fast', duration=10)
-    mel = librosa.feature.melspectrogram(y=audio, n_mels=100)
-    logmel = librosa.power_to_db(mel, ref=np.max)
-    logmel_norm = np.mean(logmel, axis=0)
-    return logmel_norm
+def mfcc_features(audio):
+    mfcc = librosa.feature.mfcc(y=audio, n_mfcc=40)
+    mfcc_norm = np.mean(mfcc, axis=0)
+    return mfcc_norm
 
 
-def split_audio_into_equal_chunks(file, milliseconds):
-    # audio, sample_rate = librosa.load(
-    #         "/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/128bpm/AM_HiTeeb[A]_128D.wav",
-    #         res_type='kaiser_fast', duration=10)
-    # print(sample_rate)
-    # print(audio.shape)
-    # print(7.5 * sample_rate)
-    # piece = audio[:int(7.5 * sample_rate)]
-    # print("piece", piece.shape)
-    # exit()
-    # chunks = librosa.util.frame(audio, frame_length=1000, axis=0, hop_length=200)
-    # print(len(chunks))
-    audio, sample_rate = librosa.load(
-            "/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/128bpm/AM_HiTeeb[A]_128D.wav",
-            res_type='kaiser_fast', duration=10)
-    return [audio]
+def get_audio_list(audio, sr=22050, cut_length=6, overlap=1):
+    y, trim_idx = librosa.effects.trim(audio)  #
+    len_sample = cut_length * sr  # array length of sample
+    len_ol = overlap * sr  # overlaplength(array)
+    y_mat = []  # initiate list
+    i = 1  # iterator
+
+    if (trim_idx[1] < len_sample):  # check if voice note is too small
+        return y_mat  # return null
+    else:
+        while (i * len_sample - (i - 1) * len_ol <= trim_idx[1]):
+            trim_y = y[(i - 1) * len_sample - (i - 1) * len_ol: i * len_sample - (i - 1) * len_ol]  # trim voice notes
+            y_mat.append(trim_y)
+            i = i + 1
+        if ((i - 1) * len_sample - (i - 2) * len_ol < trim_idx[1]):
+            trim_y = y[trim_idx[1] - len_sample:trim_idx[1]]  # additionof remainder voice note
+            y_mat.append(trim_y)
+
+        return y_mat  # return list
 
 
 def preprocess_data(base_path, files, labels):
     data, out_labels = [], []
     for file, label in zip(files, labels):
-        chunks = split_audio_into_equal_chunks(base_path + '/' + file, 10000)
-        data.extend([melspectrogram_features(chunk) for chunk in chunks])
+        audio, sr = librosa.load(base_path + '/' + file)
+        chunks = get_audio_list(audio, sr=sr)
+        data.extend([mfcc_features(chunk) for chunk in chunks])
         out_labels.extend([float(label) for _ in range(len(chunks))])
     return data, out_labels
+
+# file = '/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/132bpm/AM_HiTeeb[A]_132D.wav'
+# note, sr = librosa.load(file)
+# print(note.shape)
+# list_y = get_audio_list(note)
+# print([librosa.output.write_wav(
+#         "/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/132bpm/" + str(i) + ".wav", x, 22050) for
+#     i, x
+#     in enumerate(list_y)])
 
 # def mfcc():
 #     # this is mel filters + dct
@@ -85,3 +96,20 @@ def preprocess_data(base_path, files, labels):
 #     # plt.plot(mfccsscaled)
 #     librosa.display.specshow(S_dB, sr=sample_rate, x_axis='time')
 #     plt.show()
+
+# def split_audio_into_equal_chunks(file, milliseconds):
+#     # audio, sample_rate = librosa.load(
+#     #         "/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/128bpm/AM_HiTeeb[A]_128D.wav",
+#     #         res_type='kaiser_fast', duration=10)
+#     # print(sample_rate)
+#     # print(audio.shape)
+#     # print(7.5 * sample_rate)
+#     # piece = audio[:int(7.5 * sample_rate)]
+#     # print("piece", piece.shape)
+#     # exit()
+#     # chunks = librosa.util.frame(audio, frame_length=1000, axis=0, hop_length=200)
+#     # print(len(chunks))
+#     audio, sample_rate = librosa.load(
+#             "/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/128bpm/AM_HiTeeb[A]_128D.wav",
+#             res_type='kaiser_fast', duration=10)
+#     return [audio]
