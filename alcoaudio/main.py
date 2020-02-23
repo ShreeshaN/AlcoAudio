@@ -17,7 +17,7 @@ import argparse
 
 
 def parse():
-    parser = argparse.ArgumentParser(description="cvonv_configs")
+    parser = argparse.ArgumentParser(description="alcoaudio_configs")
     parser.add_argument('--train_net', type=bool)
     parser.add_argument('--test_net', type=bool)
     parser.add_argument('--configs_file', type=str)

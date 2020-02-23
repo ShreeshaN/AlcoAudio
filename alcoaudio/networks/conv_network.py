@@ -75,8 +75,7 @@ class ConvNet(nn.Module):
         bias = prepare_bias(weights[11])
         self.conv6.weight = torch.nn.Parameter(weight, requires_grad=True)
         self.conv6.bias = torch.nn.Parameter(bias, requires_grad=True)
-
-        self.fc1 = nn.Linear(2 * 2 * 64, 512)
+        self.fc1 = nn.Linear(23 * 128, 512)
         self.fc2 = nn.Linear(512, 256)
         self.fc3 = nn.Linear(256, 1)
 
@@ -87,6 +86,7 @@ class ConvNet(nn.Module):
         well as arbitrary operators on Tensors.
         """
         # x = self.reshape_for_pytorch(x)
+        x = tensor(x).unsqueeze(1)
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
         x = self.dropout(x)

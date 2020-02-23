@@ -10,23 +10,20 @@ Description:
 
 """
 
-from alcoaudio.networks.conv_network import ConvNet
 from torch.utils.tensorboard import SummaryWriter
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from sklearn.metrics import recall_score
-
-import librosa
 import pandas as pd
-import os
-import cv2
 import numpy as np
 from torch import tensor
 import time
 import json
+
+from alcoaudio.networks.conv_network import ConvNet
 from alcoaudio.utils import file_utils
-from alcoaudio.datagen.audio_feature_extractors import melspectrogram_features
+from alcoaudio.datagen.audio_feature_extractors import preprocess_data
+from alcoaudio.utils.network_utils import accuracy_fn
 
 
 class ConvNetRunner:
@@ -39,7 +36,7 @@ class ConvNetRunner:
         self.train_net = args.train_net
         self.batch_size = args.batch_size
         self.num_classes = args.num_classes
-        self.images_basepath = args.images_basepath
+        self.audio_basepath = args.audio_basepath
         self.train_data_file = args.train_data_file
         self.test_data_file = args.test_data_file
         self.is_cuda_available = torch.cuda.is_available()
@@ -60,8 +57,11 @@ class ConvNetRunner:
         paths = [self.network_save_path, self.tensorboard_summary_path]
         file_utils.create_dirs(paths)
 
+        # Loading keras model weights
+        self.weights = np.load(args.keras_model_weights, allow_pickle=True)
+
         self.network = None
-        self.network = ConvNet(self).to(self.device)
+        self.network = ConvNet(self.weights).to(self.device)
 
         self.loss_function = nn.BCELoss()
         self.optimiser = optim.Adam(self.network.parameters(), lr=args.learning_rate)
@@ -84,13 +84,6 @@ class ConvNetRunner:
 
         self.batch_loss, self.batch_accuracy, self.uar = [], [], []
 
-    def preprocess_data(self, files):
-        data = []
-        for file in files:
-            logmel_norm = melspectrogram_features(file)
-            data.append(logmel_norm)
-        return data
-
     def log_summary(self, global_step, tr_accuracy, tr_loss, te_accuracy, te_loss):
         self.writer.add_scalar('Train/Epoch Accuracy', tr_accuracy, global_step)
         self.writer.add_scalar('Train/Epoch Loss', tr_loss, global_step)
@@ -100,10 +93,9 @@ class ConvNetRunner:
 
     def data_reader(self, data_file, should_batch=True, shuffle=True, normalise=False):
         data = pd.read_csv(data_file)
-        data = data.apply(lambda x: x.str.strip(), axis=1)  # Removing spaces from data
         if shuffle:
             data = data.sample(frac=1)
-        input_data, labels = self.preprocess_data(data['Image_name'].values), data['Label'].values
+        input_data, labels = preprocess_data(self.audio_basepath, data['Audio'].values, data['Label'].values)
         if normalise:
             pass
             # input_data = self.normalise_data(input_data)
@@ -115,13 +107,6 @@ class ConvNetRunner:
         else:
             return input_data, labels
 
-    def accuracy_fn(self, predictions, labels, threshold):
-        # todo: UAR implementation is wrong. Tweak it once the model is ready
-        predictions = torch.where(predictions > tensor(threshold), tensor(1), tensor(0))
-        accuracy = torch.sum(predictions == labels) / len(labels) * 100
-        uar = recall_score(labels, predictions)
-        return accuracy, uar
-
     def train(self):
         train_data, train_labels = self.data_reader(self.train_data_file, normalise=self.normalise)
         test_data, test_labels = self.data_reader(self.test_data_file, should_batch=False, shuffle=False,
@@ -132,12 +117,12 @@ class ConvNetRunner:
             self.batch_loss, self.batch_accuracy, self.batch_uar = [], [], []
             for i, (image_data, label) in enumerate(zip(train_data, train_labels)):
                 predictions = self.network(image_data)
-                predictions = nn.Sigmoid()(predictions)
-                loss = self.loss_function(label, predictions)
+                predictions = nn.Sigmoid()(predictions).squeeze(1)
+                loss = self.loss_function(predictions, tensor(label))
                 self.optimiser.zero_grad()
                 loss.backward()
                 self.optimiser.step()
-                accuracy, uar = self.accuracy_fn(predictions, label, self.threshold)
+                accuracy, uar = accuracy_fn(predictions, label, self.threshold)
                 self.batch_loss.append(loss.detach().numpy())
                 self.batch_accuracy.append(accuracy)
                 self.batch_uar.append(uar)
@@ -151,10 +136,10 @@ class ConvNetRunner:
             # Test data
             with torch.no_grad():
                 test_predictions = self.network(test_data)
+                test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
+                test_loss = self.loss_function(test_predictions, tensor(test_labels))
                 test_predictions = nn.Sigmoid()(test_predictions)
-                test_loss = self.loss_function(test_labels, test_predictions)
-                test_predictions = nn.Sigmoid()(test_predictions)
-                test_accuracy, test_uar = self.accuracy_fn(test_predictions, test_labels, self.threshold)
+                test_accuracy, test_uar = accuracy_fn(test_predictions, test_labels, self.threshold)
                 print('***** Test Metrics ***** ')
                 print('***** Test Metrics ***** ', file=self.log_file)
             print(f"Loss: {test_loss} | Accuracy: {test_accuracy} | UAR: {test_uar}")
