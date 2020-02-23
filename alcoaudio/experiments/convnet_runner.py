@@ -99,7 +99,7 @@ class ConvNetRunner:
         data = pd.read_csv(data_file)
         if shuffle:
             data = data.sample(frac=1)
-        input_data, labels = preprocess_data(self.audio_basepath, data['Audio'].values, data['Label'].values)
+        input_data, labels = preprocess_data(self.audio_basepath, data['WAV_PATH'].values, data['label'].values)
         if normalise:
             pass
             # input_data = self.normalise_data(input_data)

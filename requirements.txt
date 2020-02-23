@@ -1,8 +1,5 @@
 torch
 numpy
 pandas
-tensorboardx
 pandas
 librosa
-json
-shutil
