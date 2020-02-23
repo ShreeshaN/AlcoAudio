@@ -14,8 +14,7 @@ import librosa
 import librosa.display
 import numpy as np
 import matplotlib.pyplot as plt
-from pydub import AudioSegment
-from pydub.utils import make_chunks
+
 
 
 def mfcc_features(audio):
