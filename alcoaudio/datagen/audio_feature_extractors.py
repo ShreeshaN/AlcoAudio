@@ -14,16 +14,20 @@ import librosa
 import librosa.display
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 
-
-def mfcc_features(audio):
+def mfcc_features(audio, normalise=False):
     mfcc = librosa.feature.mfcc(y=audio, n_mfcc=40)
-    mfcc_norm = np.mean(mfcc, axis=0)
-    return mfcc_norm
+    if normalise:
+        mfcc_norm = np.mean(mfcc, axis=0)
+        return mfcc_norm
+    else:
+        return mfcc
 
 
-def get_audio_list(audio, sr=22050, cut_length=6, overlap=1):
+def get_audio_list(audio, sr=22050, cut_length=10, overlap=1):
+
     y, trim_idx = librosa.effects.trim(audio)  #
     len_sample = cut_length * sr  # array length of sample
     len_ol = overlap * sr  # overlaplength(array)
@@ -44,12 +48,14 @@ def get_audio_list(audio, sr=22050, cut_length=6, overlap=1):
         return y_mat  # return list
 
 
-def preprocess_data(base_path, files, labels):
+def preprocess_data(base_path, files, labels, normalise):
     data, out_labels = [], []
     for file, label in zip(files, labels):
-        audio, sr = librosa.load(base_path + '/' + file)
+        if not os.path.exists(base_path + file):
+            continue
+        audio, sr = librosa.load(base_path + file)
         chunks = get_audio_list(audio, sr=sr)
-        data.extend([mfcc_features(chunk) for chunk in chunks])
+        data.extend([mfcc_features(chunk, normalise) for chunk in chunks])
         out_labels.extend([float(label) for _ in range(len(chunks))])
     return data, out_labels
 
