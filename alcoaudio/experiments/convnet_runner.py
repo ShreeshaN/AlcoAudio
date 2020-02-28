@@ -115,10 +115,10 @@ class ConvNetRunner:
             return input_data, labels
 
     def train(self):
-        train_data, train_labels = self.data_reader(self.data_read_path + 'train_data.h5',
-                                                    self.data_read_path + 'train_labels.h5', shuffle=False)
-        test_data, test_labels = self.data_reader(self.data_read_path + 'test_data.h5',
-                                                  self.data_read_path + 'test_labels.h5', shuffle=False)
+        train_data, train_labels = self.data_reader(self.data_read_path + 'train_data.npy',
+                                                    self.data_read_path + 'train_labels.npy', shuffle=False)
+        test_data, test_labels = self.data_reader(self.data_read_path + 'test_data.npy',
+                                                  self.data_read_path + 'test_labels.npy', shuffle=False)
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
             self.batch_loss, self.batch_accuracy, self.batch_uar = [], [], []
