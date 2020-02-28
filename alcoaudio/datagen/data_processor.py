@@ -12,11 +12,10 @@ Description:
 import pandas as pd
 import argparse
 import json
-import numpy as np
 
 from alcoaudio.utils.class_utils import AttributeDict
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
-from alcoaudio.datagen.data_utils import save_h5py
+from alcoaudio.utils.data_utils import save_h5py
 
 
 def parse():

@@ -24,6 +24,7 @@ from alcoaudio.networks.conv_network import ConvNet
 from alcoaudio.utils import file_utils
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
 from alcoaudio.utils.network_utils import accuracy_fn, log_summary
+from alcoaudio.utils.data_utils import read_h5py
 
 
 class ConvNetRunner:
@@ -40,6 +41,7 @@ class ConvNetRunner:
         self.audio_basepath = args.audio_basepath
         self.train_data_file = args.train_data_file
         self.test_data_file = args.test_data_file
+        self.data_read_path = args.data_save_path
         self.is_cuda_available = torch.cuda.is_available()
         self.display_interval = args.display_interval
         self.sampling_rate = args.sampling_rate
@@ -96,25 +98,27 @@ class ConvNetRunner:
         print('Configs used:\n', json.dumps(args, indent=4))
         print('Configs used:\n', json.dumps(args, indent=4), file=self.log_file)
 
-    def data_reader(self, data_file, normalise, should_batch=True, shuffle=True):
-        data = pd.read_csv(data_file)[:50]
-        if shuffle:
-            data = data.sample(frac=1)
-        input_data, labels = preprocess_data(self.audio_basepath, data['WAV_PATH'].values, data['label'].values,
-                                             normalise=normalise, sample_size_in_seconds=self.sample_size_in_seconds,
-                                             sampling_rate=self.sampling_rate, overlap=self.overlap)
+    def data_reader(self, data_filepath, label_filepath, should_batch=True, shuffle=True):
+        # data = pd.read_csv(data_file)[:50]
+        # if shuffle:
+        #     data = data.sample(frac=1)
+        # input_data, labels = preprocess_data(self.audio_basepath, data['WAV_PATH'].values, data['label'].values,
+        #                                      normalise=normalise, sample_size_in_seconds=self.sample_size_in_seconds,
+        #                                      sampling_rate=self.sampling_rate, overlap=self.overlap)
+        input_data, labels = read_h5py(data_filepath), read_h5py(label_filepath)
         if should_batch:
             batched_input = [input_data[pos:pos + self.batch_size] for pos in
-                             range(0, len(data), self.batch_size)]
-            batched_labels = [labels[pos:pos + self.batch_size] for pos in range(0, len(data), self.batch_size)]
+                             range(0, len(input_data), self.batch_size)]
+            batched_labels = [labels[pos:pos + self.batch_size] for pos in range(0, len(input_data), self.batch_size)]
             return batched_input, batched_labels
         else:
             return input_data, labels
 
     def train(self):
-        train_data, train_labels = self.data_reader(self.train_data_file, normalise=self.normalise)
-        test_data, test_labels = self.data_reader(self.test_data_file, shuffle=False,
-                                                  normalise=self.normalise)
+        train_data, train_labels = self.data_reader(self.data_read_path + 'train_data.h5',
+                                                    self.data_read_path + 'train_labels.h5', shuffle=False)
+        test_data, test_labels = self.data_reader(self.data_read_path + 'test_data.h5',
+                                                  self.data_read_path + 'test_labels.h5', shuffle=False)
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
             self.batch_loss, self.batch_accuracy, self.batch_uar = [], [], []
@@ -165,8 +169,7 @@ class ConvNetRunner:
                 print('Network successfully saved: ' + save_path)
 
     def test(self):
-        test_data, test_labels = self.data_reader(self.train_data_file, should_batch=False, shuffle=False,
-                                                  normalise=self.normalise())
+        test_data, test_labels = self.data_reader(self.data_read_path, should_batch=False, shuffle=False)
         test_predictions = self.network(test_data).detach()
         test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
         test_accuracy = accuracy_fn(test_predictions, test_labels, self.threshold)
