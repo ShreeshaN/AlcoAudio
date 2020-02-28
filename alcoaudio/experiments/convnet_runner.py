@@ -106,15 +106,13 @@ class ConvNetRunner:
         #                                      normalise=normalise, sample_size_in_seconds=self.sample_size_in_seconds,
         #                                      sampling_rate=self.sampling_rate, overlap=self.overlap)
         input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
-        input_data = [x[0] for x in input_data]
-        labels = [x[0] for x in labels]
-
         if should_batch:
             batched_input = [input_data[pos:pos + self.batch_size] for pos in
                              range(0, len(input_data), self.batch_size)]
             batched_labels = [labels[pos:pos + self.batch_size] for pos in range(0, len(input_data), self.batch_size)]
             return batched_input, batched_labels
         else:
+
             return input_data, labels
 
     def train(self):
@@ -128,7 +126,7 @@ class ConvNetRunner:
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
                 predictions = self.network(audio_data)
                 predictions = nn.Sigmoid()(predictions).squeeze(1)
-                loss = self.loss_function(predictions, tensor(label))
+                loss = self.loss_function(predictions, tensor(label).float())
                 self.optimiser.zero_grad()
                 loss.backward()
                 self.optimiser.step()
@@ -149,7 +147,7 @@ class ConvNetRunner:
                 for i, (audio_data, label) in enumerate(zip(test_data, test_labels)):
                     test_predictions = self.network(audio_data)
                     test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
-                    test_loss = self.loss_function(test_predictions, tensor(label))
+                    test_loss = self.loss_function(test_predictions, tensor(label).float())
                     test_predictions = nn.Sigmoid()(test_predictions)
                     test_accuracy, test_uar = accuracy_fn(test_predictions, label, self.threshold)
                     self.test_batch_loss.append(test_loss)

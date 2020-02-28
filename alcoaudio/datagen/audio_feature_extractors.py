@@ -44,7 +44,7 @@ def get_audio_list(audio, sr=22050, cut_length=10, overlap=1):
             y_mat.append(trim_y)
             i = i + 1
         if ((i - 1) * len_sample - (i - 2) * len_ol < trim_idx[1]):
-            trim_y = y[trim_idx[1] - len_sample:trim_idx[1]]  # additionof remainder voice note
+            trim_y = y[trim_idx[1] - len_sample:trim_idx[1]]  # addition of remainder voice note
             y_mat.append(trim_y)
 
         return y_mat  # return list
@@ -78,22 +78,19 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
     :return:
     """
     data, out_labels = [], []
-
     audio, sr = librosa.load(base_path + file)
     chunks = get_audio_list(audio, sr=sampling_rate, cut_length=sample_size_in_seconds, overlap=overlap)
-    data.extend([mfcc_features(chunk, normalise) for chunk in chunks])
-    out_labels.extend([float(label) for _ in range(len(chunks))])
-    return [data, out_labels]
+    data.extend([(mfcc_features(chunk, normalise), np.float(label)) for chunk in chunks])
+    return data[0]
 
 
 def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds, sampling_rate, overlap):
-    result = Parallel(n_jobs=4, backend='threading')(
+    data = Parallel(n_jobs=4, backend='threading')(
             delayed(read_audio_n_process)(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap,
                                           normalise) for
             file, label in
             tqdm(zip(files, labels), total=len(labels)))
-    result = np.array(result)
-    data, labels = result[:, 0], result[:, 1]
+    data, labels = [x[0] for x in data], [x[1] for x in data]
     return data, labels
 
 # file = '/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/132bpm/AM_HiTeeb[A]_132D.wav'
