@@ -27,7 +27,6 @@ def mfcc_features(audio, normalise=False):
 
 
 def get_audio_list(audio, sr=22050, cut_length=10, overlap=1):
-
     y, trim_idx = librosa.effects.trim(audio)  #
     len_sample = cut_length * sr  # array length of sample
     len_ol = overlap * sr  # overlaplength(array)
@@ -48,13 +47,13 @@ def get_audio_list(audio, sr=22050, cut_length=10, overlap=1):
         return y_mat  # return list
 
 
-def preprocess_data(base_path, files, labels, normalise):
+def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds, sampling_rate, overlap):
     data, out_labels = [], []
     for file, label in zip(files, labels):
         if not os.path.exists(base_path + file):
             continue
         audio, sr = librosa.load(base_path + file)
-        chunks = get_audio_list(audio, sr=sr)
+        chunks = get_audio_list(audio, sr=sampling_rate, cut_length=sample_size_in_seconds, overlap=overlap)
         data.extend([mfcc_features(chunk, normalise) for chunk in chunks])
         out_labels.extend([float(label) for _ in range(len(chunks))])
     return data, out_labels

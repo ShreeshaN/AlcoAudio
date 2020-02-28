@@ -42,6 +42,9 @@ class ConvNetRunner:
         self.test_data_file = args.test_data_file
         self.is_cuda_available = torch.cuda.is_available()
         self.display_interval = args.display_interval
+        self.sampling_rate = args.sampling_rate
+        self.sample_size_in_seconds = args.sample_size_in_seconds
+        self.overlap = args.overlap
 
         self.network_metrics_basepath = args.network_metrics_basepath
         self.tensorboard_summary_path = self.current_run_basepath + args.tensorboard_summary_path
@@ -85,8 +88,13 @@ class ConvNetRunner:
             print('********************************************************', file=self.log_file)
 
         self.writer = SummaryWriter(self.tensorboard_summary_path)
+        print("Network config:\n", self.network)
+        print("Network config:\n", self.network, file=self.log_file)
 
         self.batch_loss, self.batch_accuracy, self.uar = [], [], []
+
+        print('Configs used:\n', json.dumps(args, indent=4))
+        print('Configs used:\n', json.dumps(args, indent=4), file=self.log_file)
 
     def log_summary(self, global_step, tr_accuracy, tr_loss, te_accuracy, te_loss):
         self.writer.add_scalar('Train/Epoch Accuracy', tr_accuracy, global_step)
@@ -96,11 +104,12 @@ class ConvNetRunner:
         self.writer.flush()
 
     def data_reader(self, data_file, normalise, should_batch=True, shuffle=True):
-        data = pd.read_csv(data_file)[:100]
+        data = pd.read_csv(data_file)[:50]
         if shuffle:
             data = data.sample(frac=1)
         input_data, labels = preprocess_data(self.audio_basepath, data['WAV_PATH'].values, data['label'].values,
-                                             normalise=normalise)
+                                             normalise=normalise, sample_size_in_seconds=self.sample_size_in_seconds,
+                                             sampling_rate=self.sampling_rate, overlap=self.overlap)
         if should_batch:
             batched_input = [input_data[pos:pos + self.batch_size] for pos in
                              range(0, len(data), self.batch_size)]

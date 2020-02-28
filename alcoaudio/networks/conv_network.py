@@ -75,7 +75,7 @@ class ConvNet(nn.Module):
         bias = prepare_bias(weights[11])
         self.conv6.weight = torch.nn.Parameter(weight, requires_grad=True)
         self.conv6.bias = torch.nn.Parameter(bias, requires_grad=True)
-        self.fc1 = nn.Linear(15 * 128, 512)
+        self.fc1 = nn.Linear(26 * 128, 512)
         self.fc2 = nn.Linear(512, 128)
         self.fc3 = nn.Linear(128, 1)
 
@@ -96,7 +96,6 @@ class ConvNet(nn.Module):
         x = F.relu(self.conv5(x))
         x = self.dropout(x)
         x = F.relu(self.conv6(x))
-
         x = x.view(-1, x.shape[1:].numel())
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))

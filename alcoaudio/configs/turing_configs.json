@@ -17,5 +17,8 @@
   "network_save_interval": 5,
   "display_interval": 50,
   "dropout": 0.2,
-  "keras_model_weights": "/home/aostapenko/dr_alcocudio/AlcoAudio/keras_model.npy"
+  "keras_model_weights": "/home/aostapenko/dr_alcocudio/AlcoAudio/keras_model.npy",
+  "sampling_rate": 22050,
+  "sample_size_in_seconds": 8,
+  "overlap": 1
 }
