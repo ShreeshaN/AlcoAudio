@@ -24,7 +24,7 @@ from alcoaudio.networks.conv_network import ConvNet
 from alcoaudio.utils import file_utils
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
 from alcoaudio.utils.network_utils import accuracy_fn, log_summary
-from alcoaudio.utils.data_utils import read_h5py
+from alcoaudio.utils.data_utils import read_h5py, read_npy
 
 
 class ConvNetRunner:
@@ -105,7 +105,7 @@ class ConvNetRunner:
         # input_data, labels = preprocess_data(self.audio_basepath, data['WAV_PATH'].values, data['label'].values,
         #                                      normalise=normalise, sample_size_in_seconds=self.sample_size_in_seconds,
         #                                      sampling_rate=self.sampling_rate, overlap=self.overlap)
-        input_data, labels = read_h5py(data_filepath), read_h5py(label_filepath)
+        input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
         if should_batch:
             batched_input = [input_data[pos:pos + self.batch_size] for pos in
                              range(0, len(input_data), self.batch_size)]
