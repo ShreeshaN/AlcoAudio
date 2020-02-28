@@ -23,7 +23,7 @@ import json
 from alcoaudio.networks.conv_network import ConvNet
 from alcoaudio.utils import file_utils
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
-from alcoaudio.utils.network_utils import accuracy_fn
+from alcoaudio.utils.network_utils import accuracy_fn, log_summary
 
 
 class ConvNetRunner:
@@ -96,15 +96,8 @@ class ConvNetRunner:
         print('Configs used:\n', json.dumps(args, indent=4))
         print('Configs used:\n', json.dumps(args, indent=4), file=self.log_file)
 
-    def log_summary(self, global_step, tr_accuracy, tr_loss, te_accuracy, te_loss):
-        self.writer.add_scalar('Train/Epoch Accuracy', tr_accuracy, global_step)
-        self.writer.add_scalar('Train/Epoch Loss', tr_loss, global_step)
-        self.writer.add_scalar('Test/Accuracy', te_accuracy, global_step)
-        self.writer.add_scalar('Test/Loss', te_loss, global_step)
-        self.writer.flush()
-
     def data_reader(self, data_file, normalise, should_batch=True, shuffle=True):
-        data = pd.read_csv(data_file)
+        data = pd.read_csv(data_file)[:50]
         if shuffle:
             data = data.sample(frac=1)
         input_data, labels = preprocess_data(self.audio_basepath, data['WAV_PATH'].values, data['label'].values,
@@ -119,15 +112,10 @@ class ConvNetRunner:
             return input_data, labels
 
     def train(self):
-        print("Reading train data . . .")
         train_data, train_labels = self.data_reader(self.train_data_file, normalise=self.normalise)
-        print("Reading test data . . .")
         test_data, test_labels = self.data_reader(self.test_data_file, shuffle=False,
                                                   normalise=self.normalise)
         total_step = len(train_data)
-        print("Train data size ", np.asarray(train_data).shape)
-        print("Test data size ", np.asarray(test_data).shape)
-        print("Training starts . . .")
         for epoch in range(1, self.epochs):
             self.batch_loss, self.batch_accuracy, self.batch_uar = [], [], []
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
@@ -168,8 +156,8 @@ class ConvNetRunner:
                     f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}",
                     file=self.log_file)
 
-            self.log_summary(epoch, np.mean(self.batch_accuracy), np.mean(self.batch_loss), test_accuracy,
-                             test_loss.numpy())
+            log_summary(self.writer, epoch, np.mean(self.batch_accuracy), np.mean(self.batch_loss), test_accuracy,
+                        test_loss.numpy())
 
             if epoch % self.network_save_interval == 0:
                 save_path = self.network_save_path + '/' + self.run_name + '_' + str(epoch) + '.pt'

@@ -12,6 +12,8 @@ Description:
 
 import pandas as pd
 import random
+import h5py
+import numpy as np
 
 
 def subject_level_splitting(file):
@@ -27,6 +29,22 @@ def subject_level_splitting(file):
 
     train.to_csv('/Users/badgod/badgod_documents/Alco_audio/train.csv', index=False)
     test.to_csv('/Users/badgod/badgod_documents/Alco_audio/test.csv', index=False)
+
+
+def read_h5py(filename, dataset_name='data'):
+    print("Reading data from file ", filename)
+    h5f = h5py.File(filename, 'r')
+    data = np.array(h5f[dataset_name])
+    h5f.close()
+
+    return data
+
+
+def save_h5py(data, filename, dataset_name='data'):
+    print('Saving data in ', filename)
+    h5f = h5py.File(filename, 'w')
+    h5f.create_dataset(dataset_name, data=data)
+    h5f.close()
 
 
 subject_level_splitting("/Users/badgod/badgod_documents/Alco_audio/alco_audio_data.csv")

@@ -7,3 +7,4 @@ pandas
 librosa
 opencv-python
 matplotlib
+h5py

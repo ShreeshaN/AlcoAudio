@@ -21,3 +21,11 @@ def accuracy_fn(predictions, labels, threshold):
     accuracy = torch.sum(predictions == tensor(labels)) / float(len(labels))
     uar = recall_score(labels, predictions.numpy(), average='macro')
     return accuracy, uar
+
+
+def log_summary(writer, global_step, tr_accuracy, tr_loss, te_accuracy, te_loss):
+    writer.add_scalar('Train/Epoch Accuracy', tr_accuracy, global_step)
+    writer.add_scalar('Train/Epoch Loss', tr_loss, global_step)
+    writer.add_scalar('Test/Accuracy', te_accuracy, global_step)
+    writer.add_scalar('Test/Loss', te_loss, global_step)
+    writer.flush()

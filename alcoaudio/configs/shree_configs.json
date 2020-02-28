@@ -20,5 +20,6 @@
   "keras_model_weights": "/Users/badgod/badgod_documents/github/AlcoAudio/keras_model.npy",
   "sampling_rate": 22050,
   "sample_size_in_seconds": 8,
-  "overlap": 1
+  "overlap": 1,
+  "data_save_path": "/home/aostapenko/dr_alcocudio/AlcoAudio/"
 }
