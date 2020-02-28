@@ -34,7 +34,8 @@ def get_audio_list(audio, sr=22050, cut_length=10, overlap=1):
     i = 1  # iterator
 
     if (trim_idx[1] < len_sample):  # check if voice note is too small
-        return y_mat  # return null
+        no_of_times_to_replicate = int(len_sample / trim_idx[1]) + 1  # Calculating the replication factor if audio
+        return [np.tile(audio, no_of_times_to_replicate)[:len_sample]]  # Trimming the extra audio that is extra
     else:
         while (i * len_sample - (i - 1) * len_ol <= trim_idx[1]):
             trim_y = y[(i - 1) * len_sample - (i - 1) * len_ol: i * len_sample - (i - 1) * len_ol]  # trim voice notes
