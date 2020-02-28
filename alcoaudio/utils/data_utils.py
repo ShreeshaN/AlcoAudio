@@ -47,4 +47,13 @@ def save_h5py(data, filename, dataset_name='data'):
     h5f.close()
 
 
+def save_npy(data, filename):
+    print('Saving data in ', filename)
+    np.save(filename, data)
+
+
+def read_npy(filename):
+    print("Reading data from file ", filename)
+    return np.load(filename)
+
 # subject_level_splitting("/Users/badgod/badgod_documents/Alco_audio/alco_audio_data.csv")

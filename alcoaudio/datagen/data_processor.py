@@ -15,7 +15,7 @@ import json
 
 from alcoaudio.utils.class_utils import AttributeDict
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
-from alcoaudio.utils.data_utils import save_h5py
+from alcoaudio.utils.data_utils import save_h5py, save_npy
 
 
 def parse():
@@ -47,9 +47,20 @@ class DataProcessor:
         save_h5py(data, self.data_save_path + '/' + filename_to_save + '_data.h5')
         save_h5py(labels, self.data_save_path + '/' + filename_to_save + '_labels.h5')
 
+    def process_audio_and_save_npy(self, data_file, filename_to_save, shuffle=True):
+        df = pd.read_csv(data_file)[:40]
+        if shuffle:
+            df = df.sample(frac=1)
+        data, labels = preprocess_data(self.base_path, df['WAV_PATH'].values, df['label'].values,
+                                       self.normalise,
+                                       self.sample_size_in_seconds, self.sampling_rate, self.overlap)
+
+        save_npy(data, self.data_save_path + '/' + filename_to_save + '_data.npy')
+        save_npy(labels, self.data_save_path + '/' + filename_to_save + '_labels.npy')
+
     def run(self):
-        self.process_audio_and_save_h5py(self.train_data_file, filename_to_save='train')
-        self.process_audio_and_save_h5py(self.test_data_file, filename_to_save='test')
+        self.process_audio_and_save_npy(self.train_data_file, filename_to_save='train')
+        self.process_audio_and_save_npy(self.test_data_file, filename_to_save='test')
 
 
 if __name__ == '__main__':
