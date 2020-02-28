@@ -54,6 +54,6 @@ def save_npy(data, filename):
 
 def read_npy(filename):
     print("Reading data from file ", filename)
-    return np.load(filename)
+    return np.load(filename, allow_pickle=True)
 
 # subject_level_splitting("/Users/badgod/badgod_documents/Alco_audio/alco_audio_data.csv")
