@@ -40,7 +40,9 @@ class LSTMNet(nn.Module):
         self.conv5 = nn.Conv1d(128, 128, 5, 1)        
         self.dropout = nn.Dropout(p=0.2)
 
-        self.conv6 = nn.Conv1d(128, 128, 5, 1)      
+        self.conv6 = nn.Conv1d(128, 128, 5, 1)
+
+
           
         self.fc1 = nn.Linear(26 * 128, 512)
         self.fc2 = nn.Linear(512, 128)

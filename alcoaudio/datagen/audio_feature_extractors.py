@@ -21,11 +21,13 @@ import time
 
 def mfcc_features(audio, normalise=False):
     mfcc = librosa.feature.mfcc(y=audio, n_mfcc=40)
-    if normalise:
-        mfcc_norm = np.mean(mfcc, axis=0)
-        return mfcc_norm
-    else:
-        return mfcc
+    # print(mfcc.shape())
+    return mfcc
+    # if normalise:
+    #     mfcc_norm = np.mean(mfcc, axis=0)
+    #     return mfcc_norm
+    # else:
+    #     return mfcc
 
 
 def get_audio_list(audio, sr=22050, cut_length=10, overlap=1):
