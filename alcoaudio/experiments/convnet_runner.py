@@ -14,18 +14,15 @@ from torch.utils.tensorboard import SummaryWriter
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import pandas as pd
 import numpy as np
 from torch import tensor
 import time
 import json
 
-from alcoaudio.networks.conv_network import ConvNet
+from alcoaudio.networks.conv_lstm_net import LSTMNet
 from alcoaudio.utils import file_utils
-from alcoaudio.datagen.audio_feature_extractors import preprocess_data
 from alcoaudio.utils.network_utils import accuracy_fn, log_summary
-from alcoaudio.utils.data_utils import read_h5py, read_npy
-
+from alcoaudio.utils.data_utils import read_npy
 
 class ConvNetRunner:
     def __init__(self, args):
@@ -63,11 +60,8 @@ class ConvNetRunner:
         paths = [self.network_save_path, self.tensorboard_summary_path]
         file_utils.create_dirs(paths)
 
-        # Loading keras model weights
-        self.weights = np.load(args.keras_model_weights, allow_pickle=True)
 
-        self.network = None
-        self.network = ConvNet(self.weights).to(self.device)
+        self.network = LSTMNet().to(self.device)
 
         self.loss_function = nn.BCELoss()
 
@@ -106,8 +100,7 @@ class ConvNetRunner:
         #                                      normalise=normalise, sample_size_in_seconds=self.sample_size_in_seconds,
         #                                      sampling_rate=self.sampling_rate, overlap=self.overlap)
         input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
-        input_data = [x[0] for x in input_data]
-        labels = [x[0] for x in labels]
+
 
         if should_batch:
             batched_input = [input_data[pos:pos + self.batch_size] for pos in
@@ -128,7 +121,7 @@ class ConvNetRunner:
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
                 predictions = self.network(audio_data)
                 predictions = nn.Sigmoid()(predictions).squeeze(1)
-                loss = self.loss_function(predictions, tensor(label))
+                loss = self.loss_function(predictions, tensor(label).float())
                 self.optimiser.zero_grad()
                 loss.backward()
                 self.optimiser.step()
@@ -149,7 +142,7 @@ class ConvNetRunner:
                 for i, (audio_data, label) in enumerate(zip(test_data, test_labels)):
                     test_predictions = self.network(audio_data)
                     test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
-                    test_loss = self.loss_function(test_predictions, tensor(label))
+                    test_loss = self.loss_function(test_predictions, tensor(label).float())
                     test_predictions = nn.Sigmoid()(test_predictions)
                     test_accuracy, test_uar = accuracy_fn(test_predictions, label, self.threshold)
                     self.test_batch_loss.append(test_loss)

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 @created on: 02/16/20,
-@author: Shreesha N,
+@author: Pratik J ,
 @version: v0.0.1
-@system name: badgod
+@system name: pratcr7
 Description:
 
 ..todo::
@@ -18,9 +18,9 @@ import cv2
 import numpy as np
 
 
-class ConvNet(nn.Module):
+class LSTMNet(nn.Module):
 
-    def __init__(self, weights):
+    def __init__(self):
         """
         You can add additional arguments as you need.
         In the constructor we instantiate modules and assign them as
@@ -52,7 +52,7 @@ class ConvNet(nn.Module):
         a Tensor of output data. We can use Modules defined in the constructor as
         well as arbitrary operators on Tensors.
         """
-        # x = self.reshape_for_pytorch(x)
+
         x = tensor(x).unsqueeze(1)
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
