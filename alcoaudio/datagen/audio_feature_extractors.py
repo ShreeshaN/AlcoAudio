@@ -15,6 +15,7 @@ import librosa.display
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+from tqdm import tqdm
 
 
 def mfcc_features(audio, normalise=False):
@@ -50,7 +51,7 @@ def get_audio_list(audio, sr=22050, cut_length=10, overlap=1):
 
 def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds, sampling_rate, overlap):
     data, out_labels = [], []
-    for file, label in zip(files, labels):
+    for file, label in tqdm(zip(files, labels), total=len(labels)):
         if not os.path.exists(base_path + file):
             continue
         audio, sr = librosa.load(base_path + file)
