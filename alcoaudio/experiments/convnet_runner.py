@@ -104,7 +104,7 @@ class ConvNetRunner:
         self.writer.flush()
 
     def data_reader(self, data_file, normalise, should_batch=True, shuffle=True):
-        data = pd.read_csv(data_file)[:50]
+        data = pd.read_csv(data_file)
         if shuffle:
             data = data.sample(frac=1)
         input_data, labels = preprocess_data(self.audio_basepath, data['WAV_PATH'].values, data['label'].values,
