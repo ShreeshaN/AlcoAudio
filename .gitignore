@@ -108,3 +108,7 @@ venv.bak/
 results/
 
 __py
+*.xml
+*.iml
+.DS_Store
+.DS_Store
