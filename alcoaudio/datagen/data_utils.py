@@ -47,4 +47,4 @@ def save_h5py(data, filename, dataset_name='data'):
     h5f.close()
 
 
-subject_level_splitting("/Users/badgod/badgod_documents/Alco_audio/alco_audio_data.csv")
+# subject_level_splitting("/Users/badgod/badgod_documents/Alco_audio/alco_audio_data.csv")
