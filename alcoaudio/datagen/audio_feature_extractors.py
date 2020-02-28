@@ -16,6 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from tqdm import tqdm
+import time
 
 
 def mfcc_features(audio, normalise=False):
@@ -49,16 +50,51 @@ def get_audio_list(audio, sr=22050, cut_length=10, overlap=1):
         return y_mat  # return list
 
 
-def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds, sampling_rate, overlap):
+# def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds, sampling_rate, overlap):
+#     data, out_labels = [], []
+#     for file, label in zip(files, labels):
+#         if not os.path.exists(base_path + file):
+#             continue
+#         audio, sr = librosa.load(base_path + file)
+#         chunks = get_audio_list(audio, sr=sampling_rate, cut_length=sample_size_in_seconds, overlap=overlap)
+#         data.extend([mfcc_features(chunk, normalise) for chunk in chunks])
+#         out_labels.extend([float(label) for _ in range(len(chunks))])
+#     return data, out_labels
+
+
+from joblib import Parallel, delayed
+
+
+def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap, normalise):
+    """
+    This method is called by the preprocess data method
+    :param file:
+    :param label:
+    :param base_path:
+    :param sampling_rate:
+    :param sample_size_in_seconds:
+    :param overlap:
+    :param normalise:
+    :return:
+    """
     data, out_labels = [], []
-    for file, label in tqdm(zip(files, labels), total=len(labels)):
-        if not os.path.exists(base_path + file):
-            continue
-        audio, sr = librosa.load(base_path + file)
-        chunks = get_audio_list(audio, sr=sampling_rate, cut_length=sample_size_in_seconds, overlap=overlap)
-        data.extend([mfcc_features(chunk, normalise) for chunk in chunks])
-        out_labels.extend([float(label) for _ in range(len(chunks))])
-    return data, out_labels
+
+    audio, sr = librosa.load(base_path + file)
+    chunks = get_audio_list(audio, sr=sampling_rate, cut_length=sample_size_in_seconds, overlap=overlap)
+    data.extend([mfcc_features(chunk, normalise) for chunk in chunks])
+    out_labels.extend([float(label) for _ in range(len(chunks))])
+    return [data, out_labels]
+
+
+def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds, sampling_rate, overlap):
+    result = Parallel(n_jobs=8, backend='threading')(
+            delayed(read_audio_n_process)(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap,
+                                          normalise) for
+            file, label in
+            tqdm(zip(files, labels), total=len(labels)))
+    result = np.array(result)
+    data, labels = result[:, 0], result[:, 1]
+    return data, labels
 
 # file = '/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/132bpm/AM_HiTeeb[A]_132D.wav'
 # note, sr = librosa.load(file)
