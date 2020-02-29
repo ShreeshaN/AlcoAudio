@@ -123,7 +123,7 @@ class ConvNetRunner:
                                                   self.data_read_path + 'test_labels.npy', shuffle=False)
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
-            self.batch_loss, self.batch_accuracy, self.batch_uar, audio_for_tensorboard_train = [], [], [], None
+            self.batch_loss, self.batch_accuracy, self.batch_uar, self.batch_ua, audio_for_tensorboard_train = [], [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
                 if i == 0:
                     self.writer.add_graph(self.network, tensor(audio_data))
@@ -133,49 +133,51 @@ class ConvNetRunner:
                 self.optimiser.zero_grad()
                 loss.backward()
                 self.optimiser.step()
-                accuracy, uar = accuracy_fn(predictions, label, self.threshold)
+                accuracy, uar, ua = accuracy_fn(predictions, label, self.threshold)
                 self.batch_loss.append(loss.detach().numpy())
                 self.batch_accuracy.append(accuracy)
                 self.batch_uar.append(uar)
+                self.batch_ua.append(ua)
                 if i % self.display_interval == 0:
                     print(
-                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}")
+                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar} | UA: {ua}")
                     print(
-                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}",
+                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar} | UA: {ua}",
                             file=self.log_file)
 
             print('***** Overall Train Metrics ***** ')
             print('***** Overall Train Metrics ***** ', file=self.log_file)
             print(
-                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)}")
+                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} | UA: {np.mean(self.batch_ua)}")
             print(
-                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)}",
+                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} | UA: {np.mean(self.batch_ua)}",
                     file=self.log_file)
 
             # Test data
-            self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, audio_for_tensorboard_test = [], [], [], None
+            self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
             with torch.no_grad():
                 for i, (audio_data, label) in enumerate(zip(test_data, test_labels)):
                     test_predictions = self.network(audio_data)
                     test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
                     test_loss = self.loss_function(test_predictions, tensor(label).float())
                     test_predictions = nn.Sigmoid()(test_predictions)
-                    test_accuracy, test_uar = accuracy_fn(test_predictions, label, self.threshold)
+                    test_accuracy, test_uar, test_ua = accuracy_fn(test_predictions, label, self.threshold)
                     self.test_batch_loss.append(test_loss.numpy())
                     self.test_batch_accuracy.append(test_accuracy.numpy())
                     self.test_batch_uar.append(test_uar)
+                    self.test_batch_ua.append(test_ua)
             print('***** Test Metrics ***** ')
             print('***** Test Metrics ***** ', file=self.log_file)
             print(
-                    f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}")
+                    f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)} | UA: {np.mean(self.test_batch_ua)}")
             print(
-                    f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}",
+                    f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)} | UA: {np.mean(self.test_batch_ua)}",
                     file=self.log_file)
 
             log_summary(self.writer, epoch, tr_accuracy=np.mean(self.batch_accuracy), tr_loss=np.mean(self.batch_loss),
-                        tr_uar=np.mean(self.batch_uar),
+                        tr_uar=np.mean(self.batch_uar), tr_ua=np.mean(self.batch_ua),
                         te_accuracy=np.mean(self.test_batch_accuracy), te_loss=np.mean(self.test_batch_loss),
-                        te_uar=np.mean(self.test_batch_uar))
+                        te_uar=np.mean(self.test_batch_uar), te_ua=np.mean(self.test_batch_ua))
 
             if epoch % self.network_save_interval == 0:
                 save_path = self.network_save_path + '/' + self.run_name + '_' + str(epoch) + '.pt'

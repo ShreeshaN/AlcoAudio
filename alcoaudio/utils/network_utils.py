@@ -13,6 +13,8 @@ Description:
 from torch import tensor
 import torch
 from sklearn.metrics import recall_score
+from sklearn.metrics import confusion_matrix
+import numpy as np
 
 
 def accuracy_fn(predictions, labels, threshold):
@@ -20,15 +22,19 @@ def accuracy_fn(predictions, labels, threshold):
     predictions = torch.where(predictions > tensor(threshold), tensor(1), tensor(0))
     accuracy = torch.sum(predictions == tensor(labels)) / float(len(labels))
     uar = recall_score(labels, predictions.numpy(), average='macro')
-    return accuracy, uar
+    cf = confusion_matrix(labels, predictions)
+    ua = (cf[0][0] + cf[1][1]) / np.sum(cf)
+    return accuracy, uar, ua
 
 
-def log_summary(writer, global_step, tr_accuracy, tr_loss, tr_uar, te_accuracy, te_loss, te_uar):
+def log_summary(writer, global_step, tr_accuracy, tr_loss, tr_uar, tr_ua, te_accuracy, te_loss, te_uar, te_ua):
     writer.add_scalar('Train/Epoch Accuracy', tr_accuracy, global_step)
     writer.add_scalar('Train/Epoch Loss', tr_loss, global_step)
     writer.add_scalar('Train/Epoch UAR', tr_uar, global_step)
+    writer.add_scalar('Train/Epoch UA', tr_ua, global_step)
     writer.add_scalar('Test/Accuracy', te_accuracy, global_step)
     writer.add_scalar('Test/Loss', te_loss, global_step)
     writer.add_scalar('Test/UAR', te_uar, global_step)
+    writer.add_scalar('Test/Epoch UA', te_ua, global_step)
 
     writer.flush()
