@@ -10,3 +10,4 @@ matplotlib
 h5py
 tqdm
 joblib
+torchvision

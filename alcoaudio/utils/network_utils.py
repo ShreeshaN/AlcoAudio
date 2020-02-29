@@ -22,8 +22,11 @@ def accuracy_fn(predictions, labels, threshold):
     predictions = torch.where(predictions > tensor(threshold), tensor(1), tensor(0))
     accuracy = torch.sum(predictions == tensor(labels)) / float(len(labels))
     uar = recall_score(labels, predictions.numpy(), average='macro')
-    cf = confusion_matrix(labels, predictions)
-    ua = (cf[0][0] + cf[1][1]) / np.sum(cf)
+    if np.array_equal(labels, predictions.numpy()):
+        ua = 1
+    else:
+        tn, fp, fn, tp = confusion_matrix(labels, predictions).ravel()
+        ua = (tp + tn) / (tn + fp + fn + tp)
     return accuracy, uar, ua
 
 
