@@ -13,7 +13,7 @@ import pandas as pd
 import argparse
 import json
 import time
-from alcoaudio.utils.class_utils import AttributeDict
+from AlcoAudio.alcoaudio.utils.class_utils import AttributeDict
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
 from alcoaudio.utils.data_utils import save_h5py, save_npy
 
