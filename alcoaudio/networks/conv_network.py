@@ -48,7 +48,7 @@ class ConvNet(nn.Module):
         self.conv2.weight = torch.nn.Parameter(weight, requires_grad=True)
         self.conv2.bias = torch.nn.Parameter(bias, requires_grad=True)
 
-        self.dropout0 = nn.Dropout(p=0.1)
+        # self.dropout0 = nn.Dropout(p=0.1)
         self.pool1 = nn.MaxPool1d(8)
 
         self.conv3 = nn.Conv1d(128, 128, 5, 1)
@@ -68,7 +68,7 @@ class ConvNet(nn.Module):
         bias = prepare_bias(weights[9])
         self.conv5.weight = torch.nn.Parameter(weight, requires_grad=True)
         self.conv5.bias = torch.nn.Parameter(bias, requires_grad=True)
-        self.dropout1 = nn.Dropout(p=0.2)
+        # self.dropout1 = nn.Dropout(p=0.2)
 
         self.conv6 = nn.Conv1d(128, 128, 5, 1)
         weight = prepare_weights(weights[10])
