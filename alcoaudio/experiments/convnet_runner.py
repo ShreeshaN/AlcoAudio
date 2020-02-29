@@ -124,7 +124,6 @@ class ConvNetRunner:
         for epoch in range(1, self.epochs):
             self.batch_loss, self.batch_accuracy, self.batch_uar = [], [], []
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
-                print("train", audio_data.shape)
                 predictions = self.network(audio_data)
                 predictions = nn.Sigmoid()(predictions).squeeze(1)
                 loss = self.loss_function(predictions, tensor(label).float())
@@ -146,7 +145,6 @@ class ConvNetRunner:
             self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar = [], [], []
             with torch.no_grad():
                 for i, (audio_data, label) in enumerate(zip(test_data, test_labels)):
-                    print("test ", audio_data.shape)
                     test_predictions = self.network(audio_data)
                     test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
                     test_loss = self.loss_function(test_predictions, tensor(label).float())
