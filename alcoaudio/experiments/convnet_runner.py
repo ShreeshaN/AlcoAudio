@@ -106,13 +106,13 @@ class ConvNetRunner:
         #                                      normalise=normalise, sample_size_in_seconds=self.sample_size_in_seconds,
         #                                      sampling_rate=self.sampling_rate, overlap=self.overlap)
         input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
+
         if should_batch:
             batched_input = [input_data[pos:pos + self.batch_size] for pos in
                              range(0, len(input_data), self.batch_size)]
-            batched_labels = [labels[pos:pos + self.batch_size] for pos in range(0, len(input_data), self.batch_size)]
+            batched_labels = [labels[pos:pos + self.batch_size] for pos in range(0, len(labels), self.batch_size)]
             return batched_input, batched_labels
         else:
-
             return input_data, labels
 
     def train(self):
@@ -124,6 +124,7 @@ class ConvNetRunner:
         for epoch in range(1, self.epochs):
             self.batch_loss, self.batch_accuracy, self.batch_uar = [], [], []
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
+                print("train", audio_data.shape)
                 predictions = self.network(audio_data)
                 predictions = nn.Sigmoid()(predictions).squeeze(1)
                 loss = self.loss_function(predictions, tensor(label).float())
@@ -145,13 +146,14 @@ class ConvNetRunner:
             self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar = [], [], []
             with torch.no_grad():
                 for i, (audio_data, label) in enumerate(zip(test_data, test_labels)):
+                    print("test ", audio_data.shape)
                     test_predictions = self.network(audio_data)
                     test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
                     test_loss = self.loss_function(test_predictions, tensor(label).float())
                     test_predictions = nn.Sigmoid()(test_predictions)
                     test_accuracy, test_uar = accuracy_fn(test_predictions, label, self.threshold)
-                    self.test_batch_loss.append(test_loss)
-                    self.test_batch_accuracy.append(test_accuracy)
+                    self.test_batch_loss.append(test_loss.numpy())
+                    self.test_batch_accuracy.append(test_accuracy.numpy())
                     self.test_batch_uar.append(test_uar)
                 print('***** Test Metrics ***** ')
                 print('***** Test Metrics ***** ', file=self.log_file)
@@ -161,8 +163,8 @@ class ConvNetRunner:
                     f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}",
                     file=self.log_file)
 
-            log_summary(self.writer, epoch, np.mean(self.batch_accuracy), np.mean(self.batch_loss), test_accuracy,
-                        test_loss.numpy())
+            log_summary(self.writer, epoch, np.mean(self.batch_accuracy), np.mean(self.batch_loss),
+                        np.mean(self.test_batch_accuracy), np.mean(self.test_batch_loss))
 
             if epoch % self.network_save_interval == 0:
                 save_path = self.network_save_path + '/' + self.run_name + '_' + str(epoch) + '.pt'
