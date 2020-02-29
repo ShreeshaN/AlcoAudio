@@ -19,6 +19,7 @@ import numpy as np
 from torch import tensor
 import time
 import json
+import torchvision
 
 from alcoaudio.networks.conv_network import ConvNet
 from alcoaudio.utils import file_utils
@@ -122,8 +123,10 @@ class ConvNetRunner:
                                                   self.data_read_path + 'test_labels.npy', shuffle=False)
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
-            self.batch_loss, self.batch_accuracy, self.batch_uar = [], [], []
+            self.batch_loss, self.batch_accuracy, self.batch_uar, audio_for_tensorboard_train = [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
+                if i == 0:
+                    self.writer.add_graph(self.network, tensor(audio_data))
                 predictions = self.network(audio_data)
                 predictions = nn.Sigmoid()(predictions).squeeze(1)
                 loss = self.loss_function(predictions, tensor(label).float())
@@ -150,7 +153,7 @@ class ConvNetRunner:
                     file=self.log_file)
 
             # Test data
-            self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar = [], [], []
+            self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, audio_for_tensorboard_test = [], [], [], None
             with torch.no_grad():
                 for i, (audio_data, label) in enumerate(zip(test_data, test_labels)):
                     test_predictions = self.network(audio_data)

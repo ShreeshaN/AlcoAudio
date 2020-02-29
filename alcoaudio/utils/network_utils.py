@@ -30,4 +30,5 @@ def log_summary(writer, global_step, tr_accuracy, tr_loss, tr_uar, te_accuracy, 
     writer.add_scalar('Test/Accuracy', te_accuracy, global_step)
     writer.add_scalar('Test/Loss', te_loss, global_step)
     writer.add_scalar('Test/UAR', te_uar, global_step)
+
     writer.flush()
