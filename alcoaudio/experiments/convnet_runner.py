@@ -141,6 +141,14 @@ class ConvNetRunner:
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}",
                             file=self.log_file)
 
+            print('***** Overall Train Metrics ***** ')
+            print('***** Overall Train Metrics ***** ', file=self.log_file)
+            print(
+                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)}")
+            print(
+                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)}",
+                    file=self.log_file)
+
             # Test data
             self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar = [], [], []
             with torch.no_grad():
@@ -153,16 +161,16 @@ class ConvNetRunner:
                     self.test_batch_loss.append(test_loss.numpy())
                     self.test_batch_accuracy.append(test_accuracy.numpy())
                     self.test_batch_uar.append(test_uar)
-                print('***** Test Metrics ***** ')
-                print('***** Test Metrics ***** ', file=self.log_file)
+            print('***** Test Metrics ***** ')
+            print('***** Test Metrics ***** ', file=self.log_file)
             print(
                     f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}")
             print(
                     f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}",
                     file=self.log_file)
 
-            log_summary(self.writer, epoch, np.mean(self.batch_accuracy), np.mean(self.batch_loss),
-                        np.mean(self.test_batch_accuracy), np.mean(self.test_batch_loss))
+            log_summary(self.writer, epoch, tr_accuracy=np.mean(self.batch_accuracy), tr_loss=np.mean(self.batch_loss),
+                        te_accuracy=np.mean(self.test_batch_accuracy), te_loss=np.mean(self.test_batch_loss))
 
             if epoch % self.network_save_interval == 0:
                 save_path = self.network_save_path + '/' + self.run_name + '_' + str(epoch) + '.pt'
