@@ -170,7 +170,9 @@ class ConvNetRunner:
                     file=self.log_file)
 
             log_summary(self.writer, epoch, tr_accuracy=np.mean(self.batch_accuracy), tr_loss=np.mean(self.batch_loss),
-                        te_accuracy=np.mean(self.test_batch_accuracy), te_loss=np.mean(self.test_batch_loss))
+                        tr_uar=np.mean(self.batch_uar),
+                        te_accuracy=np.mean(self.test_batch_accuracy), te_loss=np.mean(self.test_batch_loss),
+                        te_uar=np.mean(self.test_batch_uar))
 
             if epoch % self.network_save_interval == 0:
                 save_path = self.network_save_path + '/' + self.run_name + '_' + str(epoch) + '.pt'
