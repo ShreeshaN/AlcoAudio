@@ -84,7 +84,7 @@ class ConvNetRunner:
             print('Loading Network')
             self.network.load_state_dict(torch.load(self.network_restore_path, map_location=self.device))
             self.network.eval()
-            self.log_file = open(self.network_restore_path + '/' + self.run_name + '.log', 'a')
+            self.log_file = open(self.network_restore_path.replace('_40.pt', '.log'), 'a')
             print('\n\n\n********************************************************', file=self.log_file)
             print('Testing Model - ', self.network_restore_path)
             print('Testing Model - ', self.network_restore_path, file=self.log_file)
@@ -160,7 +160,6 @@ class ConvNetRunner:
                     test_predictions = self.network(audio_data)
                     test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
                     test_loss = self.loss_function(test_predictions, tensor(label).float())
-                    test_predictions = nn.Sigmoid()(test_predictions)
                     test_accuracy, test_uar, test_ua = accuracy_fn(test_predictions, label, self.threshold)
                     self.test_batch_loss.append(test_loss.numpy())
                     self.test_batch_accuracy.append(test_accuracy.numpy())
@@ -185,7 +184,9 @@ class ConvNetRunner:
                 print('Network successfully saved: ' + save_path)
 
     def test(self):
-        test_data, test_labels = self.data_reader(self.data_read_path, should_batch=False, shuffle=False)
+        test_data, test_labels = self.data_reader(self.data_read_path + '/server_data/test_data.npy',
+                                                  self.data_read_path + '/server_data/test_labels.npy', shuffle=False, should_batch=False)
+        test_data, test_labels = test_data[:1000], test_labels[:1000]
         test_predictions = self.network(test_data).detach()
         test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
         test_accuracy = accuracy_fn(test_predictions, test_labels, self.threshold)
