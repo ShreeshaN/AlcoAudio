@@ -47,7 +47,7 @@ class DataProcessor:
         save_h5py(labels, self.data_save_path + '/' + filename_to_save + '_labels.h5')
 
     def process_audio_and_save_npy(self, data_file, filename_to_save, shuffle=True):
-        df = pd.read_csv(data_file)[:30]
+        df = pd.read_csv(data_file)
         if shuffle:
             df = df.sample(frac=1)
         data, labels = preprocess_data(self.base_path, df['WAV_PATH'].values, df['label'].values,
