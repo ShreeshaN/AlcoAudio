@@ -161,7 +161,7 @@ def mel_filters():
     plt.show()
 
 
-mel_filters()
+# mel_filters()
 # def split_audio_into_equal_chunks(file, milliseconds):
 #     # audio, sample_rate = librosa.load(
 #     #         "/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/128bpm/AM_HiTeeb[A]_128D.wav",
