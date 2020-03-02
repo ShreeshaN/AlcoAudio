@@ -30,21 +30,21 @@ class LSTMNet(nn.Module):
 
         super().__init__()
 
-        self.conv1 = nn.Conv1d(1, 128, 5, 1)
-        self.conv2 = nn.Conv1d(128, 128, 5, 1)
+        self.conv1 = nn.Conv2d(1, 256, 3, 1)
+        self.conv2 = nn.Conv2d(256, 256, 3, 1)
         self.dropout = nn.Dropout(p=0.1)
         self.pool1 = nn.MaxPool1d(8)
 
-        self.conv3 = nn.Conv1d(128, 128, 5, 1)
-        self.conv4 = nn.Conv1d(128, 128, 5, 1)
-        self.conv5 = nn.Conv1d(128, 128, 5, 1)        
+        self.conv3 = nn.Conv2d(256, 128, 3, 1)
+        self.conv4 = nn.Conv2d(128, 128, 3, 1)
+        self.conv5 = nn.Conv2d(128, 64, 3, 1)
         self.dropout = nn.Dropout(p=0.2)
+        self.conv6 = nn.Conv2d(64, 64, 3, 1)
 
-        self.conv6 = nn.Conv1d(128, 128, 5, 1)
+        self.lstm1 = nn.LSTM(64, 64, 1, batch_first=True, dropout=0.3, bidirectional=False)
+        self.lstm2 = nn.LSTM(64, 64, 1, batch_first=True, dropout=0.3, bidirectional=False)
 
-
-          
-        self.fc1 = nn.Linear(26 * 128, 512)
+        self.fc1 = nn.Linear(26 * 64, 512)
         self.fc2 = nn.Linear(512, 128)
         self.fc3 = nn.Linear(128, 1)
 
@@ -66,6 +66,11 @@ class LSTMNet(nn.Module):
         x = self.dropout(x)
         x = F.relu(self.conv6(x))
         x = x.view(-1, x.shape[1:].numel())
+        h_0 = Variable(torch.zeros(1, x.size(0), 64))
+        c_0 = Variable(torch.zeros(1, x.size(0), 64))
+        ula1, (x, _) = F.relu(self.lstm1(x, (h_0, c_0)))
+        ula2, (x, _) = F.relu(self.lstm2(x, (h_0, c_0)))
+        x = x.view(-1, 64)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
