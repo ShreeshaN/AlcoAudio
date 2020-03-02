@@ -29,17 +29,17 @@ class ConvNet(nn.Module):
 
         super().__init__()
 
-        self.conv1 = nn.Conv1d(1, 128, 5, 1)
-        self.conv2 = nn.Conv1d(128, 128, 5, 1)
+        self.conv1 = nn.Conv1d(1, 128, 5, 1, padding=3)
+        self.conv2 = nn.Conv1d(128, 128, 5, 1, padding=3)
         # self.dropout0 = nn.Dropout(p=0.1)
         self.pool1 = nn.MaxPool1d(8)
 
-        self.conv3 = nn.Conv1d(128, 128, 5, 1)
-        self.conv4 = nn.Conv1d(128, 128, 5, 1)
-        self.conv5 = nn.Conv1d(128, 128, 5, 1)
+        self.conv3 = nn.Conv1d(128, 128, 5, 1, padding=3)
+        self.conv4 = nn.Conv1d(128, 128, 5, 1, padding=3)
+        self.conv5 = nn.Conv1d(128, 128, 5, 1, padding=3)
         # self.dropout1 = nn.Dropout(p=0.2)
 
-        self.conv6 = nn.Conv1d(128, 128, 5, 1)
+        self.conv6 = nn.Conv1d(128, 128, 5, 1, padding=3)
         self.fc1 = nn.Linear(26 * 128, 512)
         self.fc2 = nn.Linear(512, 128)
         self.fc3 = nn.Linear(128, 1)
