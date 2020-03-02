@@ -76,7 +76,7 @@ class TransferNet(nn.Module):
         bias = prepare_bias(weights[11])
         self.conv6.weight = torch.nn.Parameter(weight, requires_grad=True)
         self.conv6.bias = torch.nn.Parameter(bias, requires_grad=True)
-        self.fc1 = nn.Linear(26 * 128, 512)
+        self.fc1 = nn.Linear(13 * 128, 512)
         self.fc2 = nn.Linear(512, 128)
         self.fc3 = nn.Linear(128, 1)
 
