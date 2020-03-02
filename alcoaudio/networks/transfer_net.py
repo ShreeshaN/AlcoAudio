@@ -19,7 +19,7 @@ import cv2
 import numpy as np
 
 
-class ConvNet(nn.Module):
+class TransferNet(nn.Module):
 
     def __init__(self, weights):
         """
@@ -37,13 +37,13 @@ class ConvNet(nn.Module):
 
         super().__init__()
 
-        self.conv1 = nn.Conv1d(1, 128, 5, 1)
+        self.conv1 = nn.Conv1d(1, 128, 5, 1, padding=3)
         weight = prepare_weights(weights[0])
         bias = prepare_bias(weights[1])
         self.conv1.weight = torch.nn.Parameter(weight, requires_grad=True)
         self.conv1.bias = torch.nn.Parameter(bias, requires_grad=True)
 
-        self.conv2 = nn.Conv1d(128, 128, 5, 1)
+        self.conv2 = nn.Conv1d(128, 128, 5, 1, padding=3)
         weight = prepare_weights(weights[2])
         bias = prepare_bias(weights[3])
         self.conv2.weight = torch.nn.Parameter(weight, requires_grad=True)
@@ -52,26 +52,26 @@ class ConvNet(nn.Module):
         # self.dropout0 = nn.Dropout(p=0.1)
         self.pool1 = nn.MaxPool1d(8)
 
-        self.conv3 = nn.Conv1d(128, 128, 5, 1)
+        self.conv3 = nn.Conv1d(128, 128, 5, 1, padding=3)
         weight = prepare_weights(weights[4])
         bias = prepare_bias(weights[5])
         self.conv3.weight = torch.nn.Parameter(weight, requires_grad=True)
         self.conv3.bias = torch.nn.Parameter(bias, requires_grad=True)
 
-        self.conv4 = nn.Conv1d(128, 128, 5, 1)
+        self.conv4 = nn.Conv1d(128, 128, 5, 1, padding=3)
         weight = prepare_weights(weights[6])
         bias = prepare_bias(weights[7])
         self.conv4.weight = torch.nn.Parameter(weight, requires_grad=True)
         self.conv4.bias = torch.nn.Parameter(bias, requires_grad=True)
 
-        self.conv5 = nn.Conv1d(128, 128, 5, 1)
+        self.conv5 = nn.Conv1d(128, 128, 5, 1, padding=3)
         weight = prepare_weights(weights[8])
         bias = prepare_bias(weights[9])
         self.conv5.weight = torch.nn.Parameter(weight, requires_grad=True)
         self.conv5.bias = torch.nn.Parameter(bias, requires_grad=True)
         # self.dropout1 = nn.Dropout(p=0.2)
 
-        self.conv6 = nn.Conv1d(128, 128, 5, 1)
+        self.conv6 = nn.Conv1d(128, 128, 5, 1, padding=3)
         weight = prepare_weights(weights[10])
         bias = prepare_bias(weights[11])
         self.conv6.weight = torch.nn.Parameter(weight, requires_grad=True)

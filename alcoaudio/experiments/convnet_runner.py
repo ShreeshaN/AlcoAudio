@@ -21,7 +21,7 @@ import time
 import json
 import torchvision
 
-from alcoaudio.networks.conv_network import ConvNet
+from alcoaudio.networks.transfer_net import TransferNet
 from alcoaudio.utils import file_utils
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
 from alcoaudio.utils.network_utils import accuracy_fn, log_summary
@@ -68,7 +68,7 @@ class ConvNetRunner:
         self.weights = np.load(args.keras_model_weights, allow_pickle=True)
 
         self.network = None
-        self.network = ConvNet(self.weights).to(self.device)
+        self.network = TransferNet(self.weights).to(self.device)
 
         self.loss_function = nn.BCELoss()
 
