@@ -86,33 +86,33 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
     :return:
     """
     data, out_labels = [], []
-    audio, sr = librosa.load(base_path + file)
-    chunks = get_audio_list(audio, sr=sampling_rate, cut_length=sample_size_in_seconds, overlap=overlap)
-    # [(data.append(mfcc_features(chunk, normalise)), out_labels.append(float(label))) for chunk in chunks]
-    [(data.append(mel_filters(chunk, normalise)), out_labels.append(float(label))) for chunk in chunks]
-    return [data, out_labels]
+    if os.path.exists(base_path + file):
+        audio, sr = librosa.load(base_path + file)
+        chunks = get_audio_list(audio, sr=sampling_rate, cut_length=sample_size_in_seconds, overlap=overlap)
+        # [(data.append(mfcc_features(chunk, normalise)), out_labels.append(float(label))) for chunk in chunks]
+        # [(data.extend(mel_filters(chunk, normalise)), out_labels.append(float(label))) for chunk in chunks]
+        for chunk in chunks:
+            features = mel_filters(chunk, normalise)
+            data.append(features)
+            out_labels.append(float(label))
+    return data, out_labels
 
 
 def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds, sampling_rate, overlap):
     data, out_labels = [], []
-    results = Parallel(n_jobs=4, backend='threading')(
+    aggregated_data = Parallel(n_jobs=4, backend='threading')(
             delayed(read_audio_n_process)(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap,
-                                          normalise) for
-            file, label in
-            tqdm(zip(files, labels), total=len(labels)))
-    [(data.extend(x[0]), out_labels.extend(x[1])) for x in results]
-    # idx = [i for i, x in enumerate(data) if len(x) == 345]
-    #
-    # # TEMP FIX
-    # if len(idx) == len(data):
-    #     return data, out_labels
-    # else:
-    #     data, out_labels = np.array(data)[idx], np.array(out_labels)[idx]
-    #     data = np.array([x.reshape(345) for x in data])
-    #     data = data.reshape(len(idx), 345)
-    #     return data, out_labels
-    return data, out_labels
+                                          normalise) for file, label in tqdm(zip(files, labels), total=len(labels)))
 
+    for per_file_data in aggregated_data:
+        # per_file_data[1] are labels for the audio file.
+        # Might be an array as one audio file can be split into many pieces based on sample_size_in_seconds parameter
+        for i, label in enumerate(per_file_data[1]):
+            # per_file_data[0] is array of audio samples based on sample_size_in_seconds parameter
+            if 345 in per_file_data[0][i].shape:  # Temp fix
+                data.append(per_file_data[0][i])
+                out_labels.append(label)
+    return data, out_labels
 
 # file = '/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/132bpm/AM_HiTeeb[A]_132D.wav'
 # note, sr = librosa.load(file)
