@@ -139,26 +139,26 @@ def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds,
 #     librosa.display.specshow(mfccs, sr=sample_rate, x_axis='time')
 #     plt.show()
 #
-def mel_filters():
-    file_name = '/Users/badgod/Downloads/AC_12Str85F-01.mp3'
-    audio, sample_rate = librosa.load(file_name, res_type='kaiser_fast')
-
-    print("audio, sample_rate", audio.shape, sample_rate)
-    logmel = librosa.feature.melspectrogram(y=audio, sr=sample_rate, n_mels=128)
-    print(logmel.shape)
-    S_dB = librosa.power_to_db(logmel, ref=np.max)
-    print(S_dB.shape)
-    # S_dB = np.mean(S_dB.T, axis=0)
-    # print(S_dB.shape)
-
-    plt.figure(figsize=(12, 4))
-    # plt.plot(audio)
-    # plt.plot(mfccsscaled)
-    # librosa.display.specshow(logmel, sr=sample_rate, x_axis='time')
-    a = librosa.display.specshow(S_dB, sr=sample_rate, x_axis='time')
-    print(a)
-    # plt.plot(S_dB)
-    plt.show()
+# def mel_filters():
+#     file_name = '/Users/badgod/Downloads/AC_12Str85F-01.mp3'
+#     audio, sample_rate = librosa.load(file_name, res_type='kaiser_fast')
+#
+#     print("audio, sample_rate", audio.shape, sample_rate)
+#     logmel = librosa.feature.melspectrogram(y=audio, sr=sample_rate, n_mels=128)
+#     print(logmel.shape)
+#     S_dB = librosa.power_to_db(logmel, ref=np.max)
+#     print(S_dB.shape)
+#     # S_dB = np.mean(S_dB.T, axis=0)
+#     # print(S_dB.shape)
+#
+#     plt.figure(figsize=(12, 4))
+#     # plt.plot(audio)
+#     # plt.plot(mfccsscaled)
+#     # librosa.display.specshow(logmel, sr=sample_rate, x_axis='time')
+#     a = librosa.display.specshow(S_dB, sr=sample_rate, x_axis='time')
+#     print(a)
+#     # plt.plot(S_dB)
+#     plt.show()
 
 
 # mel_filters()
