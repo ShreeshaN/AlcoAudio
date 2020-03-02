@@ -12,7 +12,7 @@
   "network_save_path": "alco_trained_models/",
   "tensorboard_summary_path": "tensorboard_summary",
   "network_restore_path": "",
-  "normalise": true,
+  "normalise": false,
   "num_classes": 1,
   "network_save_interval": 10,
   "display_interval": 50,
