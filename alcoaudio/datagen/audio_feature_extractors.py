@@ -167,7 +167,7 @@ def mel_filters_x():
     audio, sample_rate = librosa.load(file_name, res_type='kaiser_fast')
 
     print("audio, sample_rate", audio.shape, sample_rate)
-    logmel = librosa.feature.melspectrogram(y=audio, sr=sample_rate, n_mels=40)
+    logmel = librosa.feature.melspectrogram(y=audio, sr=sample_rate, n_mels=128)
     print(logmel.shape)
     S_dB = librosa.power_to_db(logmel, ref=np.max)
     print(S_dB.shape)

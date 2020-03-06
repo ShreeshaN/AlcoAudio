@@ -1,9 +1,8 @@
 {
-  "run_name": "emotion_alco_audio_transfer_learning",
+  "run_name": "emotion_alco_audio_convlstm",
   "epochs": 50000,
   "batch_size": 16,
   "learning_rate": 0.001,
-  "transfer_learning_rate": 0.00001,
   "threshold": 0.5,
   "audio_basepath": "/Users/badgod/badgod_documents/Alco_audio",
   "train_data_file": "/Users/badgod/badgod_documents/Alco_audio/train.csv",

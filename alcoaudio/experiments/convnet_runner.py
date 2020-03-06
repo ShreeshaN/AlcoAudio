@@ -21,7 +21,7 @@ import time
 import json
 import torchvision
 
-from alcoaudio.networks.transfer_net import TransferNet
+from alcoaudio.networks.convlstm_network import ConvLSTM
 from alcoaudio.utils import file_utils
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
 from alcoaudio.utils.network_utils import accuracy_fn, log_summary
@@ -33,7 +33,6 @@ class ConvNetRunner:
         self.run_name = args.run_name + '_' + str(time.time()).split('.')[0]
         self.current_run_basepath = args.network_metrics_basepath + '/' + self.run_name + '/'
         self.learning_rate = args.learning_rate
-        self.transfer_learning_rate = args.transfer_learning_rate
         self.epochs = args.epochs
         self.test_net = args.test_net
         self.train_net = args.train_net
@@ -64,17 +63,12 @@ class ConvNetRunner:
         paths = [self.network_save_path, self.tensorboard_summary_path]
         file_utils.create_dirs(paths)
 
-        # Loading keras model weights
-        self.weights = np.load(args.keras_model_weights, allow_pickle=True)
-
         self.network = None
-        self.network = TransferNet(self.weights).to(self.device)
+        self.network = ConvLSTM().to(self.device)
 
         self.loss_function = nn.BCELoss()
 
-        self.optimiser = optim.Adam(
-                [{'params': list(self.network.parameters())[:12], 'lr': self.transfer_learning_rate},
-                 {'params': list(self.network.parameters())[12:], 'lr': self.learning_rate}])
+        self.optimiser = optim.Adam(self.network.parameters(), lr=self.learning_rate)
 
         if self.train_net:
             self.network.train()
@@ -185,7 +179,8 @@ class ConvNetRunner:
 
     def test(self):
         test_data, test_labels = self.data_reader(self.data_read_path + '/server_data/test_data.npy',
-                                                  self.data_read_path + '/server_data/test_labels.npy', shuffle=False, should_batch=False)
+                                                  self.data_read_path + '/server_data/test_labels.npy', shuffle=False,
+                                                  should_batch=False)
         test_data, test_labels = test_data[:1000], test_labels[:1000]
         test_predictions = self.network(test_data).detach()
         test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
