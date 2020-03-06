@@ -29,29 +29,26 @@ class ConvLSTM(nn.Module):
 
         super(ConvLSTM, self).__init__()
 
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=5, stride=1)
-        self.conv2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=5, stride=1)
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=1)
+        self.conv2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1)
         self.pool1 = nn.MaxPool2d(kernel_size=4, stride=2)
         self.dropout0 = nn.Dropout(p=0.4)
 
-        self.conv3 = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=5, stride=1)
-        self.conv4 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=5, stride=1)
+        self.conv3 = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1)
+        self.conv4 = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1)
         self.pool2 = nn.MaxPool2d(kernel_size=4, stride=2)
 
-        self.conv5 = nn.Conv2d(in_channels=256, out_channels=128, kernel_size=5, stride=1)
-        self.conv6 = nn.Conv2d(in_channels=128, out_channels=64, kernel_size=5, stride=1)
-        self.pool3 = nn.MaxPool2d(kernel_size=4, stride=1)
+        self.conv5 = nn.Conv2d(in_channels=128, out_channels=64, kernel_size=3, stride=1)
+        self.pool3 = nn.MaxPool2d(kernel_size=4, stride=[2, 2])
 
         self.depth_conv = nn.Conv2d(in_channels=64, out_channels=1, kernel_size=1, stride=1)
 
-        self.lstm = nn.LSTM(67, 128, 1, bias=True)
+        self.lstm = nn.LSTM(11, 128, 1, bias=True)
 
-        self.fc1 = nn.Linear(13 * 128, 512)
+        self.fc1 = nn.Linear(38 * 128, 128)
         self.dropout1 = nn.Dropout(p=0.3)
-
-        self.fc2 = nn.Linear(512, 128)
-
-        self.fc3 = nn.Linear(128, 1)
+        self.fc2 = nn.Linear(128, 32)
+        self.fc3 = nn.Linear(32, 1)
 
     def forward(self, x):
         """
@@ -61,26 +58,28 @@ class ConvLSTM(nn.Module):
         """
         # x = self.reshape_for_pytorch(x)
         x = tensor(x).unsqueeze(1)
+
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
         x = self.pool1(x)
         x = self.dropout0(x)
+
         x = F.relu(self.conv3(x))
         x = F.relu(self.conv4(x))
         x = self.pool2(x)
+
         x = F.relu(self.conv5(x))
-        x = F.relu(self.conv6(x))
         x = self.pool3(x)
 
         x = self.depth_conv(x)
 
         # LSTM from here
-        x = x.squeeze(1).permute(1, 0, 2)  # Converting from (B,C,W,H)->(B,W,H)->(W,B,H)
+        x = x.squeeze(1).permute(2, 0, 1)  # Converting from (B,C,H,W)->(B,H,W)->(W,B,H)
         lstm_out, _ = self.lstm(x)
-        lstm_out = lstm_out.permute(1, 0, 2)  # Converting it back to (B,W,H) from (W,B,H)
+        # lstm_out = lstm_out.permute(1, 0, 2)  # Converting it back to (B,W,H) from (W,B,H)
 
         # Flattening to feed it to FFN
-        x = lstm_out.reshape(-1, lstm_out.shape[1:].numel())
+        x = lstm_out.view(-1, lstm_out.shape[0] * lstm_out.shape[2])
         x = F.relu(self.fc1(x))
         x = self.dropout1(x)
         x = F.relu(self.fc2(x))
