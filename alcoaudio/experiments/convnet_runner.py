@@ -101,7 +101,7 @@ class ConvNetRunner:
         # input_data, labels = preprocess_data(self.audio_basepath, data['WAV_PATH'].values, data['label'].values,
         #                                      normalise=normalise, sample_size_in_seconds=self.sample_size_in_seconds,
         #                                      sampling_rate=self.sampling_rate, overlap=self.overlap)
-        input_data, labels = read_npy(data_filepath)[:200], read_npy(label_filepath)[:200]
+        input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
 
         if should_batch:
             batched_input = [input_data[pos:pos + self.batch_size] for pos in
