@@ -35,17 +35,17 @@ class ConvLSTM(nn.Module):
         self.dropout0 = nn.Dropout(p=0.4)
 
         self.conv3 = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1)
-        self.conv4 = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1)
+        self.conv4 = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=[1, 2])
         self.pool2 = nn.MaxPool2d(kernel_size=4, stride=2)
 
-        self.conv5 = nn.Conv2d(in_channels=128, out_channels=64, kernel_size=3, stride=1)
-        self.pool3 = nn.MaxPool2d(kernel_size=4, stride=[2, 2])
+        self.conv5 = nn.Conv2d(in_channels=128, out_channels=64, kernel_size=3, stride=[1, 2])
+        self.pool3 = nn.MaxPool2d(kernel_size=3, stride=[1, 2])
 
         self.depth_conv = nn.Conv2d(in_channels=64, out_channels=1, kernel_size=1, stride=1)
 
-        self.lstm = nn.LSTM(11, 128, 1, bias=True)
+        self.lstm = nn.LSTM(1, 128, 1, bias=True)
 
-        self.fc1 = nn.Linear(38 * 128, 128)
+        self.fc1 = nn.Linear(9*128, 128)
         self.dropout1 = nn.Dropout(p=0.3)
         self.fc2 = nn.Linear(128, 32)
         self.fc3 = nn.Linear(32, 1)
