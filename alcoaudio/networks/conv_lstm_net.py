@@ -46,7 +46,7 @@ class LSTMNet(nn.Module):
         self.conv6 = nn.Conv2d(64, 64, 3, 1)
         self.conv7 = nn.Conv2d(64, 1, 3, 1)
 
-        self.lstm1 = nn.LSTM(1, self.hidden_dim, self.n_layers, batch_first=True, dropout=0.3, bidirectional=False)
+        self.lstm1 = nn.LSTM(103, self.hidden_dim, self.n_layers, batch_first=True, dropout=0.3, bidirectional=False)
         # a = nn.LSTM()
         # self.lstm2 = nn.LSTM(64, self.hidden_dim, self.n_layers, batch_first=True, dropout=0.3, bidirectional=False)
 
@@ -73,6 +73,7 @@ class LSTMNet(nn.Module):
         x = F.relu(self.conv6(x))
         x = F.relu(self.conv7(x))
         x = tensor(x).squeeze()
+        # print(np.shape(x))
         # x = x.view(-1, x.shape[1:].numel())
         # h_0 = Variable(torch.zeros(1, x.size(0), 64))
         # c_0 = Variable(torch.zeros(1, x.size(0), 64))
