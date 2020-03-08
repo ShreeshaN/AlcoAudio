@@ -170,8 +170,13 @@ class ConvNetRunner:
                 print('Network successfully saved: ' + save_path)
 
     def test(self):
+        counter = 0
+        hid_init = LSTMNet.init_hidden(args.batch_size)
         test_data, test_labels = self.data_reader(self.data_read_path, should_batch=False, shuffle=False)
-        test_predictions = self.network(test_data).detach()
+        if(counter==0):
+            test_predictions,hidden = self.network(test_data,hid_init).detach()
+            counter=1
+        test_predictions,hidden = self.network(test_data,hidden).detach()
         test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
         test_accuracy = accuracy_fn(test_predictions, test_labels, self.threshold)
         print(f"Accuracy: {test_accuracy}")
