@@ -79,25 +79,46 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
     :param normalise:
     :return:
     """
+    # if os.path.exists(base_path + file):
+    #     audio, sr = librosa.load(base_path + file)
+    #     chunks = get_audio_list(audio, sr=sampling_rate, cut_length=sample_size_in_seconds, overlap=overlap)
+    #     # [(data.append(mfcc_features(chunk, normalise)), out_labels.append(float(label))) for chunk in chunks]
+    #     # [(data.extend(mel_filters(chunk, normalise)), out_labels.append(float(label))) for chunk in chunks]
+    #     for chunk in chunks:
+    #         features = mel_filters(chunk, normalise)
+    #         data.append(features)
+    #         out_labels.append(float(label))
+    # return data, out_labels
     data, out_labels = [], []
-
-    audio, sr = librosa.load(base_path + file)
-    chunks = get_audio_list(audio, sr=sampling_rate, cut_length=sample_size_in_seconds, overlap=overlap)
-    data.extend([mfcc_features(chunk, normalise) for chunk in chunks])
-    out_labels.extend([float(label) for _ in range(len(chunks))])
-    return [data, out_labels]
+    if os.path.exists(base_path + file):
+        audio, sr = librosa.load(base_path + file)
+        chunks = get_audio_list(audio, sr=sampling_rate, cut_length=sample_size_in_seconds, overlap=overlap)
+        # [(data.append(mfcc_features(chunk, normalise)), out_labels.append(float(label))) for chunk in chunks]
+        # [(data.extend(mel_filters(chunk, normalise)), out_labels.append(float(label))) for chunk in chunks]
+        for chunk in chunks:
+            features = mel_filters(chunk, normalise)
+            if 345 in features.shape:
+                data.append(features)
+                out_labels.append(float(label))
+    return data, out_labels
 
 
 def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds, sampling_rate, overlap):
-    result = Parallel(n_jobs=4, backend='threading')(
+    data, out_labels = [], []
+    aggregated_data = Parallel(n_jobs=4, backend='threading')(
             delayed(read_audio_n_process)(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap,
-                                          normalise) for
-            file, label in
+                                          normalise) for file, label in
             tqdm(zip(files, labels), total=len(labels)))
-    result = np.array(result)
-    data, labels = result[:, 0], result[:, 1]
-    return data, labels
 
+    for per_file_data in aggregated_data:
+        # per_file_data[1] are labels for the audio file.
+        # Might be an array as one audio file can be split into many pieces based on sample_size_in_seconds parameter
+        for i, label in enumerate(per_file_data[1]):
+            # per_file_data[0] is array of audio samples based on sample_size_in_seconds parameter
+            if 345 in per_file_data[0][i].shape:  # Temp fix
+                data.append(per_file_data[0][i])
+                out_labels.append(label)
+    return data, out_labels
 # file = '/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/132bpm/AM_HiTeeb[A]_132D.wav'
 # note, sr = librosa.load(file)
 # print(note.shape)

@@ -48,7 +48,7 @@ class LSTMNet(nn.Module):
         self.fc2 = nn.Linear(512, 128)
         self.fc3 = nn.Linear(128, 1)
 
-    def forward(self, x):
+    def forward(self, x, flag=2):
         """
         In the forward function we accept a Tensor of input data and we must return
         a Tensor of output data. We can use Modules defined in the constructor as
@@ -65,11 +65,11 @@ class LSTMNet(nn.Module):
         x = F.relu(self.conv5(x))
         x = self.dropout(x)
         x = F.relu(self.conv6(x))
-        x = x.view(-1, x.shape[1:].numel())
-        h_0 = Variable(torch.zeros(1, x.size(0), 64))
-        c_0 = Variable(torch.zeros(1, x.size(0), 64))
-        ula1, (x, _) = F.relu(self.lstm1(x, (h_0, c_0)))
-        ula2, (x, _) = F.relu(self.lstm2(x, (h_0, c_0)))
+        # x = x.view(-1, x.shape[1:].numel())
+        # h_0 = Variable(torch.zeros(1, x.size(0), 64))
+        # c_0 = Variable(torch.zeros(1, x.size(0), 64))
+        ula1, (x, _) = (self.lstm1(x))
+        ula2, (x, _) = (self.lstm2(x))
         x = x.view(-1, 64)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))

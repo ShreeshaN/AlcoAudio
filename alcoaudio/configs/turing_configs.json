@@ -3,7 +3,7 @@
   "epochs": 50000,
   "batch_size": 16,
   "learning_rate": 0.001,
-  "transfer_learning_rate": 0.00001,
+  "transfer_learning_rate": 0.001,
   "threshold": 0.5,
   "audio_basepath": "/home/aostapenko/",
   "train_data_file": "/home/aostapenko/dr_alcocudio/train.csv",
