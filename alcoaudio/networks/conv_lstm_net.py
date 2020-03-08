@@ -43,8 +43,8 @@ class LSTMNet(nn.Module):
         self.dropout = nn.Dropout(p=0.3)
         self.conv6 = nn.Conv2d(64, 64, 3, 1)
 
-        self.lstm1 = nn.LSTM(64, self.hidden_dim, self.n_layersn_layers, batch_first=True, dropout=0.3, bidirectional=False)
-        self.lstm2 = nn.LSTM(64, self.hidden_dim, self.n_layersn_layers, batch_first=True, dropout=0.3, bidirectional=False)
+        self.lstm1 = nn.LSTM(64, self.hidden_dim, self.n_layers, batch_first=True, dropout=0.3, bidirectional=False)
+        self.lstm2 = nn.LSTM(64, self.hidden_dim, self.n_layers, batch_first=True, dropout=0.3, bidirectional=False)
 
         self.fc1 = nn.Linear(26 * 64, 512)
         self.fc2 = nn.Linear(512, 128)
