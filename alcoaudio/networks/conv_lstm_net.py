@@ -72,7 +72,7 @@ class LSTMNet(nn.Module):
         x = self.dropout(x)
         x = F.relu(self.conv6(x))
         x = F.relu(self.conv7(x))
-        x = tensor(x).squeeze(1)
+        x = tensor(x).squeeze()
         # x = x.view(-1, x.shape[1:].numel())
         # h_0 = Variable(torch.zeros(1, x.size(0), 64))
         # c_0 = Variable(torch.zeros(1, x.size(0), 64))
