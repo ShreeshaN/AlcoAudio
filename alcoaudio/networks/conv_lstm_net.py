@@ -28,6 +28,8 @@ class LSTMNet(nn.Module):
         """
         self.n_layers = 2
         self.hidden_dim = 64
+        self.is_cuda_available = torch.cuda.is_available()
+        self.device = torch.device("cuda" if self.is_cuda_available else "cpu")
 
 
         super().__init__()
@@ -84,6 +86,6 @@ class LSTMNet(nn.Module):
 
     def init_hidden(self, batch_size):
         weight = next(self.parameters()).data
-        hidden = (weight.new(self.n_layers, batch_size, self.hidden_dim).zero_().to(device),
-                  weight.new(self.n_layers, batch_size, self.hidden_dim).zero_().to(device))
+        hidden = (weight.new(self.n_layers, batch_size, self.hidden_dim).zero_().to(self.device),
+                  weight.new(self.n_layers, batch_size, self.hidden_dim).zero_().to(self.device))
         return hidden
