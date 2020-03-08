@@ -74,7 +74,7 @@ class LSTMNet(nn.Module):
         # c_0 = Variable(torch.zeros(1, x.size(0), 64))
         # hidden = (h_0,c_0)
         # out1, hidden = (self.lstm1(x,hidden))
-        out2, hidden = (self.lstm1(x,hidden))
+        out2, hidden = (self.lstm1(x(1:3),hidden))
         x = out2.contiguous().view(-1, 64)
         # x = out2.view(-1, 64)
         x = F.relu(self.fc1(x))
