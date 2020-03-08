@@ -116,10 +116,15 @@ class ConvNetRunner:
         test_data, test_labels = self.data_reader(self.data_read_path + 'test_data.npy',
                                                   self.data_read_path + 'test_labels.npy', shuffle=False)
         total_step = len(train_data)
+        counter = 0
+        hid_init = LSTMNet.init_hidden(args.batch_size)
         for epoch in range(1, self.epochs):
             self.batch_loss, self.batch_accuracy, self.batch_uar = [], [], []
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
-                predictions = self.network(audio_data)
+                if(counter==0):
+                    predictions,hidden = self.network(audio_data,hid_init)
+                    counter=1
+                predictions,hidden = self.network(audio_data,hidden)
                 predictions = nn.Sigmoid()(predictions).squeeze(1)
                 loss = self.loss_function(predictions, tensor(label).float())
                 self.optimiser.zero_grad()

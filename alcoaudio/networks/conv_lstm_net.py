@@ -26,7 +26,7 @@ class LSTMNet(nn.Module):
         In the constructor we instantiate modules and assign them as
         member variables.
         """
-        self.n_layers = 1
+        self.n_layers = 2
         self.hidden_dim = 64
 
 
@@ -44,7 +44,7 @@ class LSTMNet(nn.Module):
         self.conv6 = nn.Conv2d(64, 64, 3, 1)
 
         self.lstm1 = nn.LSTM(64, self.hidden_dim, self.n_layers, batch_first=True, dropout=0.3, bidirectional=False)
-        self.lstm2 = nn.LSTM(64, self.hidden_dim, self.n_layers, batch_first=True, dropout=0.3, bidirectional=False)
+        # self.lstm2 = nn.LSTM(64, self.hidden_dim, self.n_layers, batch_first=True, dropout=0.3, bidirectional=False)
 
         self.fc1 = nn.Linear(26 * 64, 512)
         self.fc2 = nn.Linear(512, 128)
@@ -71,8 +71,8 @@ class LSTMNet(nn.Module):
         # h_0 = Variable(torch.zeros(1, x.size(0), 64))
         # c_0 = Variable(torch.zeros(1, x.size(0), 64))
         # hidden = (h_0,c_0)
-        out1, hidden = (self.lstm1(x,hidden))
-        out2, hidden = (self.lstm2(out1,hidden))
+        # out1, hidden = (self.lstm1(x,hidden))
+        out2, hidden = (self.lstm1(x,hidden))
         x = out2.contiguous().view(-1, 64)
         # x = out2.view(-1, 64)
         x = F.relu(self.fc1(x))
@@ -82,8 +82,8 @@ class LSTMNet(nn.Module):
 
     # (Variable(torch.zeros(1, x.size(0), 64)), Variable(torch.zeros(1, x.size(0), 64)))
 
-    def init_hidden(self, x):
+    def init_hidden(self, batch_size):
         weight = next(self.parameters()).data
-        hidden = (weight.new(self.n_layers, x.size(0), self.hidden_dim).zero_().to(device),
-                  weight.new(self.n_layers, x.size(0), self.hidden_dim).zero_().to(device))
+        hidden = (weight.new(self.n_layers, batch_size, self.hidden_dim).zero_().to(device),
+                  weight.new(self.n_layers, batch_size, self.hidden_dim).zero_().to(device))
         return hidden
