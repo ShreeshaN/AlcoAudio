@@ -117,7 +117,7 @@ class ConvNetRunner:
                                                   self.data_read_path + 'test_labels.npy', shuffle=False)
         total_step = len(train_data)
         counter = 0
-        hid_init = LSTMNet.init_hidden(args.batch_size)
+        hid_init = LSTMNet.init_hidden(self.batch_size)
         for epoch in range(1, self.epochs):
             self.batch_loss, self.batch_accuracy, self.batch_uar = [], [], []
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
