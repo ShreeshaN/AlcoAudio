@@ -171,7 +171,7 @@ class ConvNetRunner:
 
     def test(self):
         counter = 0
-        hid_init = LSTMNet.init_hidden(args.batch_size)
+        hid_init = LSTMNet.init_hidden(self.batch_size)
         test_data, test_labels = self.data_reader(self.data_read_path, should_batch=False, shuffle=False)
         if(counter==0):
             test_predictions,hidden = self.network(test_data,hid_init).detach()
