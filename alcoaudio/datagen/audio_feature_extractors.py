@@ -115,7 +115,8 @@ def get_audio_list(audio, sr=22050, cut_length=10, overlap=1):
 #                 out_labels.append(float(label))
 #     return data, out_labels
 
-def read_audio_n_save_spectrograms(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap, normalise):
+def read_audio_n_save_spectrograms(file, label, base_path, image_save_path, sampling_rate, sample_size_in_seconds,
+                                   overlap, normalise):
     """
     This method is called by the preprocess data method
     :param file:
@@ -133,17 +134,19 @@ def read_audio_n_save_spectrograms(file, label, base_path, sampling_rate, sample
         audio, sr = librosa.load(base_path + file)
         chunks = get_audio_list(audio, sr=sampling_rate, cut_length=sample_size_in_seconds, overlap=overlap)
         for i, chunk in enumerate(chunks):
-            filename = base_path + file + "_" + str(i) + '.jpg'
+            filename = image_save_path + file.split("/")[-1] + "_" + str(i) + "_label_" + str(label) + '.jpg'
             mel_filters_with_spectrogram(chunk, filename, normalise)
             data.append(filename)
             out_labels.append(float(label))
     return data, out_labels
 
 
-def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds, sampling_rate, overlap):
+def preprocess_data(base_path, image_save_path, files, labels, normalise, sample_size_in_seconds, sampling_rate,
+                    overlap):
     data, out_labels = [], []
     aggregated_data = Parallel(n_jobs=4, backend='multiprocessing')(
-            delayed(read_audio_n_save_spectrograms)(file, label, base_path, sampling_rate, sample_size_in_seconds,
+            delayed(read_audio_n_save_spectrograms)(file, label, base_path, image_save_path, sampling_rate,
+                                                    sample_size_in_seconds,
                                                     overlap,
                                                     normalise) for file, label in
             tqdm(zip(files, labels), total=len(labels)))

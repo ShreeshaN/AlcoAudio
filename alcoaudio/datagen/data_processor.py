@@ -37,6 +37,7 @@ class DataProcessor:
         self.sampling_rate = args.sampling_rate
         self.overlap = args.overlap
         self.data_save_path = args.data_save_path
+        self.image_save_path = args.image_data_save_path
 
     def process_audio_and_save_h5py(self, data_file, filename_to_save, shuffle=True):
         df = pd.read_csv(data_file)
@@ -62,7 +63,7 @@ class DataProcessor:
         df = pd.read_csv(data_file)
         if shuffle:
             df = df.sample(frac=1)
-        data, labels = preprocess_data(self.base_path, df['WAV_PATH'].values, df['label'].values,
+        data, labels = preprocess_data(self.base_path, self.image_save_path, df['WAV_PATH'].values, df['label'].values,
                                        self.normalise,
                                        self.sample_size_in_seconds, self.sampling_rate, self.overlap)
         concat_data = np.concatenate((np.array([data]).T, np.array([labels]).T), axis=1)
