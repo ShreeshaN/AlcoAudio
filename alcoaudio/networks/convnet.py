@@ -30,19 +30,24 @@ class ConvNet(nn.Module):
 
         super(ConvNet, self).__init__()
 
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=1)
+        self.conv1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, stride=1)
+        self.conv1_bn = nn.BatchNorm2d(64)
         self.conv2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1)
+        self.conv2_bn = nn.BatchNorm2d(128)
         self.pool1 = nn.MaxPool2d(kernel_size=4, stride=2)
         self.dropout0 = nn.Dropout(p=0.4)
 
-        self.conv3 = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1)
-        self.conv4 = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=[1, 2])
+        self.conv3 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=1)
+        self.conv3_bn = nn.BatchNorm2d(256)
+        self.conv4 = nn.Conv2d(in_channels=256, out_channels=128, kernel_size=3, stride=[1, 2])
+        self.conv4_bn = nn.BatchNorm2d(128)
         self.pool2 = nn.MaxPool2d(kernel_size=4, stride=2)
 
         self.conv5 = nn.Conv2d(in_channels=128, out_channels=64, kernel_size=3, stride=[1, 2])
+        self.conv5_bn = nn.BatchNorm2d(64)
         self.pool3 = nn.MaxPool2d(kernel_size=3, stride=[1, 2])
 
-        self.fc1 = nn.Linear(9 * 64, 128)
+        self.fc1 = nn.Linear(328 * 64, 128)
         self.dropout1 = nn.Dropout(p=0.3)
         self.fc2 = nn.Linear(128, 32)
         self.fc3 = nn.Linear(32, 1)
@@ -54,18 +59,17 @@ class ConvNet(nn.Module):
         well as arbitrary operators on Tensors.
         """
         # x = self.reshape_for_pytorch(x)
-        x = tensor(x).unsqueeze(1)
-
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
+        x = x.permute(0, 3, 1, 2)
+        x = F.relu(self.conv1_bn(self.conv1(x)))
+        x = F.relu(self.conv2_bn(self.conv2(x)))
         x = self.pool1(x)
         x = self.dropout0(x)
 
-        x = F.relu(self.conv3(x))
-        x = F.relu(self.conv4(x))
+        x = F.relu(self.conv3_bn(self.conv3(x)))
+        x = F.relu(self.conv4_bn(self.conv4(x)))
         x = self.pool2(x)
 
-        x = F.relu(self.conv5(x))
+        x = F.relu(self.conv5_bn(self.conv5(x)))
         x = self.pool3(x)
         x = x.unsqueeze(2)
 

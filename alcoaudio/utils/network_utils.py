@@ -20,7 +20,7 @@ import numpy as np
 def accuracy_fn(predictions, labels, threshold):
     # todo: UAR implementation is wrong. Tweak it once the model is ready
     predictions = torch.where(predictions > tensor(threshold), tensor(1), tensor(0))
-    accuracy = torch.sum(predictions == tensor(labels)) / float(len(labels))
+    accuracy = torch.sum(predictions == labels) / float(len(labels))
     uar = recall_score(labels, predictions.numpy(), average='macro')
     if np.array_equal(labels, predictions.numpy()):
         ua = 1
@@ -41,3 +41,8 @@ def log_summary(writer, global_step, tr_accuracy, tr_loss, tr_uar, tr_ua, te_acc
     writer.add_scalar('Test/Epoch UA', te_ua, global_step)
 
     writer.flush()
+
+
+def normalize_image(image):
+    # return (image - image.mean())/image.std()
+    return (image - image.min()) / (image.max() - image.min())

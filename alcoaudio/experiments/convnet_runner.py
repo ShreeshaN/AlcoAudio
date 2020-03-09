@@ -19,12 +19,13 @@ import numpy as np
 from torch import tensor
 import time
 import json
+import cv2
 import torchvision
 
 from alcoaudio.networks.convnet import ConvNet
 from alcoaudio.utils import file_utils
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
-from alcoaudio.utils.network_utils import accuracy_fn, log_summary
+from alcoaudio.utils.network_utils import accuracy_fn, log_summary, normalize_image
 from alcoaudio.utils.data_utils import read_h5py, read_npy
 
 
@@ -94,14 +95,16 @@ class ConvNetRunner:
         print('Configs used:\n', json.dumps(args, indent=4))
         print('Configs used:\n', json.dumps(args, indent=4), file=self.log_file)
 
-    def data_reader(self, data_filepath, label_filepath, should_batch=True, shuffle=True):
+    def data_reader(self, data_filepath, should_batch=True, shuffle=True):
         # data = pd.read_csv(data_file)[:50]
         # if shuffle:
         #     data = data.sample(frac=1)
         # input_data, labels = preprocess_data(self.audio_basepath, data['WAV_PATH'].values, data['label'].values,
         #                                      normalise=normalise, sample_size_in_seconds=self.sample_size_in_seconds,
         #                                      sampling_rate=self.sampling_rate, overlap=self.overlap)
-        input_data, labels = read_npy(data_filepath)[:20], read_npy(label_filepath)[:20]
+        # input_data, labels = read_npy(data_filepath)[:20], read_npy(label_filepath)[:20]
+        data = pd.read_csv(data_filepath)
+        input_data, labels = data['spectrogram_path'].values, data['labels'].values
 
         if should_batch:
             batched_input = [input_data[pos:pos + self.batch_size] for pos in
@@ -112,21 +115,24 @@ class ConvNetRunner:
             return input_data, labels
 
     def train(self):
-        train_data, train_labels = self.data_reader(self.data_read_path + 'train_data.npy',
-                                                    self.data_read_path + 'train_labels.npy',
+        train_data, train_labels = self.data_reader(self.data_read_path + 'train_data_melfilter_specs.csv',
                                                     shuffle=False)
-        test_data, test_labels = self.data_reader(self.data_read_path + 'test_data.npy',
-                                                  self.data_read_path + 'test_labels.npy',
+        test_data, test_labels = self.data_reader(self.data_read_path + 'test_data_melfilter_specs.csv',
                                                   shuffle=False)
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
             self.batch_loss, self.batch_accuracy, self.batch_uar, self.batch_ua, audio_for_tensorboard_train = [], [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
+                audio_data = tensor(
+                        [normalize_image(cv2.cvtColor(cv2.imread(spec_image), cv2.COLOR_BGR2RGB)) for spec_image in
+                         audio_data])
+                audio_data = audio_data.float()
+                label = tensor(label).float()
                 if i == 0:
-                    self.writer.add_graph(self.network, tensor(audio_data))
+                    self.writer.add_graph(self.network, audio_data)
                 predictions = self.network(audio_data)
                 predictions = nn.Sigmoid()(predictions).squeeze(1)
-                loss = self.loss_function(predictions, tensor(label).float())
+                loss = self.loss_function(predictions, label)
                 self.optimiser.zero_grad()
                 loss.backward()
                 self.optimiser.step()
@@ -154,9 +160,14 @@ class ConvNetRunner:
             self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
             with torch.no_grad():
                 for i, (audio_data, label) in enumerate(zip(test_data, test_labels)):
+                    audio_data = tensor(
+                            [normalize_image(cv2.cvtColor(cv2.imread(spec_image), cv2.COLOR_BGR2RGB)) for spec_image in
+                             audio_data])
+                    audio_data = audio_data.float()
+                    label = tensor(label).float()
                     test_predictions = self.network(audio_data)
                     test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
-                    test_loss = self.loss_function(test_predictions, tensor(label).float())
+                    test_loss = self.loss_function(test_predictions, label)
                     test_accuracy, test_uar, test_ua = accuracy_fn(test_predictions, label, self.threshold)
                     self.test_batch_loss.append(test_loss.numpy())
                     self.test_batch_accuracy.append(test_accuracy.numpy())
@@ -185,9 +196,7 @@ class ConvNetRunner:
                                                   self.data_read_path + 'test_labels.npy',
                                                   shuffle=False,
                                                   should_batch=False)
-        test_data, test_labels = test_data[:10], test_labels[:10]
-        test_data = np.array([(x-x.min())/(x.max()-x.min()) for x in test_data])
-        print(np.max(test_data), np.min(test_data))
+        test_data, test_labels = test_data, test_labels
         test_predictions = self.network(test_data).detach()
         print(test_predictions)
 

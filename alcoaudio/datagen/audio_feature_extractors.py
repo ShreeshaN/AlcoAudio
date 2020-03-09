@@ -253,3 +253,18 @@ def mel_filters_x():
 #             "/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/128bpm/AM_HiTeeb[A]_128D.wav",
 #             res_type='kaiser_fast', duration=10)
 #     return [audio]
+
+# import cv2
+# import matplotlib.pyplot as plt
+# import matplotlib.image as mpimg
+#
+# a = mpimg.imread("/Users/badgod/badgod_documents/github/AlcoAudio/alcoaudio/datagen/test.jpg")
+# b = cv2.imread("/Users/badgod/badgod_documents/github/AlcoAudio/alcoaudio/datagen/test.jpg")
+# b = cv2.cvtColor(b, cv2.COLOR_BGR2RGB)
+# # b = (b-b.mean())/b.std()
+# b = (b - b.min()) / (b.max() - b.min())
+# print(a.shape, b.shape)
+# print(a[:, :, 0].mean(), a[:, :, 1].mean(), a[:, :, 2].mean())
+# print(b[:, :, 0].mean(), b[:, :, 1].mean(), b[:, :, 2].mean())
+# plt.imshow(b)
+# plt.show()
