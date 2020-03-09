@@ -58,8 +58,8 @@ def read_npy(filename):
 
 
 def save_csv(data, columns, filename):
+    print('Saving CSV file in ', filename)
     df = pd.DataFrame(data, columns=columns)
     df.to_csv(filename, index=False)
-
 
 # subject_level_splitting("/Users/badgod/badgod_documents/Alco_audio/alco_audio_data.csv")
