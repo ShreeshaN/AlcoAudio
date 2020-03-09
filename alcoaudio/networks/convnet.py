@@ -71,6 +71,7 @@ class ConvNet(nn.Module):
 
         # Flattening to feed it to FFN
         x = x.view(-1, x.shape[1:].numel())
+
         x = F.relu(self.fc1(x))
         x = self.dropout1(x)
         x = F.relu(self.fc2(x))

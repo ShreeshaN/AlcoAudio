@@ -10,7 +10,7 @@
   "network_metrics_basepath": "results/",
   "network_save_path": "alco_trained_models/",
   "tensorboard_summary_path": "tensorboard_summary",
-  "network_restore_path": "/Users/badgod/badgod_documents/Alco_audio/server_data/emotion_alco_audio_transfer_learning_1583009963/alco_trained_models/emotion_alco_audio_transfer_learning_1583009963_40.pt",
+  "network_restore_path": "/Users/badgod/badgod_documents/Alco_audio/server_data/2d/emotion_alco_audio_convlstm_1583673281/alco_trained_models/emotion_alco_audio_convlstm_1583673281_10.pt",
   "normalise": false,
   "num_classes": 1,
   "network_save_interval": 5,
@@ -20,5 +20,6 @@
   "sampling_rate": 22050,
   "sample_size_in_seconds": 8,
   "overlap": 1,
-  "data_save_path": "/Users/badgod/badgod_documents/Alco_audio/"
+  "data_save_path": "/Users/badgod/badgod_documents/Alco_audio/",
+  "image_data_save_path": "/Users/badgod/badgod_documents/Alco_audio/images/"
 }

@@ -101,7 +101,7 @@ class ConvNetRunner:
         # input_data, labels = preprocess_data(self.audio_basepath, data['WAV_PATH'].values, data['label'].values,
         #                                      normalise=normalise, sample_size_in_seconds=self.sample_size_in_seconds,
         #                                      sampling_rate=self.sampling_rate, overlap=self.overlap)
-        input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
+        input_data, labels = read_npy(data_filepath)[:20], read_npy(label_filepath)[:20]
 
         if should_batch:
             batched_input = [input_data[pos:pos + self.batch_size] for pos in
@@ -113,9 +113,11 @@ class ConvNetRunner:
 
     def train(self):
         train_data, train_labels = self.data_reader(self.data_read_path + 'train_data.npy',
-                                                    self.data_read_path + 'train_labels.npy', shuffle=False)
+                                                    self.data_read_path + 'train_labels.npy',
+                                                    shuffle=False)
         test_data, test_labels = self.data_reader(self.data_read_path + 'test_data.npy',
-                                                  self.data_read_path + 'test_labels.npy', shuffle=False)
+                                                  self.data_read_path + 'test_labels.npy',
+                                                  shuffle=False)
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
             self.batch_loss, self.batch_accuracy, self.batch_uar, self.batch_ua, audio_for_tensorboard_train = [], [], [], [], None
@@ -179,12 +181,18 @@ class ConvNetRunner:
                 print('Network successfully saved: ' + save_path)
 
     def test(self):
-        test_data, test_labels = self.data_reader(self.data_read_path + '/server_data/test_data.npy',
-                                                  self.data_read_path + '/server_data/test_labels.npy', shuffle=False,
+        test_data, test_labels = self.data_reader(self.data_read_path + 'test_data.npy',
+                                                  self.data_read_path + 'test_labels.npy',
+                                                  shuffle=False,
                                                   should_batch=False)
-        test_data, test_labels = test_data[:1000], test_labels[:1000]
+        test_data, test_labels = test_data[:10], test_labels[:10]
+        test_data = np.array([(x-x.min())/(x.max()-x.min()) for x in test_data])
+        print(np.max(test_data), np.min(test_data))
         test_predictions = self.network(test_data).detach()
+        print(test_predictions)
+
         test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
+        print(test_predictions)
         test_accuracy = accuracy_fn(test_predictions, test_labels, self.threshold)
         print(f"Accuracy: {test_accuracy}")
         print(f"Accuracy: {test_accuracy}", file=self.log_file)
