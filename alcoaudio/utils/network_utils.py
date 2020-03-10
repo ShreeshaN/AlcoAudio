@@ -30,15 +30,16 @@ def accuracy_fn(predictions, labels, threshold):
     return accuracy, uar, ua
 
 
-def log_summary(writer, global_step, tr_accuracy, tr_loss, tr_uar, tr_ua, te_accuracy, te_loss, te_uar, te_ua):
-    writer.add_scalar('Train/Epoch Accuracy', tr_accuracy, global_step)
-    writer.add_scalar('Train/Epoch Loss', tr_loss, global_step)
-    writer.add_scalar('Train/Epoch UAR', tr_uar, global_step)
-    writer.add_scalar('Train/Epoch UA', tr_ua, global_step)
-    writer.add_scalar('Test/Accuracy', te_accuracy, global_step)
-    writer.add_scalar('Test/Loss', te_loss, global_step)
-    writer.add_scalar('Test/UAR', te_uar, global_step)
-    writer.add_scalar('Test/Epoch UA', te_ua, global_step)
+def log_summary(writer, global_step, accuracy, loss, uar, ua, is_train):
+    if is_train:
+        mode = 'Train'
+    else:
+        mode = 'Test'
+
+    writer.add_scalar(f'{mode}/Accuracy', accuracy, global_step)
+    writer.add_scalar(f'{mode}/Loss', loss, global_step)
+    writer.add_scalar(f'{mode}/UAR', uar, global_step)
+    writer.add_scalar(f'{mode}/UA', ua, global_step)
 
     writer.flush()
 

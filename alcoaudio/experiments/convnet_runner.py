@@ -141,6 +141,9 @@ class ConvNetRunner:
                 self.batch_accuracy.append(accuracy)
                 self.batch_uar.append(uar)
                 self.batch_ua.append(ua)
+                log_summary(self.writer, epoch * (i + 1), accuracy=accuracy, loss=loss,
+                            uar=uar, ua=ua, is_train=True)
+
                 if i % self.display_interval == 0:
                     print(
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar} | UA: {ua}")
@@ -181,10 +184,9 @@ class ConvNetRunner:
                     f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)} | UA: {np.mean(self.test_batch_ua)}",
                     file=self.log_file)
 
-            log_summary(self.writer, epoch, tr_accuracy=np.mean(self.batch_accuracy), tr_loss=np.mean(self.batch_loss),
-                        tr_uar=np.mean(self.batch_uar), tr_ua=np.mean(self.batch_ua),
-                        te_accuracy=np.mean(self.test_batch_accuracy), te_loss=np.mean(self.test_batch_loss),
-                        te_uar=np.mean(self.test_batch_uar), te_ua=np.mean(self.test_batch_ua))
+            log_summary(self.writer, epoch, accuracy=np.mean(self.test_batch_accuracy),
+                        loss=np.mean(self.test_batch_loss),
+                        uar=np.mean(self.test_batch_uar), ua=np.mean(self.test_batch_ua), is_train=False)
 
             if epoch % self.network_save_interval == 0:
                 save_path = self.network_save_path + '/' + self.run_name + '_' + str(epoch) + '.pt'
@@ -193,7 +195,6 @@ class ConvNetRunner:
 
     def test(self):
         test_data, test_labels = self.data_reader(self.data_read_path + 'test_data.npy',
-                                                  self.data_read_path + 'test_labels.npy',
                                                   shuffle=False,
                                                   should_batch=False)
         test_data, test_labels = test_data, test_labels
