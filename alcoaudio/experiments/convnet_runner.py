@@ -123,6 +123,7 @@ class ConvNetRunner:
         for epoch in range(1, self.epochs):
             self.batch_loss, self.batch_accuracy, self.batch_uar, self.batch_ua, audio_for_tensorboard_train = [], [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
+                self.optimiser.zero_grad()
                 audio_data = tensor(
                         [normalize_image(cv2.cvtColor(cv2.imread(spec_image), cv2.COLOR_BGR2RGB)) for spec_image in
                          audio_data])
@@ -133,7 +134,6 @@ class ConvNetRunner:
                 predictions = self.network(audio_data)
                 predictions = nn.Sigmoid()(predictions).squeeze(1)
                 loss = self.loss_function(predictions, label)
-                self.optimiser.zero_grad()
                 loss.backward()
                 self.optimiser.step()
                 accuracy, uar, ua = accuracy_fn(predictions, label, self.threshold)

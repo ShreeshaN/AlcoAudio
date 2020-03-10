@@ -14,7 +14,7 @@
   "network_restore_path": "",
   "normalise": false,
   "num_classes": 1,
-  "network_save_interval": 10,
+  "network_save_interval": 1,
   "display_interval": 50,
   "dropout": 0.2,
   "keras_model_weights": "/home/aostapenko/dr_alcocudio/keras_model.npy",
