@@ -132,7 +132,7 @@ class ConvNetRunner:
                 if i == 0:
                     self.writer.add_graph(self.network, audio_data)
                 predictions = self.network(audio_data)
-                print("pre sigmoided ", torch.mean(predictions).numpy())
+                print("pre sigmoided ", torch.mean(predictions).detach().numpy())
                 predictions = nn.Sigmoid()(predictions).squeeze(1)
                 loss = self.loss_function(predictions, label)
                 loss.backward()

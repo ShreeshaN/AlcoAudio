@@ -21,7 +21,7 @@ def accuracy_fn(preds, labels, threshold):
     # todo: UAR implementation is wrong. Tweak it once the model is ready
     predictions = torch.where(preds > tensor(threshold), tensor(1), tensor(0))
     print("pred sum ", torch.sum(predictions).numpy(), "pred len ", len(predictions), "actual sum ",
-          "sigmoided ", torch.sum(labels).numpy(), torch.mean(preds).numpy())
+          "sigmoided ", torch.sum(labels).numpy(), torch.mean(preds).detach().numpy())
     accuracy = torch.sum(predictions == labels) / float(len(labels))
     uar = recall_score(labels, predictions.numpy(), average='macro')
     if np.array_equal(labels, predictions.numpy()):
