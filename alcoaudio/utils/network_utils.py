@@ -17,9 +17,11 @@ from sklearn.metrics import confusion_matrix
 import numpy as np
 
 
-def accuracy_fn(predictions, labels, threshold):
+def accuracy_fn(preds, labels, threshold):
     # todo: UAR implementation is wrong. Tweak it once the model is ready
-    predictions = torch.where(predictions > tensor(threshold), tensor(1), tensor(0))
+    predictions = torch.where(preds > tensor(threshold), tensor(1), tensor(0))
+    print("pred sum ", torch.sum(predictions).numpy(), "pred len ", len(predictions), "actual sum ",
+          "sigmoided ", torch.sum(labels).numpy(), torch.mean(preds).numpy())
     accuracy = torch.sum(predictions == labels) / float(len(labels))
     uar = recall_score(labels, predictions.numpy(), average='macro')
     if np.array_equal(labels, predictions.numpy()):
