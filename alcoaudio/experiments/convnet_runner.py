@@ -68,7 +68,7 @@ class ConvNetRunner:
         self.network = None
         self.network = ConvNet().to(self.device)
 
-        self.loss_function = nn.BCELoss()
+        self.loss_function = nn.BCEWithLogitsLoss()
 
         self.optimiser = optim.Adam(self.network.parameters(), lr=self.learning_rate)
 
@@ -104,6 +104,8 @@ class ConvNetRunner:
         #                                      sampling_rate=self.sampling_rate, overlap=self.overlap)
         # input_data, labels = read_npy(data_filepath)[:20], read_npy(label_filepath)[:20]
         data = pd.read_csv(data_filepath)
+        if shuffle:
+            data = data.sample(frac=1)
         input_data, labels = data['spectrogram_path'].values, data['labels'].values
 
         if should_batch:
@@ -115,8 +117,8 @@ class ConvNetRunner:
             return input_data, labels
 
     def train(self):
-        train_data, train_labels = self.data_reader(self.data_read_path + 'train_data_melfilter_specs.csv',
-                                                    shuffle=False)
+        train_data, train_labels = self.data_reader(self.data_read_path + 'train_data_melfilter_specs_balanced.csv',
+                                                    shuffle=True)
         test_data, test_labels = self.data_reader(self.data_read_path + 'test_data_melfilter_specs.csv',
                                                   shuffle=False)
         total_step = len(train_data)
@@ -132,9 +134,9 @@ class ConvNetRunner:
                 if i == 0:
                     self.writer.add_graph(self.network, audio_data)
                 predictions = self.network(audio_data)
+                loss = self.loss_function(predictions, label)
                 print("pre sigmoided ", torch.mean(predictions).detach().numpy())
                 predictions = nn.Sigmoid()(predictions).squeeze(1)
-                loss = self.loss_function(predictions, label)
                 loss.backward()
                 self.optimiser.step()
                 accuracy, uar, ua = accuracy_fn(predictions, label, self.threshold)
