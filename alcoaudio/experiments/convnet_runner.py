@@ -180,7 +180,7 @@ class ConvNetRunner:
                     #         [normalize_image(cv2.cvtColor(cv2.imread(spec_image), cv2.COLOR_BGR2RGB)) for spec_image in
                     #          audio_data])
                     # audio_data = audio_data.float()
-                    label = tensor(label).float().unsqueeze(1)
+                    label = tensor(label).float()
                     test_predictions = self.network(audio_data)
                     test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
                     test_loss = self.loss_function(test_predictions, label)
