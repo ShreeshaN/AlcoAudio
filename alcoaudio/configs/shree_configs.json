@@ -4,7 +4,7 @@
   "batch_size": 16,
   "learning_rate": 0.001,
   "threshold": 0.5,
-  "audio_basepath": "/Users/badgod/badgod_documents/Alco_audio",
+  "audio_basepath": "/Users/badgod/badgod_documents/Alco_audio/",
   "train_data_file": "/Users/badgod/badgod_documents/Alco_audio/train.csv",
   "test_data_file": "/Users/badgod/badgod_documents/Alco_audio/test.csv",
   "network_metrics_basepath": "results/",
@@ -20,6 +20,6 @@
   "sampling_rate": 22050,
   "sample_size_in_seconds": 8,
   "overlap": 1,
-  "data_save_path": "/Users/badgod/badgod_documents/Alco_audio/",
+  "data_save_path": "/Users/badgod/badgod_documents/Alco_audio/128_mels/",
   "image_data_save_path": "/Users/badgod/badgod_documents/Alco_audio/images/"
 }

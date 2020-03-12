@@ -112,11 +112,12 @@ class ConvNetRunner:
 
         data = [(x, y) for x, y in zip(input_data, labels)]
         random.shuffle(data)
-        inpu_data, labels = np.array(data)[:, 0], np.array(data)[:, 1]
+        input_data, labels = [x[0] for x in data], [x[1] for x in data]
         print('Length of zeros ', len(zeros_idx))
         print('Length of ones ', len(ones_idx))
         print('Total data ', len(input_data))
         print('Event rate', len(ones_idx) / len(labels))
+        print(np.array(input_data).shape, np.array(labels).shape)
         # data = pd.read_csv(data_filepath)
         # if shuffle:
         #     data = data.sample(frac=1)
@@ -138,43 +139,42 @@ class ConvNetRunner:
                                                   shuffle=False)
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
-            self.batch_loss, self.batch_accuracy, self.batch_uar, self.batch_ua, audio_for_tensorboard_train = [], [], [], [], None
+            self.batch_loss, self.batch_accuracy, self.batch_uar, audio_for_tensorboard_train = [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
                 self.optimiser.zero_grad()
                 # audio_data = tensor(
                 #         [normalize_image(cv2.cvtColor(cv2.imread(spec_image), cv2.COLOR_BGR2RGB)) for spec_image in
                 #          audio_data])
                 # audio_data = audio_data.float()
-                label = tensor(label).float().unsqueeze(1)
+                label = tensor(label).float()
                 if i == 0:
                     self.writer.add_graph(self.network, tensor(audio_data))
-                predictions = self.network(audio_data)
+                predictions = self.network(audio_data).squeeze(1)
                 loss = self.loss_function(predictions, label)
                 print("pre sigmoided ", torch.mean(predictions).detach().numpy())
-                predictions = nn.Sigmoid()(predictions).squeeze(1)
+                predictions = nn.Sigmoid()(predictions)
                 loss.backward()
                 self.optimiser.step()
-                accuracy, uar, ua = accuracy_fn(predictions, label, self.threshold)
+                accuracy, uar = accuracy_fn(predictions, label, self.threshold)
                 self.batch_loss.append(loss.detach().numpy())
                 self.batch_accuracy.append(accuracy)
                 self.batch_uar.append(uar)
-                self.batch_ua.append(ua)
-                log_summary(self.writer, epoch * (i + 1), accuracy=accuracy, loss=loss,
-                            uar=uar, ua=ua, is_train=True)
 
                 if i % self.display_interval == 0:
                     print(
-                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar} | UA: {ua}")
+                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}")
                     print(
-                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar} | UA: {ua}",
+                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}",
                             file=self.log_file)
-
+            log_summary(self.writer, epoch, accuracy=np.mean(self.batch_accuracy),
+                        loss=np.mean(self.batch_loss),
+                        uar=np.mean(self.batch_uar), is_train=True)
             print('***** Overall Train Metrics ***** ')
             print('***** Overall Train Metrics ***** ', file=self.log_file)
             print(
-                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} | UA: {np.mean(self.batch_ua)}")
+                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ")
             print(
-                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} | UA: {np.mean(self.batch_ua)}",
+                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ",
                     file=self.log_file)
 
             # Test data
@@ -186,14 +186,13 @@ class ConvNetRunner:
                     #          audio_data])
                     # audio_data = audio_data.float()
                     label = tensor(label).float()
-                    test_predictions = self.network(audio_data)
-                    test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
+                    test_predictions = self.network(audio_data).squeeze(1)
                     test_loss = self.loss_function(test_predictions, label)
-                    test_accuracy, test_uar, test_ua = accuracy_fn(test_predictions, label, self.threshold)
+                    test_predictions = nn.Sigmoid()(test_predictions)
+                    test_accuracy, test_uar = accuracy_fn(test_predictions, label, self.threshold)
                     self.test_batch_loss.append(test_loss.numpy())
                     self.test_batch_accuracy.append(test_accuracy.numpy())
                     self.test_batch_uar.append(test_uar)
-                    self.test_batch_ua.append(test_ua)
             print('***** Test Metrics ***** ')
             print('***** Test Metrics ***** ', file=self.log_file)
             print(
@@ -204,7 +203,7 @@ class ConvNetRunner:
 
             log_summary(self.writer, epoch, accuracy=np.mean(self.test_batch_accuracy),
                         loss=np.mean(self.test_batch_loss),
-                        uar=np.mean(self.test_batch_uar), ua=np.mean(self.test_batch_ua), is_train=False)
+                        uar=np.mean(self.test_batch_uar), is_train=False)
 
             if epoch % self.network_save_interval == 0:
                 save_path = self.network_save_path + '/' + self.run_name + '_' + str(epoch) + '.pt'

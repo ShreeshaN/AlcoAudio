@@ -22,19 +22,13 @@ def accuracy_fn(preds, labels, threshold):
     predictions = torch.where(preds > tensor(threshold), tensor(1), tensor(0))
     print("pred sum ", torch.sum(predictions).numpy(), "pred len ", len(predictions), "actual sum ",
           torch.sum(labels).numpy(), "sigmoided ", torch.mean(preds).detach().numpy(), "correct preds ",
-          np.sum(predictions.numpy() == labels.numpy()))
+          torch.sum(labels == predictions).numpy())
     accuracy = torch.sum(predictions == labels) / float(len(labels))
     uar = recall_score(labels, predictions.numpy(), average='macro')
-    if np.array_equal(labels.numpy(), predictions.numpy()):
-        ua = 1
-    else:
-        # tn, fp, fn, tp = confusion_matrix(labels, predictions).ravel()
-        # ua = (tp + tn) / (tn + fp + fn + tp)
-        ua = 0
-    return accuracy, uar, ua
+    return accuracy, uar
 
 
-def log_summary(writer, global_step, accuracy, loss, uar, ua, is_train):
+def log_summary(writer, global_step, accuracy, loss, uar, is_train):
     if is_train:
         mode = 'Train'
     else:
@@ -43,8 +37,6 @@ def log_summary(writer, global_step, accuracy, loss, uar, ua, is_train):
     writer.add_scalar(f'{mode}/Accuracy', accuracy, global_step)
     writer.add_scalar(f'{mode}/Loss', loss, global_step)
     writer.add_scalar(f'{mode}/UAR', uar, global_step)
-    writer.add_scalar(f'{mode}/UA', ua, global_step)
-
     writer.flush()
 
 
