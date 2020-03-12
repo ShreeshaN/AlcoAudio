@@ -30,7 +30,8 @@ class ConvNet(nn.Module):
 
         super(ConvNet, self).__init__()
 
-        self.conv1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, stride=1)
+        # self.conv1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, stride=1)
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=1)
         self.conv1_bn = nn.BatchNorm2d(64)
         self.conv2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1)
         self.conv2_bn = nn.BatchNorm2d(128)
@@ -47,7 +48,8 @@ class ConvNet(nn.Module):
         self.conv5_bn = nn.BatchNorm2d(64)
         self.pool3 = nn.MaxPool2d(kernel_size=3, stride=[1, 2])
 
-        self.fc1 = nn.Linear(328 * 64, 128)
+        # self.fc1 = nn.Linear(328 * 64, 128)
+        self.fc1 = nn.Linear(207 * 64, 128)
         self.dropout1 = nn.Dropout(p=0.3)
         self.fc2 = nn.Linear(128, 32)
         self.fc3 = nn.Linear(32, 1)
@@ -59,7 +61,8 @@ class ConvNet(nn.Module):
         well as arbitrary operators on Tensors.
         """
         # x = self.reshape_for_pytorch(x)
-        x = x.permute(0, 3, 1, 2)
+        # x = x.permute(0, 3, 1, 2)
+        x = tensor(x).unsqueeze(1)
         x = F.relu(self.conv1_bn(self.conv1(x)))
         x = F.relu(self.conv2_bn(self.conv2(x)))
         x = self.pool1(x)

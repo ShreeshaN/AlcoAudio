@@ -129,7 +129,7 @@ def read_audio_n_save_spectrograms(file, label, base_path, image_save_path, samp
     :return:
     """
     data, out_labels = [], []
-
+    data.sort()
     if os.path.exists(base_path + file):
         audio, sr = librosa.load(base_path + file)
         chunks = get_audio_list(audio, sr=sampling_rate, cut_length=sample_size_in_seconds, overlap=overlap)

@@ -95,18 +95,27 @@ class ConvNetRunner:
         print('Configs used:\n', json.dumps(args, indent=4))
         print('Configs used:\n', json.dumps(args, indent=4), file=self.log_file)
 
-    def data_reader(self, data_filepath, should_batch=True, shuffle=True):
+    def data_reader(self, data_filepath, label_filepath, should_batch=True, shuffle=True):
         # data = pd.read_csv(data_file)[:50]
         # if shuffle:
         #     data = data.sample(frac=1)
         # input_data, labels = preprocess_data(self.audio_basepath, data['WAV_PATH'].values, data['label'].values,
         #                                      normalise=normalise, sample_size_in_seconds=self.sample_size_in_seconds,
         #                                      sampling_rate=self.sampling_rate, overlap=self.overlap)
-        # input_data, labels = read_npy(data_filepath)[:20], read_npy(label_filepath)[:20]
-        data = pd.read_csv(data_filepath)
-        if shuffle:
-            data = data.sample(frac=1)
-        input_data, labels = data['spectrogram_path'].values, data['labels'].values
+        input_data, labels = read_npy(data_filepath)[:100], read_npy(label_filepath)[:100]
+        ones_idx, zeros_idx = [idx for idx, label in enumerate(labels) if label == 1], [idx for idx, label in
+                                                                                        enumerate(labels) if label == 0]
+        zeros_idx = zeros_idx[:len(ones_idx)]
+        ids = ones_idx + zeros_idx
+        input_data, labels = input_data[ids], labels[ids]
+        print('Length of zeros ', len(zeros_idx))
+        print('Length of ones ', len(ones_idx))
+        print('Total data ', len(input_data))
+        print('Event rate', len(ones_idx) / len(labels))
+        # data = pd.read_csv(data_filepath)
+        # if shuffle:
+        #     data = data.sample(frac=1)
+        # input_data, labels = data['spectrogram_path'].values, data['labels'].values
 
         if should_batch:
             batched_input = [input_data[pos:pos + self.batch_size] for pos in
@@ -117,22 +126,24 @@ class ConvNetRunner:
             return input_data, labels
 
     def train(self):
-        train_data, train_labels = self.data_reader(self.data_read_path + 'train_data_melfilter_specs_balanced.csv',
-                                                    shuffle=True)
-        test_data, test_labels = self.data_reader(self.data_read_path + 'test_data_melfilter_specs.csv',
+        train_data, train_labels = self.data_reader(self.data_read_path + 'train_data.npy',
+                                                    self.data_read_path + 'train_labels.npy', shuffle=True)
+        test_data, test_labels = self.data_reader(self.data_read_path + 'test_data.npy',
+                                                  self.data_read_path + 'test_labels.npy',
                                                   shuffle=False)
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
             self.batch_loss, self.batch_accuracy, self.batch_uar, self.batch_ua, audio_for_tensorboard_train = [], [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
                 self.optimiser.zero_grad()
-                audio_data = tensor(
-                        [normalize_image(cv2.cvtColor(cv2.imread(spec_image), cv2.COLOR_BGR2RGB)) for spec_image in
-                         audio_data])
-                audio_data = audio_data.float()
-                label = tensor(label).float()
+                # audio_data = tensor(
+                #         [normalize_image(cv2.cvtColor(cv2.imread(spec_image), cv2.COLOR_BGR2RGB)) for spec_image in
+                #          audio_data])
+                # audio_data = audio_data.float()
+                print(audio_data.shape)
+                label = tensor(label).float().unsqueeze(1)
                 if i == 0:
-                    self.writer.add_graph(self.network, audio_data)
+                    self.writer.add_graph(self.network, tensor(audio_data))
                 predictions = self.network(audio_data)
                 loss = self.loss_function(predictions, label)
                 print("pre sigmoided ", torch.mean(predictions).detach().numpy())
