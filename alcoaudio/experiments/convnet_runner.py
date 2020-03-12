@@ -102,7 +102,7 @@ class ConvNetRunner:
         # input_data, labels = preprocess_data(self.audio_basepath, data['WAV_PATH'].values, data['label'].values,
         #                                      normalise=normalise, sample_size_in_seconds=self.sample_size_in_seconds,
         #                                      sampling_rate=self.sampling_rate, overlap=self.overlap)
-        input_data, labels = read_npy(data_filepath)[:100], read_npy(label_filepath)[:100]
+        input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
         ones_idx, zeros_idx = [idx for idx, label in enumerate(labels) if label == 1], [idx for idx, label in
                                                                                         enumerate(labels) if label == 0]
         zeros_idx = zeros_idx[:len(ones_idx)]
@@ -140,7 +140,6 @@ class ConvNetRunner:
                 #         [normalize_image(cv2.cvtColor(cv2.imread(spec_image), cv2.COLOR_BGR2RGB)) for spec_image in
                 #          audio_data])
                 # audio_data = audio_data.float()
-                print(audio_data.shape)
                 label = tensor(label).float().unsqueeze(1)
                 if i == 0:
                     self.writer.add_graph(self.network, tensor(audio_data))
@@ -177,11 +176,11 @@ class ConvNetRunner:
             self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
             with torch.no_grad():
                 for i, (audio_data, label) in enumerate(zip(test_data, test_labels)):
-                    audio_data = tensor(
-                            [normalize_image(cv2.cvtColor(cv2.imread(spec_image), cv2.COLOR_BGR2RGB)) for spec_image in
-                             audio_data])
-                    audio_data = audio_data.float()
-                    label = tensor(label).float()
+                    # audio_data = tensor(
+                    #         [normalize_image(cv2.cvtColor(cv2.imread(spec_image), cv2.COLOR_BGR2RGB)) for spec_image in
+                    #          audio_data])
+                    # audio_data = audio_data.float()
+                    label = tensor(label).float().unsqueeze(1)
                     test_predictions = self.network(audio_data)
                     test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
                     test_loss = self.loss_function(test_predictions, label)
