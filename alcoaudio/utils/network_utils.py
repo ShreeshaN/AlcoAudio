@@ -22,14 +22,15 @@ def accuracy_fn(preds, labels, threshold):
     predictions = torch.where(preds > tensor(threshold), tensor(1), tensor(0))
     print("pred sum ", torch.sum(predictions).numpy(), "pred len ", len(predictions), "actual sum ",
           torch.sum(labels).numpy(), "sigmoided ", torch.mean(preds).detach().numpy(), "correct preds ",
-          torch.sum(predictions == labels).numpy())
+          np.sum(predictions.numpy() == labels.numpy()))
     accuracy = torch.sum(predictions == labels) / float(len(labels))
     uar = recall_score(labels, predictions.numpy(), average='macro')
     if np.array_equal(labels.numpy(), predictions.numpy()):
         ua = 1
     else:
-        tn, fp, fn, tp = confusion_matrix(labels, predictions).ravel()
-        ua = (tp + tn) / (tn + fp + fn + tp)
+        # tn, fp, fn, tp = confusion_matrix(labels, predictions).ravel()
+        # ua = (tp + tn) / (tn + fp + fn + tp)
+        ua = 0
     return accuracy, uar, ua
 
 

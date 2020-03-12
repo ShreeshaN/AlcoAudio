@@ -20,6 +20,7 @@ from torch import tensor
 import time
 import json
 import cv2
+import random
 import torchvision
 
 from alcoaudio.networks.convnet import ConvNet
@@ -108,6 +109,10 @@ class ConvNetRunner:
         zeros_idx = zeros_idx[:len(ones_idx)]
         ids = ones_idx + zeros_idx
         input_data, labels = input_data[ids], labels[ids]
+
+        data = [(x, y) for x, y in zip(input_data, labels)]
+        random.shuffle(data)
+        inpu_data, labels = np.array(data)[:, 0], np.array(data)[:, 1]
         print('Length of zeros ', len(zeros_idx))
         print('Length of ones ', len(ones_idx))
         print('Total data ', len(input_data))
