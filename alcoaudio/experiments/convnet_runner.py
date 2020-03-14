@@ -23,7 +23,7 @@ import cv2
 import random
 import torchvision
 
-from alcoaudio.networks.convlstm_network import ConvLSTM
+from alcoaudio.networks.convnet import ConvNet
 from alcoaudio.utils import file_utils
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
 from alcoaudio.utils.network_utils import accuracy_fn, log_summary, normalize_image
@@ -67,7 +67,7 @@ class ConvNetRunner:
 
         self.weights = np.load(args.keras_model_weights, allow_pickle=True)
         self.network = None
-        self.network = ConvLSTM().to(self.device)
+        self.network = ConvNet().to(self.device)
 
         self.loss_function = nn.BCEWithLogitsLoss()
 
