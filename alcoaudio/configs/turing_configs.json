@@ -1,5 +1,5 @@
 {
-  "run_name": "emotion_alco_audio_convlstm_128mels",
+  "run_name": "emotion_alco_audio_convlstm_40mels",
   "epochs": 50000,
   "batch_size": 32,
   "learning_rate": 0.001,
