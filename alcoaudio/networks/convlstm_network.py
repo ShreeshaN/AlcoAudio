@@ -31,7 +31,7 @@ class ConvLSTM(nn.Module):
 
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=1)
         self.conv2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1)
-        self.pool1 = nn.MaxPool2d(kernel_size=4, stride=2)
+        self.pool1 = nn.MaxPool2d(kernel_size=4, stride=1)
         self.dropout0 = nn.Dropout(p=0.4)
 
         self.conv3 = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1)
@@ -43,9 +43,9 @@ class ConvLSTM(nn.Module):
 
         self.depth_conv = nn.Conv2d(in_channels=64, out_channels=1, kernel_size=1, stride=1)
 
-        self.lstm = nn.LSTM(1, 128, 1, bias=True)
+        self.lstm = nn.LSTM(9, 128, 1, bias=True)
 
-        self.fc1 = nn.Linear(9*128, 128)
+        self.fc1 = nn.Linear(128, 128)
         self.dropout1 = nn.Dropout(p=0.3)
         self.fc2 = nn.Linear(128, 32)
         self.fc3 = nn.Linear(32, 1)
@@ -75,11 +75,13 @@ class ConvLSTM(nn.Module):
 
         # LSTM from here
         x = x.squeeze(1).permute(2, 0, 1)  # Converting from (B,C,H,W)->(B,H,W)->(W,B,H)
+
         lstm_out, _ = self.lstm(x)
         # lstm_out = lstm_out.permute(1, 0, 2)  # Converting it back to (B,W,H) from (W,B,H)
 
+
         # Flattening to feed it to FFN
-        x = lstm_out.view(-1, lstm_out.shape[0] * lstm_out.shape[2])
+        x = lstm_out[-1].view(-1, lstm_out[-1].shape[1])
         x = F.relu(self.fc1(x))
         x = self.dropout1(x)
         x = F.relu(self.fc2(x))
