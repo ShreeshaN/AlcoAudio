@@ -121,7 +121,7 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
 
 def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds, sampling_rate, overlap):
     data, out_labels = [], []
-    aggregated_data = Parallel(n_jobs=4, backend='multiprocessing')(
+    aggregated_data = Parallel(n_jobs=8, backend='multiprocessing')(
             delayed(read_audio_n_process)(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap,
                                           normalise) for file, label in
             tqdm(zip(files, labels), total=len(labels)))
