@@ -16,7 +16,7 @@ import time
 import numpy as np
 
 from alcoaudio.utils.class_utils import AttributeDict
-from alcoaudio.datagen.audio_feature_extractors import preprocess_data
+from alcoaudio.datagen.audio_feature_extractors import preprocess_data, preprocess_data_images
 from alcoaudio.utils.data_utils import save_h5py, save_npy, save_csv
 
 
@@ -63,16 +63,19 @@ class DataProcessor:
         df = pd.read_csv(data_file)
         if shuffle:
             df = df.sample(frac=1)
-        data, labels = preprocess_data(self.base_path, self.image_save_path, df['WAV_PATH'].values, df['label'].values,
-                                       self.normalise,
-                                       self.sample_size_in_seconds, self.sampling_rate, self.overlap)
+        data, labels = preprocess_data_images(self.base_path, self.image_save_path, df['WAV_PATH'].values,
+                                              df['label'].values,
+                                              self.normalise,
+                                              self.sample_size_in_seconds, self.sampling_rate, self.overlap)
         concat_data = np.concatenate((np.array([data]).T, np.array([labels]).T), axis=1)
         save_csv(concat_data, columns=["spectrogram_path", "labels"], filename=
         self.data_save_path + '/' + filename_to_save + '_data_melfilter_specs.csv')
 
     def run(self):
-        self.process_audio_and_save_csv(self.train_data_file, filename_to_save='train')
-        self.process_audio_and_save_csv(self.test_data_file, filename_to_save='test')
+        # self.process_audio_and_save_csv(self.train_data_file, filename_to_save='train')
+        # self.process_audio_and_save_csv(self.test_data_file, filename_to_save='test')
+        self.process_audio_and_save_npy(self.train_data_file, filename_to_save='train_mfcc')
+        self.process_audio_and_save_npy(self.test_data_file, filename_to_save='test_mfcc')
 
 
 if __name__ == '__main__':
