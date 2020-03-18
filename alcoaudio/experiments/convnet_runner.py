@@ -65,7 +65,6 @@ class ConvNetRunner:
         paths = [self.network_save_path, self.tensorboard_summary_path]
         file_utils.create_dirs(paths)
 
-        self.weights = np.load(args.keras_model_weights, allow_pickle=True)
         self.network = None
         self.network = CRNN().to(self.device)
 
@@ -137,10 +136,15 @@ class ConvNetRunner:
         test_data, test_labels = self.data_reader(self.data_read_path + 'test_data.npy',
                                                   self.data_read_path + 'test_labels.npy',
                                                   shuffle=False)
+        print(np.array(train_data).shape, np.array(train_labels).shape, np.array(test_data).shape, np.array(test_labels).shape)
+        # train_data, train_labels, test_data, test_labels = tensor(train_data).to(self.device), tensor(train_labels).to(
+        #     self.device), tensor(test_data).to(self.device), tensor(test_labels).to(self.device)
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
             self.batch_loss, self.batch_accuracy, self.batch_uar, audio_for_tensorboard_train = [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
+                audio_data = tensor(audio_data).to(self.device)
+                label = tensor(label).to(self.device)
                 self.optimiser.zero_grad()
                 # audio_data = tensor(
                 #         [normalize_image(cv2.cvtColor(cv2.imread(spec_image), cv2.COLOR_BGR2RGB)) for spec_image in
@@ -151,7 +155,6 @@ class ConvNetRunner:
                     self.writer.add_graph(self.network, tensor(audio_data))
                 predictions = self.network(audio_data).squeeze(1)
                 loss = self.loss_function(predictions, label)
-                print("pre sigmoided ", torch.mean(predictions).detach().numpy())
                 predictions = nn.Sigmoid()(predictions)
                 loss.backward()
                 self.optimiser.step()
@@ -162,25 +165,27 @@ class ConvNetRunner:
 
                 if i % self.display_interval == 0:
                     print(
-                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}")
+                        f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}")
                     print(
-                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}",
-                            file=self.log_file)
+                        f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}",
+                        file=self.log_file)
             log_summary(self.writer, epoch, accuracy=np.mean(self.batch_accuracy),
                         loss=np.mean(self.batch_loss),
                         uar=np.mean(self.batch_uar), is_train=True)
             print('***** Overall Train Metrics ***** ')
             print('***** Overall Train Metrics ***** ', file=self.log_file)
             print(
-                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ")
+                f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ")
             print(
-                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ",
-                    file=self.log_file)
+                f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ",
+                file=self.log_file)
 
             # Test data
             self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
             with torch.no_grad():
                 for i, (audio_data, label) in enumerate(zip(test_data, test_labels)):
+                    audio_data = tensor(audio_data).to(self.device)
+                    label = tensor(label).to(self.device)
                     # audio_data = tensor(
                     #         [normalize_image(cv2.cvtColor(cv2.imread(spec_image), cv2.COLOR_BGR2RGB)) for spec_image in
                     #          audio_data])
@@ -191,15 +196,15 @@ class ConvNetRunner:
                     test_predictions = nn.Sigmoid()(test_predictions)
                     test_accuracy, test_uar = accuracy_fn(test_predictions, label, self.threshold)
                     self.test_batch_loss.append(test_loss.numpy())
-                    self.test_batch_accuracy.append(test_accuracy.numpy())
+                    self.test_batch_accuracy.append(test_accuracy)
                     self.test_batch_uar.append(test_uar)
             print('***** Test Metrics ***** ')
             print('***** Test Metrics ***** ', file=self.log_file)
             print(
-                    f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)} | UA: {np.mean(self.test_batch_ua)}")
+                f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)} | UA: {np.mean(self.test_batch_ua)}")
             print(
-                    f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)} | UA: {np.mean(self.test_batch_ua)}",
-                    file=self.log_file)
+                f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)} | UA: {np.mean(self.test_batch_ua)}",
+                file=self.log_file)
 
             log_summary(self.writer, epoch, accuracy=np.mean(self.test_batch_accuracy),
                         loss=np.mean(self.test_batch_loss),
