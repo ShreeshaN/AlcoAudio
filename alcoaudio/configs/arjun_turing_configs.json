@@ -1,5 +1,5 @@
 {
-  "run_name": "emotion_alco_audio_convlstm_mfcc",
+  "run_name": "emotion_alco_audio_conv_mfcc",
   "epochs": 5000,
   "batch_size": 16,
   "learning_rate": 0.001,
