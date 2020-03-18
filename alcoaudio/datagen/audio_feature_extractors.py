@@ -20,8 +20,8 @@ import time
 
 
 def mfcc_features(audio, normalise=False):
-    mfcc = librosa.feature.mfcc(y=audio, n_mfcc=40)
-    # print(mfcc.shape())
+    # mfcc = librosa.feature.mfcc(y=audio, n_mfcc=20)
+    mfcc = librosa.feature.melspectrogram(y=audio, window = 'hann')
     return mfcc
     # if normalise:
     #     mfcc_norm = np.mean(mfcc, axis=0)
