@@ -20,6 +20,6 @@
   "sampling_rate": 22050,
   "sample_size_in_seconds": 8,
   "overlap": 1,
-  "data_save_path": "/home/arjun/Downloads/March_17/AlcoAudio_data/small_data/",
+  "data_save_path": "/home/arao/dr_alcocudio/alco_data/",
   "image_data_save_path": "/Users/badgod/badgod_documents/Alco_audio/images/"
 }
