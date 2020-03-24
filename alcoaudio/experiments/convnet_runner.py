@@ -23,7 +23,7 @@ import cv2
 import random
 import torchvision
 
-from alcoaudio.networks.crnn import CRNN
+from alcoaudio.networks.convnet import ConvNet
 from alcoaudio.utils import file_utils
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
 from alcoaudio.utils.network_utils import accuracy_fn, log_summary, normalize_image
@@ -67,7 +67,7 @@ class ConvNetRunner:
 
         self.weights = np.load(args.keras_model_weights, allow_pickle=True)
         self.network = None
-        self.network = CRNN().to(self.device)
+        self.network = ConvNet().to(self.device)
 
         self.loss_function = nn.BCEWithLogitsLoss()
 
@@ -96,27 +96,29 @@ class ConvNetRunner:
         print('Configs used:\n', json.dumps(args, indent=4))
         print('Configs used:\n', json.dumps(args, indent=4), file=self.log_file)
 
-    def data_reader(self, data_filepath, label_filepath, should_batch=True, shuffle=True):
+    def data_reader(self, data_filepath, label_filepath, train, should_batch=True, shuffle=True):
         # data = pd.read_csv(data_file)[:50]
         # if shuffle:
         #     data = data.sample(frac=1)
         # input_data, labels = preprocess_data(self.audio_basepath, data['WAV_PATH'].values, data['label'].values,
         #                                      normalise=normalise, sample_size_in_seconds=self.sample_size_in_seconds,
         #                                      sampling_rate=self.sampling_rate, overlap=self.overlap)
-        input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
-        ones_idx, zeros_idx = [idx for idx, label in enumerate(labels) if label == 1], [idx for idx, label in
-                                                                                        enumerate(labels) if label == 0]
-        zeros_idx = zeros_idx[:len(ones_idx)]
-        ids = ones_idx + zeros_idx
-        input_data, labels = input_data[ids], labels[ids]
+        input_data, labels = read_npy(data_filepath)[:20], read_npy(label_filepath)[:20]
 
-        data = [(x, y) for x, y in zip(input_data, labels)]
-        random.shuffle(data)
-        input_data, labels = [x[0] for x in data], [x[1] for x in data]
-        print('Length of zeros ', len(zeros_idx))
-        print('Length of ones ', len(ones_idx))
+        if train:
+            ones_idx, zeros_idx = [idx for idx, label in enumerate(labels) if label == 1], [idx for idx, label in
+                                                                                            enumerate(labels) if
+                                                                                            label == 0]
+            zeros_idx = zeros_idx[:len(ones_idx)]
+            ids = ones_idx + zeros_idx
+            input_data, labels = input_data[ids], labels[ids]
+
+            data = [(x, y) for x, y in zip(input_data, labels)]
+            random.shuffle(data)
+            input_data, labels = [x[0] for x in data], [x[1] for x in data]
+
         print('Total data ', len(input_data))
-        print('Event rate', len(ones_idx) / len(labels))
+        print('Event rate', sum(labels) / len(labels))
         print(np.array(input_data).shape, np.array(labels).shape)
         # data = pd.read_csv(data_filepath)
         # if shuffle:
@@ -132,11 +134,11 @@ class ConvNetRunner:
             return input_data, labels
 
     def train(self):
-        train_data, train_labels = self.data_reader(self.data_read_path + 'train_mfcc_data.npy',
-                                                    self.data_read_path + 'train_mfcc_labels.npy', shuffle=True)
-        test_data, test_labels = self.data_reader(self.data_read_path + 'test_mfcc_data.npy',
-                                                  self.data_read_path + 'test_mfcc_labels.npy',
-                                                  shuffle=False)
+        train_data, train_labels = self.data_reader(self.data_read_path + 'train_data.npy',
+                                                    self.data_read_path + 'train_labels.npy', shuffle=True, train=True)
+        test_data, test_labels = self.data_reader(self.data_read_path + 'test_data.npy',
+                                                  self.data_read_path + 'test_labels.npy',
+                                                  shuffle=False, train=False)
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
             self.batch_loss, self.batch_accuracy, self.batch_uar, audio_for_tensorboard_train = [], [], [], None
@@ -151,7 +153,6 @@ class ConvNetRunner:
                     self.writer.add_graph(self.network, tensor(audio_data))
                 predictions = self.network(audio_data).squeeze(1)
                 loss = self.loss_function(predictions, label)
-                print("pre sigmoided ", torch.mean(predictions).detach().numpy())
                 predictions = nn.Sigmoid()(predictions)
                 loss.backward()
                 self.optimiser.step()
@@ -196,9 +197,9 @@ class ConvNetRunner:
             print('***** Test Metrics ***** ')
             print('***** Test Metrics ***** ', file=self.log_file)
             print(
-                    f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)} | UA: {np.mean(self.test_batch_ua)}")
+                    f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}")
             print(
-                    f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)} | UA: {np.mean(self.test_batch_ua)}",
+                    f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}",
                     file=self.log_file)
 
             log_summary(self.writer, epoch, accuracy=np.mean(self.test_batch_accuracy),
