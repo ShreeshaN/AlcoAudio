@@ -72,10 +72,8 @@ class DataProcessor:
         self.data_save_path + '/' + filename_to_save + '_data_melfilter_specs.csv')
 
     def run(self):
-        # self.process_audio_and_save_csv(self.train_data_file, filename_to_save='train')
-        # self.process_audio_and_save_csv(self.test_data_file, filename_to_save='test')
-        self.process_audio_and_save_npy(self.train_data_file, filename_to_save='train_mfcc')
-        self.process_audio_and_save_npy(self.test_data_file, filename_to_save='test_mfcc')
+        self.process_audio_and_save_npy(self.train_data_file, filename_to_save='train_more_data')
+        self.process_audio_and_save_npy(self.test_data_file, filename_to_save='test_more_data')
 
 
 if __name__ == '__main__':
