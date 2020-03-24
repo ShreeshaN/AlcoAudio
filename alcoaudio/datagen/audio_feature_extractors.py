@@ -103,8 +103,8 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
     #         out_labels.append(float(label))
     # return data, out_labels
     data, out_labels = [], []
-    if os.path.exists(base_path + file):
-        audio, sr = librosa.load(base_path + file)
+    if os.path.exists(file):
+        audio, sr = librosa.load(file)
         chunks = get_audio_list(audio, sr=sampling_rate, cut_length=sample_size_in_seconds, overlap=overlap)
         # [(data.append(mfcc_features(chunk, normalise)), out_labels.append(float(label))) for chunk in chunks]
         # [(data.extend(mel_filters(chunk, normalise)), out_labels.append(float(label))) for chunk in chunks]
