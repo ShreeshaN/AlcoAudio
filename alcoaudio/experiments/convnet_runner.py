@@ -103,7 +103,7 @@ class ConvNetRunner:
         # input_data, labels = preprocess_data(self.audio_basepath, data['WAV_PATH'].values, data['label'].values,
         #                                      normalise=normalise, sample_size_in_seconds=self.sample_size_in_seconds,
         #                                      sampling_rate=self.sampling_rate, overlap=self.overlap)
-        input_data, labels = read_npy(data_filepath)[:20], read_npy(label_filepath)[:20]
+        input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
 
         if train:
             ones_idx, zeros_idx = [idx for idx, label in enumerate(labels) if label == 1], [idx for idx, label in
