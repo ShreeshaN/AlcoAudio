@@ -76,13 +76,14 @@ def cut_audio(audio, sampling_rate, sample_size_in_seconds, overlap):
         left_out = None
 
         # Until highest multiple of sample_size_in_seconds is reached, ofcourse, wrt audio_in_seconds, run this loop
-        while end < audio_in_seconds:
+        while end <= audio_in_seconds:
             index_at_start, index_at_end = start * sampling_rate, end * sampling_rate
             one_audio_sample = audio[index_at_start:index_at_end]
             add_to_audio_list(one_audio_sample)
             left_out = audio_in_seconds - end
             start = (start - overlap) + sample_size_in_seconds
             end = (end - overlap) + sample_size_in_seconds
+
         # Whatever is left out after the iteration, just include that to the final list.
         # Eg: if 3 seconds is left out and sample_size_in_seconds is 5 seconds, then cut the last 5 seconds of the audio
         # and append to final list.
