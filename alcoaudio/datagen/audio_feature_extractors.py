@@ -46,38 +46,56 @@ def mel_filters_with_spectrogram(audio, filename, normalise=False):
     plt.close()
 
 
-def get_audio_list(audio, sr=22050, cut_length=10, overlap=1):
-    y, trim_idx = librosa.effects.trim(audio)  #
-    len_sample = cut_length * sr  # array length of sample
-    len_ol = overlap * sr  # overlaplength(array)
-    y_mat = []  # initiate list
-    i = 1  # iterator
+def cut_audio(audio, sampling_rate, sample_size_in_seconds, overlap):
+    """
+    Method to split a audio signal into pieces based on `sample_size_in_seconds` and `overlap` parameters
+    :param audio: The main audio signal to be split
+    :param sampling_rate: The rate at which audio is sampled
+    :param sample_size_in_seconds: number of seconds in each split
+    :param overlap: in seconds, how much of overlap is required within splits
+    :return: List of splits
+    """
+    if overlap >= sample_size_in_seconds:
+        raise Exception("Please maintain this condition: sample_size_in_seconds > overlap")
 
-    if (trim_idx[1] < len_sample):  # check if voice note is too small
-        no_of_times_to_replicate = int(len_sample / trim_idx[1]) + 1  # Calculating the replication factor if audio
-        return [np.tile(audio, no_of_times_to_replicate)[:len_sample]]  # Trimming the extra audio that is extra
+    def add_to_audio_list(y):
+        if len(y) / sampling_rate < sample_size_in_seconds:
+            raise Exception(
+                    f'Length of audio lesser than `sampling size in seconds` - {len(y) / sampling_rate} seconds, required {sample_size_in_seconds} seconds')
+        y = y[:required_length]
+        audio_list.append(y)
+
+    audio_list = []
+    required_length = sample_size_in_seconds * sampling_rate
+    audio_in_seconds = len(audio) // sampling_rate
+
+    # Check if the main audio file is larger than the required number of seconds
+    if audio_in_seconds >= sample_size_in_seconds:
+        start = 0
+        end = sample_size_in_seconds
+        left_out = None
+
+        # Until highest multiple of sample_size_in_seconds is reached, ofcourse, wrt audio_in_seconds, run this loop
+        while end < audio_in_seconds:
+            index_at_start, index_at_end = start * sampling_rate, end * sampling_rate
+            one_audio_sample = audio[index_at_start:index_at_end]
+            add_to_audio_list(one_audio_sample)
+            left_out = audio_in_seconds - end
+            start = (start - overlap) + sample_size_in_seconds
+            end = (end - overlap) + sample_size_in_seconds
+        # Whatever is left out after the iteration, just include that to the final list.
+        # Eg: if 3 seconds is left out and sample_size_in_seconds is 5 seconds, then cut the last 5 seconds of the audio
+        # and append to final list.
+        if left_out > 0:
+            one_audio_sample = audio[-sample_size_in_seconds * sampling_rate:]
+            add_to_audio_list(one_audio_sample)
+    # Else, just repeat the required number of seconds at the end. The repeated audio is taken from the start
     else:
-        while (i * len_sample - (i - 1) * len_ol <= trim_idx[1]):
-            trim_y = y[(i - 1) * len_sample - (i - 1) * len_ol: i * len_sample - (i - 1) * len_ol]  # trim voice notes
-            y_mat.append(trim_y)
-            i = i + 1
-        if ((i - 1) * len_sample - (i - 2) * len_ol < trim_idx[1]):
-            trim_y = y[trim_idx[1] - len_sample:trim_idx[1]]  # addition of remainder voice note
-            y_mat.append(trim_y)
-
-        return y_mat  # return list
-
-
-# def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds, sampling_rate, overlap):
-#     data, out_labels = [], []
-#     for file, label in zip(files, labels):
-#         if not os.path.exists(base_path + file):
-#             continue
-#         audio, sr = librosa.load(base_path + file)
-#         chunks = get_audio_list(audio, sr=sampling_rate, cut_length=sample_size_in_seconds, overlap=overlap)
-#         data.extend([mfcc_features(chunk, normalise) for chunk in chunks])
-#         out_labels.extend([float(label) for _ in range(len(chunks))])
-#     return data, out_labels
+        less_by = sample_size_in_seconds - audio_in_seconds
+        excess_needed = less_by * sampling_rate
+        one_audio_sample = np.append(audio, audio[-excess_needed:])
+        add_to_audio_list(one_audio_sample)
+    return audio_list
 
 
 def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap, normalise):
@@ -92,30 +110,15 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
     :param normalise:
     :return:
     """
-    # if os.path.exists(base_path + file):
-    #     audio, sr = librosa.load(base_path + file)
-    #     chunks = get_audio_list(audio, sr=sampling_rate, cut_length=sample_size_in_seconds, overlap=overlap)
-    #     # [(data.append(mfcc_features(chunk, normalise)), out_labels.append(float(label))) for chunk in chunks]
-    #     # [(data.extend(mel_filters(chunk, normalise)), out_labels.append(float(label))) for chunk in chunks]
-    #     for chunk in chunks:
-    #         features = mel_filters(chunk, normalise)
-    #         data.append(features)
-    #         out_labels.append(float(label))
-    # return data, out_labels
     data, out_labels = [], []
     if os.path.exists(file):
         audio, sr = librosa.load(file)
-        chunks = get_audio_list(audio, sr=sampling_rate, cut_length=sample_size_in_seconds, overlap=overlap)
-        # [(data.append(mfcc_features(chunk, normalise)), out_labels.append(float(label))) for chunk in chunks]
-        # [(data.extend(mel_filters(chunk, normalise)), out_labels.append(float(label))) for chunk in chunks]
+        chunks = cut_audio(audio, sampling_rate=sampling_rate, sample_size_in_seconds=sample_size_in_seconds,
+                           overlap=overlap)
         for chunk in chunks:
-            features = mfcc_features(chunk, normalise)
-            if 345 in features.shape:
-                data.append(features)
-                out_labels.append(float(label))
-            else:
-                # for logging
-                print('FIle with issue ', file)
+            features = mel_filters(chunk, normalise)
+            data.append(features)
+            out_labels.append(float(label))
     return data, out_labels
 
 
@@ -131,11 +134,9 @@ def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds,
         # Might be an array as one audio file can be split into many pieces based on sample_size_in_seconds parameter
         for i, label in enumerate(per_file_data[1]):
             # per_file_data[0] is array of audio samples based on sample_size_in_seconds parameter
-            if 345 in per_file_data[0][i].shape:  # Temp fix
-                data.append(per_file_data[0][i])
-                out_labels.append(label)
+            data.append(per_file_data[0][i])
+            out_labels.append(label)
     return data, out_labels
-
 
 
 # for images
@@ -156,7 +157,8 @@ def read_audio_n_save_spectrograms(file, label, base_path, image_save_path, samp
     data.sort()
     if os.path.exists(base_path + file):
         audio, sr = librosa.load(base_path + file)
-        chunks = get_audio_list(audio, sr=sampling_rate, cut_length=sample_size_in_seconds, overlap=overlap)
+        chunks = cut_audio(audio, sampling_rate=sampling_rate, sample_size_in_seconds=sample_size_in_seconds,
+                           overlap=overlap)
         for i, chunk in enumerate(chunks):
             filename = image_save_path + file.split("/")[-1] + "_" + str(i) + "_label_" + str(label) + '.jpg'
             # mel_filters_with_spectrogram(chunk, filename, normalise)
@@ -167,7 +169,7 @@ def read_audio_n_save_spectrograms(file, label, base_path, image_save_path, samp
 
 
 def preprocess_data_images(base_path, image_save_path, files, labels, normalise, sample_size_in_seconds, sampling_rate,
-                    overlap):
+                           overlap):
     data, out_labels = [], []
     aggregated_data = Parallel(n_jobs=4, backend='multiprocessing')(
             delayed(read_audio_n_save_spectrograms)(file, label, base_path, image_save_path, sampling_rate,
@@ -181,23 +183,8 @@ def preprocess_data_images(base_path, image_save_path, files, labels, normalise,
     return data, out_labels
 
 
-# def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds, sampling_rate, overlap):
-#     data, out_labels = [], []
-#     aggregated_data = Parallel(n_jobs=4, backend='threading')(
-#             delayed(read_audio_n_process)(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap,
-#                                           normalise) for file, label in tqdm(zip(files, labels), total=len(labels)))
-#
-#     for per_file_data in aggregated_data:
-#         # per_file_data[1] are labels for the audio file.
-#         # Might be an array as one audio file can be split into many pieces based on sample_size_in_seconds parameter
-#         for i, label in enumerate(per_file_data[1]):
-#             # per_file_data[0] is array of audio samples based on sample_size_in_seconds parameter
-#             if 345 in per_file_data[0][i].shape:  # Temp fix
-#                 data.append(per_file_data[0][i])
-#                 out_labels.append(label)
-#     return data, out_labels
 
-
+########## TESTING ###########
 # file = '/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/132bpm/AM_HiTeeb[A]_132D.wav'
 # note, sr = librosa.load(file)
 # print(note.shape)
@@ -225,7 +212,6 @@ def mfcc():
     # plt.plot(mfccsscaled)
     librosa.display.specshow(mfccs, sr=sample_rate, x_axis='time')
     plt.show()
-
 
 #
 
@@ -265,34 +251,3 @@ def mfcc():
 #     plt.close()
 
 # mel_filters_x()
-# def split_audio_into_equal_chunks(file, milliseconds):
-#     # audio, sample_rate = librosa.load(
-#     #         "/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/128bpm/AM_HiTeeb[A]_128D.wav",
-#     #         res_type='kaiser_fast', duration=10)
-#     # print(sample_rate)
-#     # print(audio.shape)
-#     # print(7.5 * sample_rate)
-#     # piece = audio[:int(7.5 * sample_rate)]
-#     # print("piece", piece.shape)
-#     # exit()
-#     # chunks = librosa.util.frame(audio, frame_length=1000, axis=0, hop_length=200)
-#     # print(len(chunks))
-#     audio, sample_rate = librosa.load(
-#             "/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/128bpm/AM_HiTeeb[A]_128D.wav",
-#             res_type='kaiser_fast', duration=10)
-#     return [audio]
-
-# import cv2
-# import matplotlib.pyplot as plt
-# import matplotlib.image as mpimg
-#
-# a = mpimg.imread("/Users/badgod/badgod_documents/github/AlcoAudio/alcoaudio/datagen/test.jpg")
-# b = cv2.imread("/Users/badgod/badgod_documents/github/AlcoAudio/alcoaudio/datagen/test.jpg")
-# b = cv2.cvtColor(b, cv2.COLOR_BGR2RGB)
-# # b = (b-b.mean())/b.std()
-# b = (b - b.min()) / (b.max() - b.min())
-# print(a.shape, b.shape)
-# print(a[:, :, 0].mean(), a[:, :, 1].mean(), a[:, :, 2].mean())
-# print(b[:, :, 0].mean(), b[:, :, 1].mean(), b[:, :, 2].mean())
-# plt.imshow(b)
-# plt.show()
