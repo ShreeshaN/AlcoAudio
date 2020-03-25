@@ -119,6 +119,8 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
             features = mel_filters(chunk, normalise)
             data.append(features)
             out_labels.append(float(label))
+    else:
+        print('File not found ', file)
     return data, out_labels
 
 
@@ -181,7 +183,6 @@ def preprocess_data_images(base_path, image_save_path, files, labels, normalise,
         data.extend(x[0])
         out_labels.extend(x[1])
     return data, out_labels
-
 
 
 ########## TESTING ###########

@@ -120,6 +120,10 @@ class ConvNetRunner:
         print('Total data ', len(input_data))
         print('Event rate', sum(labels) / len(labels))
         print(np.array(input_data).shape, np.array(labels).shape)
+
+        print('Total data ', len(input_data), file=self.log_file)
+        print('Event rate', sum(labels) / len(labels), file=self.log_file)
+        print(np.array(input_data).shape, np.array(labels).shape, file=self.log_file)
         # data = pd.read_csv(data_filepath)
         # if shuffle:
         #     data = data.sample(frac=1)
@@ -135,7 +139,8 @@ class ConvNetRunner:
 
     def train(self):
         train_data, train_labels = self.data_reader(self.data_read_path + 'train_more_data.npy',
-                                                    self.data_read_path + 'train_more_labels.npy', shuffle=True, train=True)
+                                                    self.data_read_path + 'train_more_labels.npy', shuffle=True,
+                                                    train=True)
         test_data, test_labels = self.data_reader(self.data_read_path + 'test_more_data.npy',
                                                   self.data_read_path + 'test_more_labels.npy',
                                                   shuffle=False, train=False)
