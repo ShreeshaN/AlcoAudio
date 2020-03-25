@@ -76,7 +76,7 @@ def cut_audio(audio, sampling_rate, sample_size_in_seconds, overlap):
         left_out = None
 
         # Until highest multiple of sample_size_in_seconds is reached, ofcourse, wrt audio_in_seconds, run this loop
-        while end < audio_in_seconds:
+        while end <= audio_in_seconds:
             index_at_start, index_at_end = start * sampling_rate, end * sampling_rate
             one_audio_sample = audio[index_at_start:index_at_end]
             add_to_audio_list(one_audio_sample)
@@ -94,6 +94,11 @@ def cut_audio(audio, sampling_rate, sample_size_in_seconds, overlap):
         less_by = sample_size_in_seconds - audio_in_seconds
         excess_needed = less_by * sampling_rate
         one_audio_sample = np.append(audio, audio[-excess_needed:])
+
+        # This condition is for samples which are too small and need to be repeated
+        # multiple times to satisfy the `sample_size_in_seconds` parameter
+        while len(one_audio_sample) < (sampling_rate * sample_size_in_seconds):
+            one_audio_sample = np.hstack((one_audio_sample, one_audio_sample))
         add_to_audio_list(one_audio_sample)
     return audio_list
 
