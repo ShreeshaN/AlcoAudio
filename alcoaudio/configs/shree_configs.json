@@ -11,7 +11,7 @@
   "network_save_path": "alco_trained_models/",
   "tensorboard_summary_path": "tensorboard_summary",
   "network_restore_path": "/Users/badgod/badgod_documents/Alco_audio/server_data/2d/emotion_alco_audio_convlstm_1583673281/alco_trained_models/emotion_alco_audio_convlstm_1583673281_10.pt",
-  "normalise": false,
+  "normalise": true,
   "num_classes": 1,
   "network_save_interval": 5,
   "display_interval": 50,

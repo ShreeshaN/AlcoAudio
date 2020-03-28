@@ -73,6 +73,8 @@ class ConvNetRunner:
 
         self.optimiser = optim.Adam(self.network.parameters(), lr=self.learning_rate)
 
+        self._min, self._max = float('inf'), -float('inf')
+
         if self.train_net:
             self.network.train()
             self.log_file = open(self.network_save_path + '/' + self.run_name + '.log', 'w')
@@ -104,7 +106,6 @@ class ConvNetRunner:
         #                                      normalise=normalise, sample_size_in_seconds=self.sample_size_in_seconds,
         #                                      sampling_rate=self.sampling_rate, overlap=self.overlap)
         input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
-
         if train:
             ones_idx, zeros_idx = [idx for idx, label in enumerate(labels) if label == 1], [idx for idx, label in
                                                                                             enumerate(labels) if
@@ -115,7 +116,14 @@ class ConvNetRunner:
 
             data = [(x, y) for x, y in zip(input_data, labels)]
             random.shuffle(data)
-            input_data, labels = [x[0] for x in data], [x[1] for x in data]
+            input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
+            for x in input_data:
+                self._min = min(np.min(x), self._min)
+                self._max = max(np.max(x), self._max)
+
+        # Normalizing `input data` on train dataset min and max values
+        if self.normalise:
+            input_data = (input_data - self._min) / (self._max - self._min)
 
         print('Total data ', len(input_data))
         print('Event rate', sum(labels) / len(labels))
@@ -138,6 +146,8 @@ class ConvNetRunner:
             return input_data, labels
 
     def train(self):
+
+        # For purposes of calculating normalized values, call this method with train data followed by test
         train_data, train_labels = self.data_reader(self.data_read_path + 'train_more_data.npy',
                                                     self.data_read_path + 'train_more_labels.npy', shuffle=True,
                                                     train=True)
