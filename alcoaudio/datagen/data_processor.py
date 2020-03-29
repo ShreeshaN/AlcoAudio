@@ -70,6 +70,9 @@ class DataProcessor:
         # Converting 'A' to 1 and 'N' to 0 - according to Challenge's binary decision.
         # Refer Challenge's Readme for further information
         df[1] = df[1].apply(lambda x: 1 if x == 'A' else 0)
+
+        # Irregular use of extensions in data, so handling it here
+        df[0] = df[0].apply(lambda x: x.replace('WAV', 'wav'))
         data, labels = preprocess_data(self.base_path, df[0].values, df[1].values,
                                        self.normalise,
                                        self.sample_size_in_seconds, self.sampling_rate, self.overlap)
