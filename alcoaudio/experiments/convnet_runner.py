@@ -123,6 +123,11 @@ class ConvNetRunner:
                 self._min = min(np.min(x), self._min)
                 self._max = max(np.max(x), self._max)
 
+            # Initialize pos_weight based on training data
+            self.pos_weight = len([x for x in labels if x == 0]) / len([x for x in labels if x == 1])
+            print('Pos weight for the train data - ', self.pos_weight)
+            print('Pos weight for the train data - ', self.pos_weight, file=self.log_file)
+
         # Normalizing `input data` on train dataset's min and max values
         if self.normalise:
             input_data = (input_data - self._min) / (self._max - self._min)
@@ -180,11 +185,6 @@ class ConvNetRunner:
         test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_without_pow_data.npy',
                                                   self.data_read_path + 'test_challenge_without_pow_labels.npy',
                                                   shuffle=False, train=False)
-
-        # Initialize pos_weight based on training data
-        self.pos_weight = len([x for x in train_labels if x == 0]) / len([x for x in train_labels if x == 1])
-        print('Pos weight for the train data - ', self.pos_weight)
-        print('Pos weight for the train data - ', self.pos_weight, file=self.log_file)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
         self.loss_function = nn.BCEWithLogitsLoss()  # pos_weight=self.pos_weight
