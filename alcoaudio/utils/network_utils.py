@@ -25,15 +25,10 @@ def accuracy_fn(preds, labels, threshold):
     return accuracy, uar
 
 
-def log_summary(writer, global_step, accuracy, loss, uar, is_train):
-    if is_train:
-        mode = 'Train'
-    else:
-        mode = 'Test'
-
-    writer.add_scalar(f'{mode}/Accuracy', accuracy, global_step)
-    writer.add_scalar(f'{mode}/Loss', loss, global_step)
-    writer.add_scalar(f'{mode}/UAR', uar, global_step)
+def log_summary(writer, global_step, accuracy, loss, uar, type):
+    writer.add_scalar(f'{type}/Accuracy', accuracy, global_step)
+    writer.add_scalar(f'{type}/Loss', loss, global_step)
+    writer.add_scalar(f'{type}/UAR', uar, global_step)
     writer.flush()
 
 
