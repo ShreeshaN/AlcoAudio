@@ -178,7 +178,7 @@ class ConvNetRunner:
                                                 self.data_read_path + 'dev_challenge_without_pow_labels.npy',
                                                 shuffle=False, train=False)
         test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_without_pow_data.npy',
-                                                  self.data_read_path + 'test_challenge_lwithout_pow_abels.npy',
+                                                  self.data_read_path + 'test_challenge_without_pow_labels.npy',
                                                   shuffle=False, train=False)
 
         # Initialize pos_weight based on training data
