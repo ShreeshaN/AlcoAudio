@@ -20,8 +20,8 @@ import time
 from joblib import Parallel, delayed
 
 
-def mfcc_features(audio, normalise=False):
-    mfcc = librosa.feature.mfcc(y=audio, n_mfcc=40)
+def mfcc_features(audio, sampling_rate, normalise=False):
+    mfcc = librosa.feature.mfcc(y=audio, n_mfcc=40, sr=sampling_rate)
     if normalise:
         mfcc_norm = np.mean(mfcc.T, axis=0)
         return mfcc_norm
@@ -29,17 +29,17 @@ def mfcc_features(audio, normalise=False):
         return mfcc
 
 
-def mel_filters(audio, normalise=False):
-    logmel = librosa.feature.melspectrogram(y=audio, n_mels=40)
+def mel_filters(audio, sampling_rate, normalise=False):
+    logmel = librosa.feature.melspectrogram(y=audio, n_mels=40, sr=sampling_rate)
     if normalise:
         return librosa.power_to_db(np.mean(logmel.T), ref=np.max)
     else:
         return librosa.power_to_db(logmel, ref=np.max)
 
 
-def mel_filters_with_spectrogram(audio, filename, normalise=False):
+def mel_filters_with_spectrogram(audio, sampling_rate, filename, normalise=False):
     plt.figure(figsize=(3, 2))
-    logmel = librosa.feature.melspectrogram(y=audio, n_mels=128)
+    logmel = librosa.feature.melspectrogram(y=audio, n_mels=128, sr=sampling_rate)
     logmel = librosa.power_to_db(logmel, ref=np.max)
     librosa.display.specshow(logmel)
     plt.savefig(filename)
@@ -117,16 +117,17 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
     :return:
     """
     data, out_labels = [], []
-    if os.path.exists(file):
-        audio, sr = librosa.load(file)
-        chunks = cut_audio(audio, sampling_rate=sampling_rate, sample_size_in_seconds=sample_size_in_seconds,
+    filepath = base_path + file
+    if os.path.exists(filepath):
+        audio, sr = librosa.load(filepath, sr=sampling_rate)
+        chunks = cut_audio(audio, sampling_rate=sr, sample_size_in_seconds=sample_size_in_seconds,
                            overlap=overlap)
         for chunk in chunks:
-            features = mel_filters(chunk, normalise)
+            features = mel_filters(chunk, sr, normalise)
             data.append(features)
             out_labels.append(float(label))
     else:
-        print('File not found ', file)
+        print('File not found ', filepath)
     return data, out_labels
 
 

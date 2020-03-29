@@ -58,7 +58,7 @@ class ConvNetRunner:
 
         self.device = torch.device("cuda" if self.is_cuda_available else "cpu")
         self.network_save_interval = args.network_save_interval
-        self.normalise = args.normalise
+        self.normalise = args.normalise_while_training
         self.dropout = args.dropout
         self.threshold = args.threshold
 
