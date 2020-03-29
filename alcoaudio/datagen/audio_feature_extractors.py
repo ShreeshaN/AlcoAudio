@@ -30,11 +30,11 @@ def mfcc_features(audio, sampling_rate, normalise=False):
 
 
 def mel_filters(audio, sampling_rate, normalise=False):
-    logmel = librosa.feature.melspectrogram(y=audio, n_mels=40, sr=sampling_rate)
+    mel_spec = librosa.feature.melspectrogram(y=audio, n_mels=40, sr=sampling_rate)
     if normalise:
-        return librosa.power_to_db(np.mean(logmel.T), ref=np.max)
+        return np.mean(mel_spec.T)
     else:
-        return librosa.power_to_db(logmel, ref=np.max)
+        return mel_spec
 
 
 def mel_filters_with_spectrogram(audio, sampling_rate, filename, normalise=False):
@@ -221,41 +221,42 @@ def mfcc():
     librosa.display.specshow(mfccs, sr=sample_rate, x_axis='time')
     plt.show()
 
+
 #
 
 # mfcc()
 
-# def mel_filters_x():
-#     file_name = '/Users/badgod/Downloads/AC_12Str85F-01.mp3'
-#     audio, sample_rate = librosa.load(file_name, res_type='kaiser_fast')
-#
-#     print("audio, sample_rate", audio.shape, sample_rate)
-#     logmel = librosa.feature.melspectrogram(y=audio, sr=sample_rate, n_mels=40)
-#     print(logmel.shape)
-#     print(np.min(logmel), np.max(logmel))
-#     S_dB = librosa.power_to_db(logmel, ref=np.max)
-#     print(np.min(S_dB), np.max(S_dB))
-#     print(S_dB[0].shape)
-#     print(S_dB.shape)
-#     print(S_dB.mean())
-#     # S_dB = S_dB / 255
-#     print(S_dB.mean())
-#     # exit()
-#     # S_dB = np.mean(S_dB.T, axis=0)
-#     # print(S_dB.shape)
-#
-#     plt.figure(figsize=(4, 3))
-#     # plt.plot(audio)
-#     # plt.plot(mfccsscaled)
-#     # librosa.display.specshow(logmel, sr=sample_rate, x_axis='time')
-#     librosa.display.specshow(S_dB, sr=sample_rate)
-#     plt.xlabel('Time')
-#     plt.ylabel('Mels')
-#     plt.savefig("test_40mels.jpg")
-#
-#     # plt.plot(S_dB)
-#     plt.show()
-#
-#     plt.close()
+def mel_filters_x():
+    file_name = '/Users/badgod/Downloads/AC_12Str85F-01.mp3'
+    audio, sample_rate = librosa.load(file_name, res_type='kaiser_fast')
+
+    print("audio, sample_rate", audio.shape, sample_rate)
+    logmel = librosa.feature.melspectrogram(y=audio, sr=sample_rate, n_mels=40)
+    print("melspectrogram ", logmel.shape)
+    print(np.min(logmel), np.max(logmel))
+    S_dB = librosa.power_to_db(logmel, ref=np.max)
+    print(np.min(S_dB), np.max(S_dB))
+    print(S_dB[0].shape)
+    print(S_dB.shape)
+    print(S_dB.mean())
+    # S_dB = S_dB / 255
+    print(S_dB.mean())
+    # exit()
+    # S_dB = np.mean(S_dB.T, axis=0)
+    # print(S_dB.shape)
+
+    plt.figure(figsize=(4, 3))
+    # plt.plot(audio)
+    # plt.plot(mfccsscaled)
+    # librosa.display.specshow(logmel, sr=sample_rate, x_axis='time')
+    librosa.display.specshow(S_dB, sr=sample_rate)
+    plt.xlabel('Time')
+    plt.ylabel('Mels')
+    plt.savefig("test_40mels.jpg")
+
+    # plt.plot(S_dB)
+    plt.show()
+
+    plt.close()
 
 # mel_filters_x()
