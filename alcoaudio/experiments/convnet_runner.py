@@ -68,8 +68,8 @@ class ConvNetRunner:
         self.weights = np.load(args.keras_model_weights, allow_pickle=True)
         self.network = None
         self.network = ConvNet().to(self.device)
-
-        self.loss_function = nn.BCEWithLogitsLoss()
+        self.pos_weight = None
+        self.loss_function = None
 
         self.optimiser = optim.Adam(self.network.parameters(), lr=self.learning_rate)
 
@@ -107,6 +107,7 @@ class ConvNetRunner:
         #                                      sampling_rate=self.sampling_rate, overlap=self.overlap)
         input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
         if train:
+
             # Under-sampling train data. Balancing the classes
             ones_idx, zeros_idx = [idx for idx, label in enumerate(labels) if label == 1], [idx for idx, label in
                                                                                             enumerate(labels) if
@@ -178,6 +179,14 @@ class ConvNetRunner:
         test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_data.npy',
                                                   self.data_read_path + 'test_challenge_labels.npy',
                                                   shuffle=False, train=False)
+
+        # Initialize pos_weight based on training data
+        self.pos_weight = len([x for x in train_labels if x == 0]) / len([x for x in train_labels if x == 1])
+        print('Pos weight for the train data - ', self.pos_weight)
+        print('Pos weight for the train data - ', self.pos_weight, file=self.log_file)
+
+        # For the purposes of assigning pos weight on the fly we are initializing the cost function here
+        self.loss_function = nn.BCEWithLogitsLoss()  # pos_weight=self.pos_weight
 
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
