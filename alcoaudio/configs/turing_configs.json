@@ -16,7 +16,7 @@
   "normalise_while_creating": false,
   "normalise_while_training": false,
   "num_classes": 1,
-  "network_save_interval": 1,
+  "network_save_interval": 3,
   "display_interval": 5,
   "dropout": 0.2,
   "keras_model_weights": "/home/aostapenko/dr_alcocudio/keras_model.npy",

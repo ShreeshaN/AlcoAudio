@@ -221,10 +221,10 @@ class ConvNetRunner:
             # dev data
             self.run_for_epoch(epoch, dev_data, dev_labels, type='Dev')
 
-            # test data
-            self.run_for_epoch(epoch, test_data, test_labels, type='Test')
-
             if epoch % self.network_save_interval == 0:
+                # test data
+                self.run_for_epoch(epoch, test_data, test_labels, type='Test')
+
                 save_path = self.network_save_path + '/' + self.run_name + '_' + str(epoch) + '.pt'
                 torch.save(self.network.state_dict(), save_path)
                 print('Network successfully saved: ' + save_path)
