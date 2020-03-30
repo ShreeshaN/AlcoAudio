@@ -187,7 +187,7 @@ class ConvNetRunner:
                                                   shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
-        self.loss_function = nn.BCEWithLogitsLoss(pos_weight=self.pos_weight)
+        self.loss_function = nn.BCEWithLogitsLoss(pos_weight=tensor(self.pos_weight))
 
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
