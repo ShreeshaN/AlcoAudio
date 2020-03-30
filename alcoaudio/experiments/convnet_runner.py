@@ -109,16 +109,16 @@ class ConvNetRunner:
         if train:
 
             # Under-sampling train data. Balancing the classes
-            ones_idx, zeros_idx = [idx for idx, label in enumerate(labels) if label == 1], [idx for idx, label in
-                                                                                            enumerate(labels) if
-                                                                                            label == 0]
-            zeros_idx = zeros_idx[:len(ones_idx)]
-            ids = ones_idx + zeros_idx
-            input_data, labels = input_data[ids], labels[ids]
-
-            data = [(x, y) for x, y in zip(input_data, labels)]
-            random.shuffle(data)
-            input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
+            # ones_idx, zeros_idx = [idx for idx, label in enumerate(labels) if label == 1], [idx for idx, label in
+            #                                                                                 enumerate(labels) if
+            #                                                                                 label == 0]
+            # zeros_idx = zeros_idx[:len(ones_idx)]
+            # ids = ones_idx + zeros_idx
+            # input_data, labels = input_data[ids], labels[ids]
+            #
+            # data = [(x, y) for x, y in zip(input_data, labels)]
+            # random.shuffle(data)
+            # input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
             for x in input_data:
                 self._min = min(np.min(x), self._min)
                 self._max = max(np.max(x), self._max)
@@ -175,19 +175,19 @@ class ConvNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_without_pow_data.npy',
-                                                    self.data_read_path + 'train_challenge_without_pow_labels.npy',
+        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_data.npy',
+                                                    self.data_read_path + 'train_challenge_labels.npy',
                                                     shuffle=True,
                                                     train=True)
-        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_without_pow_data.npy',
-                                                self.data_read_path + 'dev_challenge_without_pow_labels.npy',
+        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_data.npy',
+                                                self.data_read_path + 'dev_challenge_labels.npy',
                                                 shuffle=False, train=False)
-        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_without_pow_data.npy',
-                                                  self.data_read_path + 'test_challenge_without_pow_labels.npy',
+        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_data.npy',
+                                                  self.data_read_path + 'test_challenge_labels.npy',
                                                   shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
-        self.loss_function = nn.BCEWithLogitsLoss()  # pos_weight=self.pos_weight
+        self.loss_function = nn.BCEWithLogitsLoss(pos_weight=self.pos_weight)
 
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
