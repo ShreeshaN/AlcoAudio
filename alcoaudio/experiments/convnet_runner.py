@@ -108,7 +108,18 @@ class ConvNetRunner:
         #                                      normalise=normalise, sample_size_in_seconds=self.sample_size_in_seconds,
         #                                      sampling_rate=self.sampling_rate, overlap=self.overlap)
         input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
+
         if train:
+
+            print('Original data size - before Augmentation')
+            print('Original data size - before Augmentation', file=self.log_file)
+            print('Total data ', len(input_data))
+            print('Event rate', sum(labels) / len(labels))
+            print(np.array(input_data).shape, np.array(labels).shape)
+
+            print('Total data ', len(input_data), file=self.log_file)
+            print('Event rate', sum(labels) / len(labels), file=self.log_file)
+            print(np.array(input_data).shape, np.array(labels).shape, file=self.log_file)
 
             # Under-sampling train data. Balancing the classes
             # ones_idx, zeros_idx = [idx for idx, label in enumerate(labels) if label == 1], [idx for idx, label in
@@ -118,21 +129,34 @@ class ConvNetRunner:
             # ids = ones_idx + zeros_idx
             # input_data, labels = input_data[ids], labels[ids]
             #
-            data = [(x, y) for x, y in zip(input_data, labels)]
-            random.shuffle(data)
-            input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
             for x in input_data:
                 self._min = min(np.min(x), self._min)
                 self._max = max(np.max(x), self._max)
+
+            print('Data Augmentation starts . . .')
+            print('Data Augmentation starts . . .', file=self.log_file)
+            label_to_augment = 1
+            amount_to_augment = 0.8
+            random_idxs = random.choices([idx for idx, x in enumerate(labels) if x == label_to_augment],
+                                         k=int(len(labels) * amount_to_augment))
+            data_to_augment = input_data[random_idxs]
+            for x in data_to_augment:
+                x = librosaSpectro_to_torchTensor(x)
+                x = random.choice([time_mask, freq_mask])(x).numpy()
+                input_data = np.concatenate((input_data, x))
+                labels = np.append(labels, label_to_augment)
+
+            print('Data Augmentation done . . .')
+            print('Data Augmentation done . . .', file=self.log_file)
+
+            data = [(x, y) for x, y in zip(input_data, labels)]
+            random.shuffle(data)
+            input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
 
             # Initialize pos_weight based on training data
             self.pos_weight = len([x for x in labels if x == 0]) / len([x for x in labels if x == 1])
             print('Pos weight for the train data - ', self.pos_weight)
             print('Pos weight for the train data - ', self.pos_weight, file=self.log_file)
-
-        # Normalizing `input data` on train dataset's min and max values
-        if self.normalise:
-            input_data = (input_data - self._min) / (self._max - self._min)
 
         print('Total data ', len(input_data))
         print('Event rate', sum(labels) / len(labels))
@@ -141,6 +165,10 @@ class ConvNetRunner:
         print('Total data ', len(input_data), file=self.log_file)
         print('Event rate', sum(labels) / len(labels), file=self.log_file)
         print(np.array(input_data).shape, np.array(labels).shape, file=self.log_file)
+
+        # Normalizing `input data` on train dataset's min and max values
+        if self.normalise:
+            input_data = (input_data - self._min) / (self._max - self._min)
 
         if should_batch:
             batched_input = [input_data[pos:pos + self.batch_size] for pos in
