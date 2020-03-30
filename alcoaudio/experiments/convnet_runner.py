@@ -140,11 +140,15 @@ class ConvNetRunner:
             random_idxs = random.choices([idx for idx, x in enumerate(labels) if x == label_to_augment],
                                          k=int(len(labels) * amount_to_augment))
             data_to_augment = input_data[random_idxs]
+            augmented_data = []
+            augmented_labels = []
             for x in data_to_augment:
                 x = librosaSpectro_to_torchTensor(x)
-                x = random.choice([time_mask, freq_mask])(x).numpy()
-                input_data = np.concatenate((input_data, x))
-                labels = np.append(labels, label_to_augment)
+                x = random.choice([time_mask, freq_mask])(x)[0].numpy()
+                augmented_data.append(x), augmented_labels.append(label_to_augment)
+
+            input_data = np.concatenate((input_data, augmented_data))
+            labels = np.concatenate((labels, augmented_labels))
 
             print('Data Augmentation done . . .')
             print('Data Augmentation done . . .', file=self.log_file)
