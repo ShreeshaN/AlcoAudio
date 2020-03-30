@@ -22,12 +22,14 @@ import json
 import cv2
 import random
 import torchvision
+import random
 
 from alcoaudio.networks.convnet import ConvNet
 from alcoaudio.utils import file_utils
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
 from alcoaudio.utils.network_utils import accuracy_fn, log_summary, normalize_image
 from alcoaudio.utils.data_utils import read_h5py, read_npy
+from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask
 
 
 class ConvNetRunner:
@@ -116,9 +118,9 @@ class ConvNetRunner:
             # ids = ones_idx + zeros_idx
             # input_data, labels = input_data[ids], labels[ids]
             #
-            # data = [(x, y) for x, y in zip(input_data, labels)]
-            # random.shuffle(data)
-            # input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
+            data = [(x, y) for x, y in zip(input_data, labels)]
+            random.shuffle(data)
+            input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
             for x in input_data:
                 self._min = min(np.min(x), self._min)
                 self._max = max(np.max(x), self._max)

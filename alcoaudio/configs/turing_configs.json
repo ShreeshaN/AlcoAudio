@@ -16,6 +16,7 @@
   "normalise_while_creating": false,
   "normalise_while_training": false,
   "num_classes": 1,
+  "data_augment": true,
   "network_save_interval": 3,
   "display_interval": 5,
   "dropout": 0.2,
