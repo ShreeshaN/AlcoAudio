@@ -227,12 +227,13 @@ def mfcc():
 # mfcc()
 
 def mel_filters_x():
-    file_name = '/Users/badgod/Downloads/AC_12Str85F-01.mp3'
+    file_name = '/Users/badgod/badgod_documents/Alco_audio/data/ALC/DATA/audio_2.wav'
     audio, sample_rate = librosa.load(file_name, res_type='kaiser_fast')
 
     print("audio, sample_rate", audio.shape, sample_rate)
     logmel = librosa.feature.melspectrogram(y=audio, sr=sample_rate, n_mels=40)
     print("melspectrogram ", logmel.shape)
+    exit()
     print(np.min(logmel), np.max(logmel))
     S_dB = librosa.power_to_db(logmel, ref=np.max)
     print(np.min(S_dB), np.max(S_dB))

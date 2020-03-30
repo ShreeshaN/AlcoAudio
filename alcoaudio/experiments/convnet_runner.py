@@ -137,8 +137,9 @@ class ConvNetRunner:
             print('Data Augmentation starts . . .', file=self.log_file)
             label_to_augment = 1
             amount_to_augment = 0.8
-            random_idxs = random.choices([idx for idx, x in enumerate(labels) if x == label_to_augment],
-                                         k=int(len(labels) * amount_to_augment))
+            ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_augment]
+            random_idxs = random.choices(ones_ids,
+                                         k=int(len(ones_ids) * amount_to_augment))
             data_to_augment = input_data[random_idxs]
             augmented_data = []
             augmented_labels = []
