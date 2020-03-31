@@ -145,8 +145,8 @@ class ConvNetRunner:
             augmented_labels = []
             for x in data_to_augment:
                 x = librosaSpectro_to_torchTensor(x)
-                # x = random.choice([time_mask, freq_mask])(x)[0].numpy()
-                x = time_warp(x)[0].numpy()
+                x = random.choice([time_mask, freq_mask])(x)[0].numpy()
+                # x = time_warp(x)[0].numpy()
                 augmented_data.append(x), augmented_labels.append(label_to_augment)
 
             input_data = np.concatenate((input_data, augmented_data))
