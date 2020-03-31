@@ -110,16 +110,18 @@ def time_mask(spec, T=40, num_masks=1, replace_with_zero=False):
 # raw_audio_path = '/Users/badgod/badgod_documents/Alco_audio/data/ALC/DATA/audio_4.wav'
 #
 # y3, sr3 = librosa.load(raw_audio_path, mono=False)
-#
+
 # mel_spectro_librosa = librosa.feature.melspectrogram(y=y3, sr=sr3, S=None, n_fft=1024, hop_length=256, n_mels=128)
 # print(mel_spectro_librosa.shape)
 # # plot_librosa_spectro(mel_spectro_librosa, sr3)
 #
 # mel_spectro = librosaSpectro_to_torchTensor(mel_spectro_librosa)
 #
-# # timeWarp_spectro = time_warp(mel_spectro)
-# # tensor_to_img(timeWarp_spectro, sr=sr3, method='Time Warp')
-#
+# timeWarp_spectro = time_warp(mel_spectro)
+# print(timeWarp_spectro.shape)
+# exit()
+# tensor_to_img(timeWarp_spectro, sr=sr3, method='Time Warp')
+
 # timeMask_spectro = time_mask(mel_spectro)
 # print(timeMask_spectro[0].numpy().shape)
 # exit()

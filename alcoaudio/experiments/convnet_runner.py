@@ -29,7 +29,7 @@ from alcoaudio.utils import file_utils
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
 from alcoaudio.utils.network_utils import accuracy_fn, log_summary, normalize_image
 from alcoaudio.utils.data_utils import read_h5py, read_npy
-from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask
+from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask, time_warp
 
 
 class ConvNetRunner:
@@ -145,7 +145,8 @@ class ConvNetRunner:
             augmented_labels = []
             for x in data_to_augment:
                 x = librosaSpectro_to_torchTensor(x)
-                x = random.choice([time_mask, freq_mask])(x)[0].numpy()
+                # x = random.choice([time_mask, freq_mask])(x)[0].numpy()
+                x = time_warp(x)[0].numpy()
                 augmented_data.append(x), augmented_labels.append(label_to_augment)
 
             input_data = np.concatenate((input_data, augmented_data))
