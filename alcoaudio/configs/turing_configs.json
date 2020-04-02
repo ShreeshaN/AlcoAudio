@@ -22,8 +22,8 @@
   "dropout": 0.2,
   "keras_model_weights": "/home/aostapenko/dr_alcocudio/keras_model.npy",
   "sampling_rate": 44100,
-  "sample_size_in_seconds": 8,
-  "overlap": 1,
+  "sample_size_in_seconds": 6,
+  "overlap": 2,
   "data_save_path": "/home/aostapenko/dr_alcocudio/AlcoAudio/",
   "image_data_save_path": "/home/snarasimhamurthy/images/"
 }

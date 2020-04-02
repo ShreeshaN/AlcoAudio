@@ -94,11 +94,11 @@ class DataProcessor:
 
     def run(self):
         print('Started processing train data . . .')
-        self.process_audio_and_save_npy_challenge(self.train_data_file, filename_to_save='train_challenge_without_pow')
+        self.process_audio_and_save_npy_challenge(self.train_data_file, filename_to_save='train_challenge_6secW_2secOL')
         print('Started processing dev data . . .')
-        self.process_audio_and_save_npy_challenge(self.dev_data_file, filename_to_save='dev_challenge_without_pow')
+        self.process_audio_and_save_npy_challenge(self.dev_data_file, filename_to_save='dev_challenge_6secW_2secOL')
         print('Started processing test data . . .')
-        self.process_audio_and_save_npy_challenge(self.test_data_file, filename_to_save='test_challenge_without_pow')
+        self.process_audio_and_save_npy_challenge(self.test_data_file, filename_to_save='test_challenge_6secW_2secOL')
 
 
 if __name__ == '__main__':
