@@ -18,6 +18,7 @@ import os
 from tqdm import tqdm
 import time
 from joblib import Parallel, delayed
+from pyts.image import GramianAngularField
 
 
 def mfcc_features(audio, sampling_rate, normalise=False):
@@ -44,6 +45,13 @@ def mel_filters_with_spectrogram(audio, sampling_rate, filename, normalise=False
     librosa.display.specshow(logmel)
     plt.savefig(filename)
     plt.close()
+
+
+def gaf(audio):
+    gasf = GramianAngularField(image_size=100, method='summation')
+    X_gasf = gasf.fit_transform(audio.reshape((-1, len(audio))))
+    _, x, y = X_gasf.shape
+    return X_gasf.reshape((x, y))
 
 
 def cut_audio(audio, sampling_rate, sample_size_in_seconds, overlap):
@@ -104,7 +112,7 @@ def cut_audio(audio, sampling_rate, sample_size_in_seconds, overlap):
     return audio_list
 
 
-def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap, normalise):
+def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap, normalise, method):
     """
     This method is called by the preprocess data method
     :param file:
@@ -123,7 +131,15 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
         chunks = cut_audio(audio, sampling_rate=sr, sample_size_in_seconds=sample_size_in_seconds,
                            overlap=overlap)
         for chunk in chunks:
-            features = mel_filters(chunk, sr, normalise)
+            if method == 'fbank':
+                features = mel_filters(chunk, sr, normalise)
+            elif method == 'mfcc':
+                features = mfcc_features(chunk, sr, normalise)
+            elif method == 'gaf':
+                features = gaf(chunk)
+            else:
+                raise Exception(
+                        'Specify a method to use for pre processing raw audio signal. Available options - {fbank, mfcc, gaf}')
             data.append(features)
             out_labels.append(float(label))
     else:
@@ -131,11 +147,11 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
     return data, out_labels
 
 
-def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds, sampling_rate, overlap):
+def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds, sampling_rate, overlap, method):
     data, out_labels = [], []
     aggregated_data = Parallel(n_jobs=8, backend='multiprocessing')(
             delayed(read_audio_n_process)(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap,
-                                          normalise) for file, label in
+                                          normalise, method) for file, label in
             tqdm(zip(files, labels), total=len(labels)))
 
     for per_file_data in aggregated_data:
@@ -202,24 +218,24 @@ def preprocess_data_images(base_path, image_save_path, files, labels, normalise,
 #     i, x
 #     in enumerate(list_y)])
 
-def mfcc():
-    # this is mel filters + dct
-    file_name = '/Users/badgod/Downloads/AC_12Str85F-01.mp3'
-    audio, sample_rate = librosa.load(file_name, res_type='kaiser_fast')
-
-    print("audio, sample_rate", audio.shape, sample_rate)
-    mfccs = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=40)
-    print(mfccs.shape)
-    print(np.max(mfccs), np.min(mfccs))
-    # exit()
-    mfccsscaled = np.mean(mfccs.T, axis=0)
-    print(mfccsscaled.shape)
-
-    plt.figure(figsize=(12, 4))
-    # plt.plot(audio)
-    # plt.plot(mfccsscaled)
-    librosa.display.specshow(mfccs, sr=sample_rate, x_axis='time')
-    plt.show()
+# def mfcc():
+#     # this is mel filters + dct
+#     file_name = '/Users/badgod/Downloads/AC_12Str85F-01.mp3'
+#     audio, sample_rate = librosa.load(file_name, res_type='kaiser_fast')
+#
+#     print("audio, sample_rate", audio.shape, sample_rate)
+#     mfccs = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=40)
+#     print(mfccs.shape)
+#     print(np.max(mfccs), np.min(mfccs))
+#     # exit()
+#     mfccsscaled = np.mean(mfccs.T, axis=0)
+#     print(mfccsscaled.shape)
+#
+#     plt.figure(figsize=(12, 4))
+#     # plt.plot(audio)
+#     # plt.plot(mfccsscaled)
+#     librosa.display.specshow(mfccs, sr=sample_rate, x_axis='time')
+#     plt.show()
 
 
 #

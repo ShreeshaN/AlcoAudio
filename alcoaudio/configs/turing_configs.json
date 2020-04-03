@@ -25,5 +25,6 @@
   "sample_size_in_seconds": 6,
   "overlap": 2,
   "data_save_path": "/home/aostapenko/dr_alcocudio/AlcoAudio/",
-  "image_data_save_path": "/home/snarasimhamurthy/images/"
+  "image_data_save_path": "/home/snarasimhamurthy/images/",
+  "data_processing_method": "gaf"
 }

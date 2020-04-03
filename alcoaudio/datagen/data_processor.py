@@ -39,6 +39,7 @@ class DataProcessor:
         self.overlap = args.overlap
         self.data_save_path = args.data_save_path
         self.image_save_path = args.image_data_save_path
+        self.method = args.data_processing_method
 
     def process_audio_and_save_h5py(self, data_file, filename_to_save, shuffle=True):
         df = pd.read_csv(data_file)
@@ -75,7 +76,7 @@ class DataProcessor:
         df[0] = df[0].apply(lambda x: x.replace('WAV', 'wav'))
         data, labels = preprocess_data(self.base_path, df[0].values, df[1].values,
                                        self.normalise,
-                                       self.sample_size_in_seconds, self.sampling_rate, self.overlap)
+                                       self.sample_size_in_seconds, self.sampling_rate, self.overlap, self.method)
         print('Number of audio files after processing ', len(data))
         save_npy(data, self.data_save_path + '/' + filename_to_save + '_data.npy')
         save_npy(labels, self.data_save_path + '/' + filename_to_save + '_labels.npy')
@@ -94,11 +95,11 @@ class DataProcessor:
 
     def run(self):
         print('Started processing train data . . .')
-        self.process_audio_and_save_npy_challenge(self.train_data_file, filename_to_save='train_challenge_6secW_2secOL')
+        self.process_audio_and_save_npy_challenge(self.train_data_file, filename_to_save='train_challenge_gaf')
         print('Started processing dev data . . .')
-        self.process_audio_and_save_npy_challenge(self.dev_data_file, filename_to_save='dev_challenge_6secW_2secOL')
+        self.process_audio_and_save_npy_challenge(self.dev_data_file, filename_to_save='dev_challenge_gaf')
         print('Started processing test data . . .')
-        self.process_audio_and_save_npy_challenge(self.test_data_file, filename_to_save='test_challenge_6secW_2secOL')
+        self.process_audio_and_save_npy_challenge(self.test_data_file, filename_to_save='test_challenge_gaf')
 
 
 if __name__ == '__main__':
