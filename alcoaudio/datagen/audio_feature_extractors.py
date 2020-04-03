@@ -51,7 +51,7 @@ def gaf(audio):
     gasf = GramianAngularField(image_size=100, method='summation')
     X_gasf = gasf.fit_transform(audio.reshape((-1, len(audio))))
     _, x, y = X_gasf.shape
-    return X_gasf.reshape((x, y))
+    return np.float32(X_gasf.reshape((x, y)))
 
 
 def cut_audio(audio, sampling_rate, sample_size_in_seconds, overlap):
