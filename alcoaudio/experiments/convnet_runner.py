@@ -211,15 +211,15 @@ class ConvNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_data.npy',
-                                                    self.data_read_path + 'train_challenge_labels.npy',
+        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_6secW_2secOL_data.npy',
+                                                    self.data_read_path + 'train_challenge_6secW_2secOL_labels.npy',
                                                     shuffle=True,
                                                     train=True)
-        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_data.npy',
-                                                self.data_read_path + 'dev_challenge_labels.npy',
+        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_6secW_2secOL_data.npy',
+                                                self.data_read_path + 'dev_challenge_6secW_2secOL_labels.npy',
                                                 shuffle=False, train=False)
-        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_data.npy',
-                                                  self.data_read_path + 'test_challenge_labels.npy',
+        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_6secW_2secOL_data.npy',
+                                                  self.data_read_path + 'test_challenge_6secW_2secOL_labels.npy',
                                                   shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
