@@ -2,7 +2,7 @@
   "run_name": "emotion_alco_audio_cnn_40mels_challenge_data_full_train_posweight_augmented_with_d1",
   "epochs": 50000,
   "batch_size": 32,
-  "learning_rate": 0.0005,
+  "learning_rate": 0.0001,
   "transfer_learning_rate": 0.00005,
   "threshold": 0.5,
   "audio_basepath": "/home/aostapenko/data/ALC/DATA/",
