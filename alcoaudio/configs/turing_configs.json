@@ -1,5 +1,5 @@
 {
-  "run_name": "emotion_alco_audio_cnn_40mels_challenge_data_full_train_posweight_augmented",
+  "run_name": "emotion_alco_audio_cnn_40mels_challenge_data_full_train_posweight_augmented_with_d1",
   "epochs": 50000,
   "batch_size": 32,
   "learning_rate": 0.0005,
@@ -22,8 +22,8 @@
   "dropout": 0.2,
   "keras_model_weights": "/home/aostapenko/dr_alcocudio/keras_model.npy",
   "sampling_rate": 44100,
-  "sample_size_in_seconds": 6,
-  "overlap": 2,
+  "sample_size_in_seconds": 8,
+  "overlap": 1,
   "data_save_path": "/home/aostapenko/dr_alcocudio/AlcoAudio/",
   "image_data_save_path": "/home/snarasimhamurthy/images/",
   "data_processing_method": "fbank"
