@@ -26,6 +26,7 @@ def tensor_to_img(spectrogram,sr,method):
     plt.title(method)
     plt.show()
 
+
 def plot_librosa_spectro(spectrogram,sr):
     plt.figure() 
     S_dB = librosa.power_to_db(spectrogram, ref=np.max)
@@ -55,6 +56,7 @@ def time_warp(spec, W=5):
     warped_spectro, dense_flows = sparse_image_warp(spec, src_pts, dest_pts)
     return warped_spectro.squeeze(3)
 
+
 def freq_mask(spec, F=30, num_masks=1, replace_with_zero=False):
     cloned = spec.clone()
     num_mel_channels = cloned.shape[1]
@@ -71,6 +73,7 @@ def freq_mask(spec, F=30, num_masks=1, replace_with_zero=False):
         else: cloned[0][f_zero:mask_end] = cloned.mean()
     
     return cloned
+
 
 def time_mask(spec, T=40, num_masks=1, replace_with_zero=False):
     cloned = spec.clone()
@@ -89,6 +92,9 @@ def time_mask(spec, T=40, num_masks=1, replace_with_zero=False):
     return cloned
 
 
+    
+
+
 # drHalf_audio_path = '/Users/pratcr7/Desktop/Alco_aug/Data/BL10_0.00063/0651066015_h_00.wav'
 raw_audio_path = '/Users/pratcr7/Desktop/Alco_aug/Data/BL30_0.00112/5283029015_h_00.wav'
 
@@ -97,15 +103,41 @@ y3, sr3 = librosa.load(raw_audio_path,mono=False)
 mel_spectro_librosa = librosa.feature.melspectrogram(y=y3, sr=sr3, S=None, n_fft=1024, hop_length=256,n_mels=128)
 plot_librosa_spectro(mel_spectro_librosa,sr3)
 
-mel_spectro = librosaSpectro_to_torchTensor(mel_spectro_librosa)
+mel_spectro_tensor = librosaSpectro_to_torchTensor(mel_spectro_librosa)
 
-timeWarp_spectro = time_warp(mel_spectro)
+timeWarp_spectro = time_warp(mel_spectro_tensor)
 tensor_to_img(timeWarp_spectro,sr=sr3,method='Time Warp')
 
-timeMask_spectro = time_mask(mel_spectro)
+timeMask_spectro = time_mask(mel_spectro_tensor)
 tensor_to_img(timeMask_spectro,sr=sr3,method='Time Mask')
 
-freqMask_spectro = freq_mask(mel_spectro)
+freqMask_spectro = freq_mask(mel_spectro_tensor)
 tensor_to_img(freqMask_spectro,sr=sr3,method='Frequency Mask')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
