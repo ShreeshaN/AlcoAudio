@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-@created on: 02/16/20,
+@created on: 4/4/20,
 @author: Shreesha N,
 @version: v0.0.1
 @system name: badgod
@@ -24,7 +24,7 @@ import random
 import torchvision
 import random
 
-from alcoaudio.networks.convnet import ConvNet
+from alcoaudio.networks.convautoencoder_net import ConvAutoEncoder
 from alcoaudio.utils import file_utils
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
 from alcoaudio.utils.network_utils import accuracy_fn, log_summary, normalize_image
@@ -32,7 +32,7 @@ from alcoaudio.utils.data_utils import read_h5py, read_npy
 from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask, time_warp
 
 
-class ConvNetRunner:
+class ConvAutoEncoderRunner:
     def __init__(self, args):
         self.run_name = args.run_name + '_' + str(time.time()).split('.')[0]
         self.current_run_basepath = args.network_metrics_basepath + '/' + self.run_name + '/'
@@ -69,7 +69,7 @@ class ConvNetRunner:
 
         self.weights = np.load(args.keras_model_weights, allow_pickle=True)
         self.network = None
-        self.network = ConvNet().to(self.device)
+        self.network = ConvAutoEncoder().to(self.device)
         self.pos_weight = None
         self.loss_function = None
 
@@ -121,14 +121,6 @@ class ConvNetRunner:
             print('Event rate', sum(labels) / len(labels), file=self.log_file)
             print(np.array(input_data).shape, np.array(labels).shape, file=self.log_file)
 
-            # Under-sampling train data. Balancing the classes
-            # ones_idx, zeros_idx = [idx for idx, label in enumerate(labels) if label == 1], [idx for idx, label in
-            #                                                                                 enumerate(labels) if
-            #                                                                                 label == 0]
-            # zeros_idx = zeros_idx[:len(ones_idx)]
-            # ids = ones_idx + zeros_idx
-            # input_data, labels = input_data[ids], labels[ids]
-            #
             for x in input_data:
                 self._min = min(np.min(x), self._min)
                 self._max = max(np.max(x), self._max)
@@ -211,12 +203,12 @@ class ConvNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_with_d1_data.npy',
-                                                    self.data_read_path + 'train_challenge_with_d1_labels.npy',
+        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_data.npy',
+                                                    self.data_read_path + 'train_challenge_labels.npy',
                                                     shuffle=True,
                                                     train=True)
-        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_data.npy',
-                                                self.data_read_path + 'dev_challenge_with_d1_labels.npy',
+        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_data.npy',
+                                                self.data_read_path + 'dev_challenge_labels.npy',
                                                 shuffle=False, train=False)
         test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_data.npy',
                                                   self.data_read_path + 'test_challenge_labels.npy',
@@ -271,7 +263,6 @@ class ConvNetRunner:
             self.run_for_epoch(epoch, test_data, test_labels, type='Test')
 
             if epoch % self.network_save_interval == 0:
-
                 save_path = self.network_save_path + '/' + self.run_name + '_' + str(epoch) + '.pt'
                 torch.save(self.network.state_dict(), save_path)
                 print('Network successfully saved: ' + save_path)
