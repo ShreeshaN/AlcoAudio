@@ -109,4 +109,5 @@ if __name__ == '__main__':
     configs = AttributeDict(configs)
 
     processor = DataProcessor(configs)
+    print(configs)
     processor.run()
