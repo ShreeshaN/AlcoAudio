@@ -67,12 +67,15 @@ class ConvModule(nn.Module):
 class RNNModule(nn.Module):
     def __init__(self):
         super(RNNModule, self).__init__()
-        self.lstm = nn.LSTM(1, 128, 1, bias=True)
-        self.fc1 = nn.Linear(1152, 1)
+        self.lstm = nn.LSTM(1, 128, 2, bias=True, dropout=0.2, bidirectional=True)
+        self.fc1 = nn.Linear(5120, 1)
 
     def forward(self, x):
         rnn_out, _ = self.lstm(x)
+
+        # (seq_len, batch, num_directions * hidden_size) -> (batch, num_directions * hidden_size, seq_len)
         rnn_out = rnn_out.permute(1, 2, 0)
+
         x = rnn_out.contiguous().view(-1, rnn_out.shape[1] * rnn_out.shape[2])
         x = self.fc1(x)
         return x
@@ -97,85 +100,3 @@ class CRNN(nn.Module):
         x = x.squeeze(1).permute(2, 0, 1)  # Converting from (B,C,H,W)->(B,H,W)->(W,B,H)
         output = self.rnn(x)
         return output
-
-# import torch
-# import torch.nn as nn
-# from torch.autograd import Variable
-#
-# import torchvision.models as models
-# import string
-# import numpy as np
-
-
-# class ConvLSTM(nn.Module):
-#     def __init__(self,
-#                  backend='resnet18',
-#                  rnn_hidden_size=128,
-#                  rnn_num_layers=1,
-#                  rnn_dropout=0,
-#                  seq_proj=[0, 0]):
-#         super(ConvLSTM, self).__init__()
-#
-#         self.num_classes = 1
-#
-#         self.feature_extractor = getattr(models, backend)(pretrained=True)
-#         self.cnn = nn.Sequential(
-#                 self.feature_extractor.conv1,
-#                 self.feature_extractor.bn1,
-#                 self.feature_extractor.relu,
-#                 self.feature_extractor.maxpool,
-#                 self.feature_extractor.layer1,
-#                 self.feature_extractor.layer2,
-#                 self.feature_extractor.layer3,
-#                 self.feature_extractor.layer4
-#         )
-#         self.depth_conv = nn.Conv2d(in_channels=512, out_channels=512, kernel_size=[2, 11], stride=1)
-#
-#         self.fully_conv = seq_proj[0] == 0
-#         if not self.fully_conv:
-#             self.proj = nn.Conv2d(seq_proj[0], seq_proj[1], kernel_size=1)
-#
-#         self.rnn_hidden_size = rnn_hidden_size
-#         self.rnn_num_layers = rnn_num_layers
-#         self.rnn = nn.LSTM(self.get_block_size(self.cnn),
-#                           rnn_hidden_size, rnn_num_layers,
-#                           batch_first=False,
-#                           dropout=rnn_dropout, bidirectional=False)
-#         self.linear = nn.Linear(rnn_hidden_size, self.num_classes)
-#
-#     def forward(self, x, decode=False):
-#         x = torch.tensor(x).unsqueeze(1)
-#         x = torch.cat((x, x, x), dim=1)
-#         hidden = self.init_hidden(x.size(0))
-#         features = self.cnn(x)
-#         features = self.depth_conv(features)
-#         print(features.shape)
-#         features = self.features_to_sequence(features)
-#         seq, hidden = self.rnn(features, hidden)
-#         seq = self.linear(seq)
-#         # print("seq", seq.shape)
-#         seq = seq.squeeze(0)
-#         # print("seq", seq.shape)
-#         return seq
-#
-#     def init_hidden(self, batch_size):
-#         h0 = Variable(torch.zeros(self.rnn_num_layers,
-#                                   batch_size,
-#                                   self.rnn_hidden_size))
-#         return h0
-#
-#     def features_to_sequence(self, features):
-#         b, c, h, w = features.size()
-#         print(b, c, h, w)
-#         assert h == 1, "the height of out must be 1"
-#         if not self.fully_conv:
-#             features = features.permute(0, 3, 2, 1)
-#             features = self.proj(features)
-#             features = features.permute(1, 0, 2, 3)
-#         else:
-#             features = features.permute(3, 0, 2, 1)
-#         features = features.squeeze(2)
-#         return features
-#
-#     def get_block_size(self, layer):
-#         return layer[-1][-1].bn2.weight.size()[0]
