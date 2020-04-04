@@ -122,38 +122,38 @@ class ConvNetRunner:
             print(np.array(input_data).shape, np.array(labels).shape, file=self.log_file)
 
             # Under-sampling train data. Balancing the classes
-            ones_idx, zeros_idx = [idx for idx, label in enumerate(labels) if label == 1], [idx for idx, label in
-                                                                                            enumerate(labels) if
-                                                                                            label == 0]
-            zeros_idx = zeros_idx[:len(ones_idx)]
-            ids = ones_idx + zeros_idx
-            input_data, labels = input_data[ids], labels[ids]
+            # ones_idx, zeros_idx = [idx for idx, label in enumerate(labels) if label == 1], [idx for idx, label in
+            #                                                                                 enumerate(labels) if
+            #                                                                                 label == 0]
+            # zeros_idx = zeros_idx[:len(ones_idx)]
+            # ids = ones_idx + zeros_idx
+            # input_data, labels = input_data[ids], labels[ids]
             #
             for x in input_data:
                 self._min = min(np.min(x), self._min)
                 self._max = max(np.max(x), self._max)
 
-            # print('Data Augmentation starts . . .')
-            # print('Data Augmentation starts . . .', file=self.log_file)
-            # label_to_augment = 1
-            # amount_to_augment = 0.8
-            # ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_augment]
-            # random_idxs = random.choices(ones_ids,
-            #                              k=int(len(ones_ids) * amount_to_augment))
-            # data_to_augment = input_data[random_idxs]
-            # augmented_data = []
-            # augmented_labels = []
-            # for x in data_to_augment:
-            #     x = librosaSpectro_to_torchTensor(x)
-            #     x = random.choice([time_mask, freq_mask])(x)[0].numpy()
-            #     # x = time_warp(x)[0].numpy()
-            #     augmented_data.append(x), augmented_labels.append(label_to_augment)
-            #
-            # input_data = np.concatenate((input_data, augmented_data))
-            # labels = np.concatenate((labels, augmented_labels))
-            #
-            # print('Data Augmentation done . . .')
-            # print('Data Augmentation done . . .', file=self.log_file)
+            print('Data Augmentation starts . . .')
+            print('Data Augmentation starts . . .', file=self.log_file)
+            label_to_augment = 1
+            amount_to_augment = 0.8
+            ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_augment]
+            random_idxs = random.choices(ones_ids,
+                                         k=int(len(ones_ids) * amount_to_augment))
+            data_to_augment = input_data[random_idxs]
+            augmented_data = []
+            augmented_labels = []
+            for x in data_to_augment:
+                x = librosaSpectro_to_torchTensor(x)
+                x = random.choice([time_mask, freq_mask])(x)[0].numpy()
+                # x = time_warp(x)[0].numpy()
+                augmented_data.append(x), augmented_labels.append(label_to_augment)
+
+            input_data = np.concatenate((input_data, augmented_data))
+            labels = np.concatenate((labels, augmented_labels))
+
+            print('Data Augmentation done . . .')
+            print('Data Augmentation done . . .', file=self.log_file)
 
             data = [(x, y) for x, y in zip(input_data, labels)]
             random.shuffle(data)
