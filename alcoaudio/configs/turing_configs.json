@@ -1,5 +1,5 @@
 {
-  "run_name": "emotion_alco_audio_challenge_data_posweight_augmented_with_d1_crnn",
+  "run_name": "emotion_alco_audio_challenge_data_posweight_augmented_with_d1_crnn_bidiretional",
   "epochs": 50000,
   "batch_size": 32,
   "learning_rate": 0.001,
