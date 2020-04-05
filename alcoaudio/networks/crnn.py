@@ -59,7 +59,7 @@ class ConvModule(nn.Module):
 class RNNModule(nn.Module):
     def __init__(self):
         super(RNNModule, self).__init__()
-        self.lstm = nn.LSTM(704, 128, 2, bias=True, dropout=0.2, bidirectional=True)
+        self.lstm = nn.GRU(704, 128, 2, bias=True, dropout=0.2, bidirectional=True)
         self.fc1 = nn.Linear(5120, 1)
 
     def forward(self, x):
