@@ -45,12 +45,17 @@ class ConvAutoEncoder(nn.Module):
 
         # Decoder
         self.decoder1 = nn.ConvTranspose2d(in_channels=32, out_channels=128, kernel_size=3, stride=[1, 2])
+        self.decoder1_bn = nn.BatchNorm2d(128)
         self.unpool1 = nn.MaxUnpool2d(4, stride=1)
         self.decoder2 = nn.ConvTranspose2d(in_channels=128, out_channels=256, kernel_size=3, stride=[1, 2])
+        self.decoder2_bn = nn.BatchNorm2d(256)
         self.decoder3 = nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=3, stride=[2, 2])
+        self.decoder3_bn = nn.BatchNorm2d(128)
         self.unpool2 = nn.MaxUnpool2d(4, stride=1)
         self.decoder4 = nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=3, stride=1)
+        self.decoder4_bn = nn.BatchNorm2d(64)
         self.decoder5 = nn.ConvTranspose2d(in_channels=64, out_channels=1, kernel_size=3, stride=[1, 2])
+        self.decoder5_bn = nn.BatchNorm2d(1)
 
     def forward(self, x):
         """
@@ -83,20 +88,20 @@ class ConvAutoEncoder(nn.Module):
         latent_space = encoder_op5.view(-1, encoder_op5.size()[1:].numel())
 
         # decoder
-        decoder_op1 = F.relu(self.decoder1(encoder_op5))  # , output_size=encoder_op4_pool.size()
+        decoder_op1 = F.relu(self.decoder1_bn(self.decoder1(encoder_op5)))  # , output_size=encoder_op4_pool.size()
         # print('decoder1', decoder_op1.size())
         decoder_op1_unpool1 = self.unpool1(decoder_op1, indices=pool2_indices)
         # print("decoder_op1_unpool1", decoder_op1_unpool1.size())
-        decoder_op2 = F.relu(self.decoder2(decoder_op1_unpool1))  # , output_size=encoder_op3.size()
+        decoder_op2 = F.relu(self.decoder2_bn(self.decoder2(decoder_op1_unpool1)))  # , output_size=encoder_op3.size()
         # print('decoder2', decoder_op2.size())
-        decoder_op3 = F.relu(self.decoder3(decoder_op2))
+        decoder_op3 = F.relu(self.decoder3_bn(self.decoder3(decoder_op2)))
         # print('decoder3', decoder_op3.size())
         decoder_op3_unpool2 = self.unpool2(decoder_op3, indices=pool1_indices)
         # print("decoder_op3_unpool2", decoder_op3_unpool2.size())
 
-        decoder_op4 = F.relu(self.decoder4(decoder_op3_unpool2))
+        decoder_op4 = F.relu(self.decoder4_bn(self.decoder4(decoder_op3_unpool2)))
         # print('decoder4', decoder_op4.size())
-        reconstructed_x = self.decoder5(decoder_op4, output_size=x.size())
+        reconstructed_x = self.decoder5_bn(self.decoder5(decoder_op4, output_size=x.size()))
         # print('decoder5', reconstructed_x.size())
         return reconstructed_x, latent_space
 
