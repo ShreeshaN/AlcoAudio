@@ -13,18 +13,15 @@ Description:
 from torch.utils.tensorboard import SummaryWriter
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
-import pandas as pd
 import numpy as np
 from torch import tensor
 import time
 import json
-import cv2
-import random
-import torchvision
 import random
 
-from alcoaudio.networks.convautoencoder_net import ConvAutoEncoder
+from alcoaudio.networks.convautoencoder_net import AlcoConvAutoEncoder
 from alcoaudio.utils import file_utils
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
 from alcoaudio.utils.network_utils import accuracy_fn, log_summary, normalize_image
@@ -69,9 +66,10 @@ class ConvAutoEncoderRunner:
 
         self.weights = np.load(args.keras_model_weights, allow_pickle=True)
         self.network = None
-        self.network = ConvAutoEncoder().to(self.device)
+        self.network = AlcoConvAutoEncoder().to(self.device)
         self.pos_weight = None
-        self.loss_function = None
+        self.classification_loss = None
+        self.reconstruction_loss = nn.BCEWithLogitsLoss()
 
         self.optimiser = optim.Adam(self.network.parameters(), lr=self.learning_rate)
 
@@ -95,7 +93,7 @@ class ConvAutoEncoderRunner:
         print("Network config:\n", self.network)
         print("Network config:\n", self.network, file=self.log_file)
 
-        self.batch_loss, self.batch_accuracy, self.uar = [], [], []
+        self.batch_classification_loss, self.batch_accuracy, self.uar = [], [], []
 
         print('Configs used:\n', json.dumps(args, indent=4))
         print('Configs used:\n', json.dumps(args, indent=4), file=self.log_file)
@@ -177,27 +175,36 @@ class ConvAutoEncoderRunner:
             return input_data, labels
 
     def run_for_epoch(self, epoch, x, y, type):
-        self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
+        self.classification_test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, self.test_batch_reconstruction_loss, self.test_total_loss, audio_for_tensorboard_test = [], [], [], [], [], [], None
         with torch.no_grad():
             for i, (audio_data, label) in enumerate(zip(x, y)):
                 label = tensor(label).float()
-                test_predictions = self.network(audio_data).squeeze(1)
-                test_loss = self.loss_function(test_predictions, label)
+                audio_data = tensor(audio_data)
+                test_reconstructions, test_predictions = self.network(audio_data)
+                test_reconstructions = test_reconstructions.squeeze(1)
+                test_predictions = test_predictions.squeeze(1)
+                classification_test_loss = self.classification_loss(test_predictions, label)
+                reconstruction_test_loss = self.reconstruction_loss(test_reconstructions, audio_data)
+
                 test_predictions = nn.Sigmoid()(test_predictions)
                 test_accuracy, test_uar = accuracy_fn(test_predictions, label, self.threshold)
-                self.test_batch_loss.append(test_loss.numpy())
+                self.classification_test_batch_loss.append(classification_test_loss.numpy())
+                self.test_batch_reconstruction_loss.append(reconstruction_test_loss.numpy())
+                self.test_total_loss.append((classification_test_loss + reconstruction_test_loss).numpy())
                 self.test_batch_accuracy.append(test_accuracy.numpy())
                 self.test_batch_uar.append(test_uar)
         print(f'***** {type} Metrics ***** ')
         print(f'***** {type} Metrics ***** ', file=self.log_file)
         print(
-                f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}")
+                f"CLoss: {np.mean(self.classification_test_batch_loss)}| RLoss: {np.mean(self.test_batch_reconstruction_loss)} | TLoss:{np.mean(self.test_total_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}")
         print(
-                f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}",
+                f"CLoss: {np.mean(self.classification_test_batch_loss)}| RLoss: {np.mean(self.test_batch_reconstruction_loss)}| TLoss:{np.mean(self.test_total_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}",
                 file=self.log_file)
 
         log_summary(self.writer, epoch, accuracy=np.mean(self.test_batch_accuracy),
-                    loss=np.mean(self.test_batch_loss),
+                    closs=np.mean(self.classification_test_batch_loss),
+                    rloss=np.mean(self.test_batch_reconstruction_loss),
+                    total_loss=np.mean(self.test_total_loss),
                     uar=np.mean(self.test_batch_uar), type=type)
 
     def train(self):
@@ -215,45 +222,49 @@ class ConvAutoEncoderRunner:
                                                   shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
-        self.loss_function = nn.BCEWithLogitsLoss(pos_weight=tensor(self.pos_weight))
+        self.classification_loss = nn.BCEWithLogitsLoss(pos_weight=tensor(self.pos_weight))
 
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
-            self.batch_loss, self.batch_accuracy, self.batch_uar, audio_for_tensorboard_train = [], [], [], None
+            self.batch_classification_loss, self.batch_accuracy, self.batch_uar, self.batch_reconstruction_loss, self.batch_total_loss, audio_for_tensorboard_train = [], [], [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
                 self.optimiser.zero_grad()
-                # audio_data = tensor(
-                #         [normalize_image(cv2.cvtColor(cv2.imread(spec_image), cv2.COLOR_BGR2RGB)) for spec_image in
-                #          audio_data])
-                # audio_data = audio_data.float()
+                audio_data = tensor(audio_data)
                 label = tensor(label).float()
                 if i == 0:
-                    self.writer.add_graph(self.network, tensor(audio_data))
-                predictions = self.network(audio_data).squeeze(1)
-                loss = self.loss_function(predictions, label)
-                predictions = nn.Sigmoid()(predictions)
-                loss.backward()
+                    self.writer.add_graph(self.network, audio_data)
+                train_reconstructions, predictions = self.network(audio_data)
+                predictions = predictions.squeeze(1)
+                train_reconstructions = train_reconstructions.squeeze(1)
+                classification_loss = self.classification_loss(predictions, label)
+                reconstruction_loss = self.reconstruction_loss(train_reconstructions, audio_data)
+                (classification_loss + reconstruction_loss).backward()
                 self.optimiser.step()
+                predictions = nn.Sigmoid()(predictions)
                 accuracy, uar = accuracy_fn(predictions, label, self.threshold)
-                self.batch_loss.append(loss.detach().numpy())
+                self.batch_classification_loss.append(classification_loss.detach().numpy())
+                self.batch_reconstruction_loss.append(reconstruction_loss.detach().numpy())
+                self.batch_total_loss.append((classification_loss + reconstruction_loss).detach().numpy())
                 self.batch_accuracy.append(accuracy)
                 self.batch_uar.append(uar)
 
                 if i % self.display_interval == 0:
                     print(
-                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}")
+                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | CLoss: {classification_loss} | RLoss: {reconstruction_loss}| TLoss:{classification_loss + reconstruction_loss} | Accuracy: {accuracy} | UAR: {uar}")
                     print(
-                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}",
+                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | CLoss: {classification_loss} | RLoss: {reconstruction_loss} | TLoss:{classification_loss + reconstruction_loss} | Accuracy: {accuracy} | UAR: {uar}",
                             file=self.log_file)
             log_summary(self.writer, epoch, accuracy=np.mean(self.batch_accuracy),
-                        loss=np.mean(self.batch_loss),
+                        closs=np.mean(self.batch_classification_loss),
+                        rloss=np.mean(self.batch_reconstruction_loss),
+                        total_loss=np.mean(self.batch_total_loss),
                         uar=np.mean(self.batch_uar), type='Train')
             print('***** Overall Train Metrics ***** ')
             print('***** Overall Train Metrics ***** ', file=self.log_file)
             print(
-                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ")
+                    f"CLoss: {np.mean(self.batch_classification_loss)}| RLoss: {np.mean(self.batch_reconstruction_loss)} | TLoss:{self.batch_total_loss}| Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ")
             print(
-                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ",
+                    f"CLoss: {np.mean(self.batch_classification_loss)}| RLoss: {np.mean(self.batch_reconstruction_loss)} | TLoss:{self.batch_total_loss} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ",
                     file=self.log_file)
 
             # dev data
