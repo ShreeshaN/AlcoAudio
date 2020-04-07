@@ -119,9 +119,6 @@ class ConvAutoEncoderRunner:
             print('Event rate', sum(labels) / len(labels), file=self.log_file)
             print(np.array(input_data).shape, np.array(labels).shape, file=self.log_file)
 
-            for x in input_data:
-                self._min = min(np.min(x), self._min)
-                self._max = max(np.max(x), self._max)
 
             print('Data Augmentation starts . . .')
             print('Data Augmentation starts . . .', file=self.log_file)
@@ -144,6 +141,10 @@ class ConvAutoEncoderRunner:
 
             print('Data Augmentation done . . .')
             print('Data Augmentation done . . .', file=self.log_file)
+
+            for x in input_data:
+                self._min = min(np.min(x), self._min)
+                self._max = max(np.max(x), self._max)
 
             data = [(x, y) for x, y in zip(input_data, labels)]
             random.shuffle(data)
@@ -247,7 +248,6 @@ class ConvAutoEncoderRunner:
                 self.batch_total_loss.append((classification_loss + reconstruction_loss).detach().numpy())
                 self.batch_accuracy.append(accuracy)
                 self.batch_uar.append(uar)
-
                 if i % self.display_interval == 0:
                     print(
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | CLoss: {classification_loss} | RLoss: {reconstruction_loss}| TLoss:{classification_loss + reconstruction_loss} | Accuracy: {accuracy} | UAR: {uar}")
@@ -262,9 +262,9 @@ class ConvAutoEncoderRunner:
             print('***** Overall Train Metrics ***** ')
             print('***** Overall Train Metrics ***** ', file=self.log_file)
             print(
-                    f"CLoss: {np.mean(self.batch_classification_loss)}| RLoss: {np.mean(self.batch_reconstruction_loss)} | TLoss:{self.batch_total_loss}| Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ")
+                    f"CLoss: {np.mean(self.batch_classification_loss)}| RLoss: {np.mean(self.batch_reconstruction_loss)} | TLoss:{np.mean(self.batch_total_loss)}| Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ")
             print(
-                    f"CLoss: {np.mean(self.batch_classification_loss)}| RLoss: {np.mean(self.batch_reconstruction_loss)} | TLoss:{self.batch_total_loss} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ",
+                    f"CLoss: {np.mean(self.batch_classification_loss)}| RLoss: {np.mean(self.batch_reconstruction_loss)} | TLoss:{np.mean(self.batch_total_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ",
                     file=self.log_file)
 
             # dev data

@@ -1,5 +1,5 @@
 {
-  "run_name": "emotion_alco_audio_cnn_40mels_challenge_data_full_train_posweight_augmented_with_d1_auto_encoder",
+  "run_name": "emotion_alco_audio_cnn_40mels_challenge_data_full_train_posweight_augmented_with_d1_autoencoder",
   "epochs": 50000,
   "batch_size": 32,
   "learning_rate": 0.0001,
@@ -14,7 +14,7 @@
   "tensorboard_summary_path": "tensorboard_summary",
   "network_restore_path": "",
   "normalise_while_creating": false,
-  "normalise_while_training": false,
+  "normalise_while_training": true,
   "num_classes": 1,
   "data_augment": true,
   "network_save_interval": 3,
