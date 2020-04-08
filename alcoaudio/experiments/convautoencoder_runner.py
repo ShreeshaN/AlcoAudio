@@ -70,8 +70,9 @@ class ConvAutoEncoderRunner:
         self.pos_weight = None
         self.classification_loss = None
         self.reconstruction_loss = nn.BCEWithLogitsLoss()
-
+        self.learning_rate_decay = args.learning_rate_decay
         self.optimiser = optim.Adam(self.network.parameters(), lr=self.learning_rate)
+        self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimiser, gamma=self.learning_rate_decay)
 
         self._min, self._max = float('inf'), -float('inf')
 
@@ -118,7 +119,6 @@ class ConvAutoEncoderRunner:
             print('Total data ', len(input_data), file=self.log_file)
             print('Event rate', sum(labels) / len(labels), file=self.log_file)
             print(np.array(input_data).shape, np.array(labels).shape, file=self.log_file)
-
 
             print('Data Augmentation starts . . .')
             print('Data Augmentation starts . . .', file=self.log_file)
@@ -266,6 +266,9 @@ class ConvAutoEncoderRunner:
                     print(
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | CLoss: {classification_loss} | RLoss: {reconstruction_loss} | TLoss:{classification_loss + reconstruction_loss} | Accuracy: {accuracy} | UAR: {uar}",
                             file=self.log_file)
+
+            # Decay learning rate
+            self.scheduler.step()
             log_summary(self.writer, epoch, accuracy=np.mean(self.batch_accuracy),
                         closs=np.mean(self.batch_classification_loss),
                         rloss=np.mean(self.batch_reconstruction_loss),

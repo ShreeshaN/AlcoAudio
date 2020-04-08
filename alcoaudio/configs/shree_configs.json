@@ -3,6 +3,7 @@
   "epochs": 5000,
   "batch_size": 16,
   "learning_rate": 0.001,
+  "learning_rate_decay": 0.95,
   "threshold": 0.5,
   "audio_basepath": "/Users/badgod/badgod_documents/Alco_audio/data/ALC/DATA/",
   "train_data_file": "/Users/badgod/badgod_documents/Alco_audio/data/ALC/DOC/IS2011CHALLENGE/TRAIN.TBL",

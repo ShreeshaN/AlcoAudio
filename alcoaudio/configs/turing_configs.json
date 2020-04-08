@@ -3,7 +3,7 @@
   "epochs": 50000,
   "batch_size": 32,
   "learning_rate": 0.0001,
-  "transfer_learning_rate": 0.00005,
+  "learning_rate_decay": 0.95,
   "threshold": 0.5,
   "audio_basepath": "/home/aostapenko/data/ALC/DATA/",
   "train_data_file": "/home/aostapenko/dr_alcocudio/AlcoAudio/TRAIN_altered.TBL",
