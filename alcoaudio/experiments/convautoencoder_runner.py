@@ -225,8 +225,20 @@ class ConvAutoEncoderRunner:
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
         self.classification_loss = nn.BCEWithLogitsLoss(pos_weight=tensor(self.pos_weight))
 
+        def shuffle_batch(train_data, train_labels):
+            train_data = [item for sublist in train_data for item in sublist]
+            train_labels = [item for sublist in train_labels for item in sublist]
+            data = [(x, y) for x, y in zip(train_data, train_labels)]
+            random.shuffle(data)
+            input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
+            batched_input = [input_data[pos:pos + self.batch_size] for pos in
+                             range(0, len(input_data), self.batch_size)]
+            batched_labels = [labels[pos:pos + self.batch_size] for pos in range(0, len(labels), self.batch_size)]
+            return batched_input, batched_labels
+
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
+            train_data, train_labels = shuffle_batch(train_data, train_labels)
             self.batch_classification_loss, self.batch_accuracy, self.batch_uar, self.batch_reconstruction_loss, self.batch_total_loss, audio_for_tensorboard_train = [], [], [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
                 self.optimiser.zero_grad()
