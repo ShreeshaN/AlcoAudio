@@ -48,6 +48,8 @@ class ConvAutoEncoderRunner:
         self.sampling_rate = args.sampling_rate
         self.sample_size_in_seconds = args.sample_size_in_seconds
         self.overlap = args.overlap
+        self.alpha = args.alpha
+        self.beta = args.beta
 
         self.network_metrics_basepath = args.network_metrics_basepath
         self.tensorboard_summary_path = self.current_run_basepath + args.tensorboard_summary_path
@@ -251,7 +253,8 @@ class ConvAutoEncoderRunner:
                 train_reconstructions = train_reconstructions.squeeze(1)
                 classification_loss = self.classification_loss(predictions, label)
                 reconstruction_loss = self.reconstruction_loss(train_reconstructions, audio_data)
-                (classification_loss + reconstruction_loss).backward()
+                total_loss = (self.alpha * classification_loss) + (self.beta * reconstruction_loss)
+                total_loss.backward()
                 self.optimiser.step()
                 predictions = nn.Sigmoid()(predictions)
                 accuracy, uar = accuracy_fn(predictions, label, self.threshold)
@@ -268,7 +271,7 @@ class ConvAutoEncoderRunner:
                             file=self.log_file)
 
             # Decay learning rate
-            self.scheduler.step()
+            self.scheduler.step(epoch=epoch)
             log_summary(self.writer, epoch, accuracy=np.mean(self.batch_accuracy),
                         closs=np.mean(self.batch_classification_loss),
                         rloss=np.mean(self.batch_reconstruction_loss),
