@@ -213,12 +213,12 @@ class ConvNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_with_d1_data.npy',
-                                                    self.data_read_path + 'train_challenge_with_d1_labels.npy',
+        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_data.npy',
+                                                    self.data_read_path + 'train_challenge_labels.npy',
                                                     shuffle=True,
                                                     train=True)
-        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_data.npy',
-                                                self.data_read_path + 'dev_challenge_with_d1_labels.npy',
+        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_data.npy',
+                                                self.data_read_path + 'dev_challenge_labels.npy',
                                                 shuffle=False, train=False)
         test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_data.npy',
                                                   self.data_read_path + 'test_challenge_labels.npy',
@@ -267,8 +267,8 @@ class ConvNetRunner:
             print(
                     f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ",
                     file=self.log_file)
-            print('Learning rate ', self.learning_rate)
-            print('Learning rate ', self.learning_rate, file=self.log_file)
+            print('Learning rate ', self.optimiser.state_dict()['param_groups'][0]['lr'])
+            print('Learning rate ', self.optimiser.state_dict()['param_groups'][0]['lr'], file=self.log_file)
 
             # dev data
             self.run_for_epoch(epoch, dev_data, dev_labels, type='Dev')
