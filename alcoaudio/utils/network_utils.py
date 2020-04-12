@@ -25,12 +25,13 @@ def accuracy_fn(preds, labels, threshold):
     return accuracy, uar
 
 
-def log_summary(writer, global_step, accuracy, closs, rloss, total_loss, uar, type):
+def log_summary(writer, global_step, accuracy, closs, rloss, total_loss, uar, lr, type):
     writer.add_scalar(f'{type}/Accuracy', accuracy, global_step)
     writer.add_scalar(f'{type}/CLoss', closs, global_step)
     writer.add_scalar(f'{type}/RLoss', rloss, global_step)
     writer.add_scalar(f'{type}/Total Loss', total_loss, global_step)
     writer.add_scalar(f'{type}/UAR', uar, global_step)
+    writer.add_scalar(f'{type}/LR', lr, global_step)
     writer.flush()
 
 

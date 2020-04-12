@@ -208,7 +208,7 @@ class ConvAutoEncoderRunner:
                     closs=np.mean(self.classification_test_batch_loss),
                     rloss=np.mean(self.test_batch_reconstruction_loss),
                     total_loss=np.mean(self.test_total_loss),
-                    uar=np.mean(self.test_batch_uar), type=type)
+                    uar=np.mean(self.test_batch_uar), lr=self.learning_rate, type=type)
 
     def train(self):
 
@@ -276,7 +276,7 @@ class ConvAutoEncoderRunner:
                         closs=np.mean(self.batch_classification_loss),
                         rloss=np.mean(self.batch_reconstruction_loss),
                         total_loss=np.mean(self.batch_total_loss),
-                        uar=np.mean(self.batch_uar), type='Train')
+                        uar=np.mean(self.batch_uar), lr=self.learning_rate, type='Train')
             print('***** Overall Train Metrics ***** ')
             print('***** Overall Train Metrics ***** ', file=self.log_file)
             print(
@@ -284,6 +284,8 @@ class ConvAutoEncoderRunner:
             print(
                     f"CLoss: {np.mean(self.batch_classification_loss)}| RLoss: {np.mean(self.batch_reconstruction_loss)} | TLoss:{np.mean(self.batch_total_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ",
                     file=self.log_file)
+            print('Learning rate ', self.learning_rate)
+            print('Learning rate ', self.learning_rate, file=self.log_file)
 
             # dev data
             self.run_for_epoch(epoch, dev_data, dev_labels, type='Dev')
