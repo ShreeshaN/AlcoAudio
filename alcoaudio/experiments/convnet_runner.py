@@ -72,8 +72,10 @@ class ConvNetRunner:
         self.network = ConvNet().to(self.device)
         self.pos_weight = None
         self.loss_function = None
+        self.learning_rate_decay = args.learning_rate_decay
 
         self.optimiser = optim.Adam(self.network.parameters(), lr=self.learning_rate)
+        self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimiser, gamma=self.learning_rate_decay)
 
         self._min, self._max = float('inf'), -float('inf')
 
@@ -206,7 +208,7 @@ class ConvNetRunner:
 
         log_summary(self.writer, epoch, accuracy=np.mean(self.test_batch_accuracy),
                     loss=np.mean(self.test_batch_loss),
-                    uar=np.mean(self.test_batch_uar), type=type)
+                    uar=np.mean(self.test_batch_uar), lr=self.learning_rate, type=type)
 
     def train(self):
 
@@ -253,9 +255,11 @@ class ConvNetRunner:
                     print(
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}",
                             file=self.log_file)
+            # Decay learning rate
+            self.scheduler.step(epoch=epoch)
             log_summary(self.writer, epoch, accuracy=np.mean(self.batch_accuracy),
                         loss=np.mean(self.batch_loss),
-                        uar=np.mean(self.batch_uar), type='Train')
+                        uar=np.mean(self.batch_uar), lr=self.learning_rate, type='Train')
             print('***** Overall Train Metrics ***** ')
             print('***** Overall Train Metrics ***** ', file=self.log_file)
             print(
@@ -263,6 +267,8 @@ class ConvNetRunner:
             print(
                     f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ",
                     file=self.log_file)
+            print('Learning rate ', self.learning_rate)
+            print('Learning rate ', self.learning_rate, file=self.log_file)
 
             # dev data
             self.run_for_epoch(epoch, dev_data, dev_labels, type='Dev')
