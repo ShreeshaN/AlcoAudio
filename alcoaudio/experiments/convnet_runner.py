@@ -24,7 +24,7 @@ import random
 import torchvision
 import random
 
-from alcoaudio.networks.crnn import CRNN
+from alcoaudio.networks.convnet import ConvNet
 from alcoaudio.utils import file_utils
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
 from alcoaudio.utils.network_utils import accuracy_fn, log_summary, normalize_image
@@ -69,7 +69,7 @@ class ConvNetRunner:
 
         self.weights = np.load(args.keras_model_weights, allow_pickle=True)
         self.network = None
-        self.network = CRNN().to(self.device)
+        self.network = ConvNet().to(self.device)
         self.pos_weight = None
         self.loss_function = None
 
@@ -136,7 +136,7 @@ class ConvNetRunner:
             print('Data Augmentation starts . . .')
             print('Data Augmentation starts . . .', file=self.log_file)
             label_to_augment = 1
-            amount_to_augment = 0.8
+            amount_to_augment = 1
             ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_augment]
             random_idxs = random.choices(ones_ids,
                                          k=int(len(ones_ids) * amount_to_augment))
@@ -271,7 +271,6 @@ class ConvNetRunner:
             self.run_for_epoch(epoch, test_data, test_labels, type='Test')
 
             if epoch % self.network_save_interval == 0:
-
                 save_path = self.network_save_path + '/' + self.run_name + '_' + str(epoch) + '.pt'
                 torch.save(self.network.state_dict(), save_path)
                 print('Network successfully saved: ' + save_path)
