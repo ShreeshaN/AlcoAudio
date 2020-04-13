@@ -1,5 +1,5 @@
 {
-  "run_name": "emotion_alco_audio_challenge_data_posweight_augmented_with_d1_cnn_full_augmentation_lr_decay_reduced_paramters",
+  "run_name": "emotion_alco_audio_challenge_data_posweight_augmented_with_d1_cnn_full_augmentation_lr_decay_reduced_paramters_inc_batch_size",
   "epochs": 50000,
   "batch_size": 128,
   "learning_rate": 0.001,
