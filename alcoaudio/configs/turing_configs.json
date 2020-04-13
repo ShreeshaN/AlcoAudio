@@ -19,7 +19,7 @@
   "num_classes": 1,
   "data_augment": true,
   "network_save_interval": 3,
-  "display_interval": 5,
+  "display_interval": 50,
   "dropout": 0.2,
   "keras_model_weights": "/home/aostapenko/dr_alcocudio/keras_model.npy",
   "sampling_rate": 44100,
