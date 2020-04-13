@@ -188,6 +188,7 @@ class ConvNetRunner:
             return input_data, labels
 
     def run_for_epoch(self, epoch, x, y, type):
+        predictions_dict = {"tp": [], "fp": [], "tn": [], "fn": []}
         self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
         with torch.no_grad():
             for i, (audio_data, label) in enumerate(zip(x, y)):
@@ -199,8 +200,12 @@ class ConvNetRunner:
                 self.test_batch_loss.append(test_loss.numpy())
                 self.test_batch_accuracy.append(test_accuracy.numpy())
                 self.test_batch_uar.append(test_uar)
-        tp, fp, tn, fn = custom_confusion_matrix(test_predictions, label, threshold=self.threshold)
-        predictions_dict = {"tp": tp, "fp": fp, "tn": tn, "fn": fn}
+                tp, fp, tn, fn = custom_confusion_matrix(test_predictions, label, threshold=self.threshold)
+                predictions_dict['tp'].extend(tp)
+                predictions_dict['fp'].extend(fp)
+                predictions_dict['tn'].extend(tn)
+                predictions_dict['fn'].extend(fn)
+
         print(f'***** {type} Metrics ***** ')
         print(f'***** {type} Metrics ***** ', file=self.log_file)
         print(
