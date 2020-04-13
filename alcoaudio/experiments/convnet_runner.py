@@ -189,7 +189,6 @@ class ConvNetRunner:
 
     def run_for_epoch(self, epoch, x, y, type):
         self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
-        fp, fn = [], []
         with torch.no_grad():
             for i, (audio_data, label) in enumerate(zip(x, y)):
                 label = tensor(label).float()
