@@ -46,8 +46,8 @@ def normalize_image(image):
     return (image - image.min()) / (image.max() - image.min())
 
 
-def custom_confusion_matrix(preds, target, threshold=0.5):
-    preds = torch.where(preds > tensor(threshold), tensor(1), tensor(0))
+def custom_confusion_matrix(predictions, target, threshold=0.5):
+    preds = torch.where(predictions > tensor(threshold), tensor(1), tensor(0))
     TP = []
     FP = []
     TN = []
@@ -55,12 +55,12 @@ def custom_confusion_matrix(preds, target, threshold=0.5):
 
     for i in range(len(preds)):
         if target[i] == preds[i] == 1:
-            TP.append(preds[i])
+            TP.append(predictions[i])
         if preds[i] == 1 and target[i] != preds[i]:
-            FP.append(preds[i])
+            FP.append(predictions[i])
         if target[i] == preds[i] == 0:
-            TN.append(preds[i])
+            TN.append(predictions[i])
         if preds[i] == 0 and target[i] != preds[i]:
-            FN.append(preds[i])
+            FN.append(predictions[i])
 
     return TP, FP, TN, FN
