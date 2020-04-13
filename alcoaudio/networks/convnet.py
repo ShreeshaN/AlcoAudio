@@ -33,25 +33,25 @@ class ConvNet(nn.Module):
         # self.conv1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, stride=1)
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=1)
         self.conv1_bn = nn.BatchNorm2d(64)
-        self.conv2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1)
-        self.conv2_bn = nn.BatchNorm2d(128)
+        self.conv2 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1)
+        self.conv2_bn = nn.BatchNorm2d(64)
         self.pool1 = nn.MaxPool2d(kernel_size=4, stride=2)
         self.dropout0 = nn.Dropout(p=0.4)
 
         # self.conv3 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=1)
         # self.conv3_bn = nn.BatchNorm2d(256)
-        self.conv4 = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=[1, 2])
-        self.conv4_bn = nn.BatchNorm2d(128)
+        self.conv4 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=[1, 2])
+        self.conv4_bn = nn.BatchNorm2d(64)
         self.pool2 = nn.MaxPool2d(kernel_size=4, stride=2)
 
-        self.conv5 = nn.Conv2d(in_channels=128, out_channels=64, kernel_size=3, stride=[1, 2])
+        self.conv5 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=[1, 2])
         self.conv5_bn = nn.BatchNorm2d(64)
         self.pool3 = nn.MaxPool2d(kernel_size=3, stride=[1, 2])
 
-        self.fc1 = nn.Linear(40 * 64, 1024)
+        self.fc1 = nn.Linear(40 * 64, 256)
         self.dropout1 = nn.Dropout(p=0.3)
-        self.fc2 = nn.Linear(1024, 256)
-        self.fc3 = nn.Linear(256, 1)
+        self.fc2 = nn.Linear(256, 32)
+        self.fc3 = nn.Linear(32, 1)
 
     def forward(self, x):
         """
