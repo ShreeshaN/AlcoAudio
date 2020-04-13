@@ -33,6 +33,34 @@ def log_summary(writer, global_step, accuracy, loss, uar, lr, type):
     writer.flush()
 
 
+def log_conf_matrix(writer, global_step, predictions_dict, type):
+    writer.add_scalars(f'{type}/Predictions Average', {x: np.mean(predictions_dict[x]) for x in predictions_dict},
+                       global_step)
+    writer.add_scalars(f'{type}/Predictions Count', {x: len(predictions_dict[x]) for x in predictions_dict},
+                       global_step)
+    writer.flush()
+
+
 def normalize_image(image):
     # return (image - image.mean())/image.std()
     return (image - image.min()) / (image.max() - image.min())
+
+
+def custom_confusion_matrix(preds, target, threshold=0.5):
+    preds = torch.where(preds > tensor(threshold), tensor(1), tensor(0))
+    TP = []
+    FP = []
+    TN = []
+    FN = []
+
+    for i in range(len(preds)):
+        if target[i] == preds[i] == 1:
+            TP.append(preds[i])
+        if preds[i] == 1 and target[i] != preds[i]:
+            FP.append(preds[i])
+        if target[i] == preds[i] == 0:
+            TN.append(preds[i])
+        if preds[i] == 0 and target[i] != preds[i]:
+            FN.append(preds[i])
+
+    return TP, FP, TN, FN
