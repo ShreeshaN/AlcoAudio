@@ -181,7 +181,9 @@ class ConvNetRunner:
 
         # Normalizing `input data` on train dataset's min and max values
         if self.normalise:
-            input_data = (input_data - self._min) / (self._max - self._min)
+            # input_data = (input_data - self._min) / (self._max - self._min)
+            for idx, x in enumerate(input_data):
+                input_data[idx] = (x - min(x)) / (max(x) - min(x))
 
         if should_batch:
             batched_input = [input_data[pos:pos + self.batch_size] for pos in
