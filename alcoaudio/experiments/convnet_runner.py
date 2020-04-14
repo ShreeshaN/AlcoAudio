@@ -28,7 +28,7 @@ from alcoaudio.networks.convnet import ConvNet
 from alcoaudio.utils import file_utils
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
 from alcoaudio.utils.network_utils import accuracy_fn, log_summary, normalize_image, custom_confusion_matrix, \
-    log_conf_matrix
+    log_conf_matrix, write_to_npy
 from alcoaudio.utils.data_utils import read_h5py, read_npy
 from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask, time_warp
 
@@ -64,6 +64,7 @@ class ConvNetRunner:
         self.normalise = args.normalise_while_training
         self.dropout = args.dropout
         self.threshold = args.threshold
+        self.debug_filename = self.current_run_basepath + '/' + args.debug_filename
 
         paths = [self.network_save_path, self.tensorboard_summary_path]
         file_utils.create_dirs(paths)
@@ -192,6 +193,7 @@ class ConvNetRunner:
 
     def run_for_epoch(self, epoch, x, y, type):
         predictions_dict = {"tp": [], "fp": [], "tn": [], "fn": []}
+        predictions = []
         self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
         with torch.no_grad():
             for i, (audio_data, label) in enumerate(zip(x, y)):
@@ -199,6 +201,7 @@ class ConvNetRunner:
                 test_predictions = self.network(audio_data).squeeze(1)
                 test_loss = self.loss_function(test_predictions, label)
                 test_predictions = nn.Sigmoid()(test_predictions)
+                predictions.append(test_predictions.numpy())
                 test_accuracy, test_uar = accuracy_fn(test_predictions, label, self.threshold)
                 self.test_batch_loss.append(test_loss.numpy())
                 self.test_batch_accuracy.append(test_accuracy.numpy())
@@ -223,15 +226,22 @@ class ConvNetRunner:
                     type=type)
         log_conf_matrix(self.writer, epoch, predictions_dict=predictions_dict, type=type)
 
+        y = [element for sublist in y for element in sublist]
+        predictions = [element for sublist in predictions for element in sublist]
+        write_to_npy(filename=self.debug_filename, predictions=predictions, labels=y, epoch=epoch, accuracy=np.mean(
+                self.test_batch_accuracy), loss=np.mean(self.test_batch_loss), uar=np.mean(self.test_batch_uar),
+                     lr=self.optimiser.state_dict()['param_groups'][0]['lr'], predictions_dict=predictions_dict,
+                     type=type)
+
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_with_d1_data.npy',
-                                                    self.data_read_path + 'train_challenge_with_d1_labels.npy',
+        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_data.npy',
+                                                    self.data_read_path + 'train_challenge_labels.npy',
                                                     shuffle=True,
                                                     train=True)
-        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_data.npy',
-                                                self.data_read_path + 'dev_challenge_with_d1_labels.npy',
+        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_data.npy',
+                                                self.data_read_path + 'dev_challenge_labels.npy',
                                                 shuffle=False, train=False)
         test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_data.npy',
                                                   self.data_read_path + 'test_challenge_labels.npy',

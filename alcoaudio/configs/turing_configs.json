@@ -27,5 +27,6 @@
   "overlap": 1,
   "data_save_path": "/home/aostapenko/dr_alcocudio/AlcoAudio/",
   "image_data_save_path": "/home/snarasimhamurthy/images/",
-  "data_processing_method": "fbank"
+  "data_processing_method": "fbank",
+  "debug_filename": "predictions_debug.npy"
 }
