@@ -1,5 +1,5 @@
 {
-  "run_name": "emotion_alco_audio_challenge_data_posweight_augmented_with_d1_cnn_full_augmentation_lr_decay_reduced_paramters_debug_loss",
+  "run_name": "emotion_alco_audio_challenge_data_posweight_augmented_with_d1_cnn_full_augmentation_lr_decay_reduced_paramters_debug_loss_norm",
   "epochs": 50000,
   "batch_size": 32,
   "learning_rate": 0.001,
@@ -15,7 +15,7 @@
   "tensorboard_summary_path": "tensorboard_summary",
   "network_restore_path": "",
   "normalise_while_creating": false,
-  "normalise_while_training": false,
+  "normalise_while_training": true,
   "num_classes": 1,
   "data_augment": true,
   "network_save_interval": 3,

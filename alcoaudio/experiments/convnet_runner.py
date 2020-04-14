@@ -175,6 +175,9 @@ class ConvNetRunner:
         print('Event rate', sum(labels) / len(labels), file=self.log_file)
         print(np.array(input_data).shape, np.array(labels).shape, file=self.log_file)
 
+        print('Min max values used for normalisation ', self._min, self._max)
+        print('Min max values used for normalisation ', self._min, self._max, file=self.log_file)
+
         # Normalizing `input data` on train dataset's min and max values
         if self.normalise:
             input_data = (input_data - self._min) / (self._max - self._min)
