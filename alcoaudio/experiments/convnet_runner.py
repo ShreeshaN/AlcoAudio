@@ -140,7 +140,7 @@ class ConvNetRunner:
             print('Data Augmentation starts . . .')
             print('Data Augmentation starts . . .', file=self.log_file)
             label_to_augment = 1
-            amount_to_augment = 1
+            amount_to_augment = 1.3
             ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_augment]
             random_idxs = random.choices(ones_ids,
                                          k=int(len(ones_ids) * amount_to_augment))
@@ -181,9 +181,7 @@ class ConvNetRunner:
 
         # Normalizing `input data` on train dataset's min and max values
         if self.normalise:
-            # input_data = (input_data - self._min) / (self._max - self._min)
-            for idx, x in enumerate(input_data):
-                input_data[idx] = (x - min(x)) / (max(x) - min(x))
+            input_data = (input_data - self._min) / (self._max - self._min)
 
         if should_batch:
             batched_input = [input_data[pos:pos + self.batch_size] for pos in
