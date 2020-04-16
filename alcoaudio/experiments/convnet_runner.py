@@ -140,7 +140,7 @@ class ConvNetRunner:
             print('Data Augmentation starts . . .')
             print('Data Augmentation starts . . .', file=self.log_file)
             label_to_augment = 1
-            amount_to_augment = 1.3
+            amount_to_augment = 1
             ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_augment]
             random_idxs = random.choices(ones_ids,
                                          k=int(len(ones_ids) * amount_to_augment))
@@ -199,8 +199,9 @@ class ConvNetRunner:
             for i, (audio_data, label) in enumerate(zip(x, y)):
                 label = tensor(label).float()
                 test_predictions = self.network(audio_data).squeeze(1)
-                test_loss = self.loss_function(test_predictions, label)
                 test_predictions = nn.Sigmoid()(test_predictions)
+                test_loss = self.loss_function(test_predictions, label)
+
                 predictions.append(test_predictions.numpy())
                 test_accuracy, test_uar = accuracy_fn(test_predictions, label, self.threshold)
                 self.test_batch_loss.append(test_loss.numpy())
@@ -248,7 +249,8 @@ class ConvNetRunner:
                                                   shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
-        self.loss_function = nn.BCEWithLogitsLoss(pos_weight=tensor(self.pos_weight))
+        # self.loss_function = nn.BCEWithLogitsLoss(pos_weight=tensor(self.pos_weight))
+        self.loss_function = nn.MSELoss()
 
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
@@ -263,8 +265,9 @@ class ConvNetRunner:
                 if i == 0:
                     self.writer.add_graph(self.network, tensor(audio_data))
                 predictions = self.network(audio_data).squeeze(1)
-                loss = self.loss_function(predictions, label)
                 predictions = nn.Sigmoid()(predictions)
+                loss = self.loss_function(predictions, label)
+
                 loss.backward()
                 self.optimiser.step()
                 accuracy, uar = accuracy_fn(predictions, label, self.threshold)
