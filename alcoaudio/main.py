@@ -10,7 +10,7 @@ Description:
 
 """
 
-from alcoaudio.experiments.convnet_runner import ConvNetRunner
+from alcoaudio.runners.convnet_runner import ConvNetRunner
 from alcoaudio.utils.class_utils import AttributeDict
 import json
 import argparse

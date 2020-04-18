@@ -276,4 +276,18 @@ def mel_filters_x():
 
     plt.close()
 
+
 # mel_filters_x()
+
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+data = np.load("/Users/badgod/badgod_documents/Alco_audio/small_data/40_mels/train_challenge_data.npy",
+               allow_pickle=True)
+print(data.shape)
+
+data_means = np.array([x.mean() for x in data])
+
+plt.hist(data_means)
+plt.show()
