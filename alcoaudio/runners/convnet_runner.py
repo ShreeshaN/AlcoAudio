@@ -27,7 +27,8 @@ import random
 from alcoaudio.networks.convnet import ConvNet
 from alcoaudio.utils import file_utils
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
-from alcoaudio.utils.network_utils import accuracy_fn, log_summary, normalize_image
+from alcoaudio.utils.network_utils import accuracy_fn, log_summary, normalize_image, custom_confusion_matrix, \
+    log_conf_matrix, write_to_npy
 from alcoaudio.utils.data_utils import read_h5py, read_npy
 from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask, time_warp
 
@@ -63,6 +64,7 @@ class ConvNetRunner:
         self.normalise = args.normalise_while_training
         self.dropout = args.dropout
         self.threshold = args.threshold
+        self.debug_filename = self.current_run_basepath + '/' + args.debug_filename
 
         paths = [self.network_save_path, self.tensorboard_summary_path]
         file_utils.create_dirs(paths)
@@ -72,8 +74,10 @@ class ConvNetRunner:
         self.network = ConvNet().to(self.device)
         self.pos_weight = None
         self.loss_function = None
+        self.learning_rate_decay = args.learning_rate_decay
 
         self.optimiser = optim.Adam(self.network.parameters(), lr=self.learning_rate)
+        self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimiser, gamma=self.learning_rate_decay)
 
         self._min, self._max = float('inf'), -float('inf')
 
@@ -136,7 +140,7 @@ class ConvNetRunner:
             print('Data Augmentation starts . . .')
             print('Data Augmentation starts . . .', file=self.log_file)
             label_to_augment = 1
-            amount_to_augment = 0.8
+            amount_to_augment = 1
             ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_augment]
             random_idxs = random.choices(ones_ids,
                                          k=int(len(ones_ids) * amount_to_augment))
@@ -172,6 +176,9 @@ class ConvNetRunner:
         print('Event rate', sum(labels) / len(labels), file=self.log_file)
         print(np.array(input_data).shape, np.array(labels).shape, file=self.log_file)
 
+        print('Min max values used for normalisation ', self._min, self._max)
+        print('Min max values used for normalisation ', self._min, self._max, file=self.log_file)
+
         # Normalizing `input data` on train dataset's min and max values
         if self.normalise:
             input_data = (input_data - self._min) / (self._max - self._min)
@@ -185,17 +192,27 @@ class ConvNetRunner:
             return input_data, labels
 
     def run_for_epoch(self, epoch, x, y, type):
+        predictions_dict = {"tp": [], "fp": [], "tn": [], "fn": []}
+        predictions = []
         self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
         with torch.no_grad():
             for i, (audio_data, label) in enumerate(zip(x, y)):
                 label = tensor(label).float()
                 test_predictions = self.network(audio_data).squeeze(1)
-                test_loss = self.loss_function(test_predictions, label)
                 test_predictions = nn.Sigmoid()(test_predictions)
+                test_loss = self.loss_function(test_predictions, label)
+
+                predictions.append(test_predictions.numpy())
                 test_accuracy, test_uar = accuracy_fn(test_predictions, label, self.threshold)
                 self.test_batch_loss.append(test_loss.numpy())
                 self.test_batch_accuracy.append(test_accuracy.numpy())
                 self.test_batch_uar.append(test_uar)
+                tp, fp, tn, fn = custom_confusion_matrix(test_predictions, label, threshold=self.threshold)
+                predictions_dict['tp'].extend(tp)
+                predictions_dict['fp'].extend(fp)
+                predictions_dict['tn'].extend(tn)
+                predictions_dict['fn'].extend(fn)
+
         print(f'***** {type} Metrics ***** ')
         print(f'***** {type} Metrics ***** ', file=self.log_file)
         print(
@@ -206,7 +223,16 @@ class ConvNetRunner:
 
         log_summary(self.writer, epoch, accuracy=np.mean(self.test_batch_accuracy),
                     loss=np.mean(self.test_batch_loss),
-                    uar=np.mean(self.test_batch_uar), type=type)
+                    uar=np.mean(self.test_batch_uar), lr=self.optimiser.state_dict()['param_groups'][0]['lr'],
+                    type=type)
+        log_conf_matrix(self.writer, epoch, predictions_dict=predictions_dict, type=type)
+
+        y = [element for sublist in y for element in sublist]
+        predictions = [element for sublist in predictions for element in sublist]
+        write_to_npy(filename=self.debug_filename, predictions=predictions, labels=y, epoch=epoch, accuracy=np.mean(
+                self.test_batch_accuracy), loss=np.mean(self.test_batch_loss), uar=np.mean(self.test_batch_uar),
+                     lr=self.optimiser.state_dict()['param_groups'][0]['lr'], predictions_dict=predictions_dict,
+                     type=type)
 
     def train(self):
 
@@ -223,7 +249,8 @@ class ConvNetRunner:
                                                   shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
-        self.loss_function = nn.BCEWithLogitsLoss(pos_weight=tensor(self.pos_weight))
+        # self.loss_function = nn.BCEWithLogitsLoss(pos_weight=tensor(self.pos_weight))
+        self.loss_function = nn.MSELoss()
 
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
@@ -238,8 +265,9 @@ class ConvNetRunner:
                 if i == 0:
                     self.writer.add_graph(self.network, tensor(audio_data))
                 predictions = self.network(audio_data).squeeze(1)
-                loss = self.loss_function(predictions, label)
                 predictions = nn.Sigmoid()(predictions)
+                loss = self.loss_function(predictions, label)
+
                 loss.backward()
                 self.optimiser.step()
                 accuracy, uar = accuracy_fn(predictions, label, self.threshold)
@@ -253,9 +281,12 @@ class ConvNetRunner:
                     print(
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}",
                             file=self.log_file)
+            # Decay learning rate
+            self.scheduler.step(epoch=epoch)
             log_summary(self.writer, epoch, accuracy=np.mean(self.batch_accuracy),
                         loss=np.mean(self.batch_loss),
-                        uar=np.mean(self.batch_uar), type='Train')
+                        uar=np.mean(self.batch_uar), lr=self.optimiser.state_dict()['param_groups'][0]['lr'],
+                        type='Train')
             print('***** Overall Train Metrics ***** ')
             print('***** Overall Train Metrics ***** ', file=self.log_file)
             print(
@@ -263,6 +294,8 @@ class ConvNetRunner:
             print(
                     f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ",
                     file=self.log_file)
+            print('Learning rate ', self.optimiser.state_dict()['param_groups'][0]['lr'])
+            print('Learning rate ', self.optimiser.state_dict()['param_groups'][0]['lr'], file=self.log_file)
 
             # dev data
             self.run_for_epoch(epoch, dev_data, dev_labels, type='Dev')
@@ -271,7 +304,6 @@ class ConvNetRunner:
             self.run_for_epoch(epoch, test_data, test_labels, type='Test')
 
             if epoch % self.network_save_interval == 0:
-
                 save_path = self.network_save_path + '/' + self.run_name + '_' + str(epoch) + '.pt'
                 torch.save(self.network.state_dict(), save_path)
                 print('Network successfully saved: ' + save_path)

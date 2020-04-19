@@ -28,5 +28,6 @@
   "overlap": 1,
   "data_save_path": "/Users/badgod/badgod_documents/Alco_audio/small_data/40_mels/",
   "image_data_save_path": "/Users/badgod/badgod_documents/Alco_audio/images/",
-  "data_processing_method": "gaf"
+  "data_processing_method": "fbank",
+  "debug_filename": "predictions_debug.npy"
 }
