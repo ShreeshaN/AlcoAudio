@@ -10,10 +10,11 @@ Description:
 
 """
 
-from alcoaudio.experiments.convautoencoder_runner import ConvAutoEncoderRunner
+from alcoaudio.runners.convautoencoder_runner import ConvAutoEncoderRunner
 from alcoaudio.utils.class_utils import AttributeDict
 import json
 import argparse
+
 
 def parse():
     parser = argparse.ArgumentParser(description="alcoaudio_configs")
