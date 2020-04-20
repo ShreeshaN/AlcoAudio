@@ -26,8 +26,28 @@ def accuracy_fn(preds, labels, threshold):
     return accuracy, uar
 
 
+def accuracy_fn_ocnn(preds, labels, threshold, r):
+    def sgn(preds, r):
+        Sn = preds
+        return Sn
+
+    predictions = preds - r
+    predictions = torch.where(predictions >= tensor(0), tensor(1), tensor(0))
+    accuracy = torch.sum(predictions == labels) / float(len(labels))
+    uar = recall_score(labels, predictions.numpy(), average='macro')
+    return accuracy, uar
+
+
 def log_summary(writer, global_step, rloss, lr, type):
     writer.add_scalar(f'{type}/RLoss', rloss, global_step)
+    writer.add_scalar(f'{type}/LR', lr, global_step)
+    writer.flush()
+
+
+def log_summary_ocnn(writer, global_step, accuracy, loss, uar, lr, type):
+    writer.add_scalar(f'{type}/Loss', loss, global_step)
+    writer.add_scalar(f'{type}/Accuracy', accuracy, global_step)
+    writer.add_scalar(f'{type}/UAR', uar, global_step)
     writer.add_scalar(f'{type}/LR', lr, global_step)
     writer.flush()
 

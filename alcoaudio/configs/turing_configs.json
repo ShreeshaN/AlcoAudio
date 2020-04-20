@@ -1,5 +1,5 @@
 {
-  "run_name": "emotion_alco_audio_challenge_data_cae",
+  "run_name": "emotion_alco_audio_challenge_data_cae_both_classes",
   "epochs": 50,
   "batch_size": 32,
   "learning_rate": 0.001,
@@ -8,6 +8,8 @@
   "threshold": 0.5,
   "alpha": 2,
   "beta": 0.5,
+  "nu": 0.3,
+  "r": 1,
   "audio_basepath": "/home/aostapenko/data/ALC/DATA/",
   "train_data_file": "/home/aostapenko/dr_alcocudio/AlcoAudio/TRAIN_altered.TBL",
   "dev_data_file": "/home/aostapenko/dr_alcocudio/AlcoAudio/D1_altered.TBL",
@@ -30,5 +32,7 @@
   "data_save_path": "/home/aostapenko/dr_alcocudio/AlcoAudio/",
   "image_data_save_path": "/home/snarasimhamurthy/images/",
   "data_processing_method": "fbank",
-  "debug_filename": "predictions_debug.npy"
+  "debug_filename": "predictions_debug.npy",
+  "cae_model_restore_path": "",
+  "ocnn_classes": 2
 }

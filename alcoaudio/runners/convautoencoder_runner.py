@@ -98,9 +98,9 @@ class ConvAutoEncoderRunner:
     def data_reader(self, data_filepath, label_filepath, train, should_batch=True, shuffle=True):
         input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
 
-        label_to_use = 1  # Sober samples
-        ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_use]
-        input_data = input_data[ones_ids]
+        # label_to_use = 1  # Sober samples
+        # ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_use]
+        # input_data = input_data[ones_ids]
 
         if train:
             for x in input_data:
@@ -145,14 +145,14 @@ class ConvAutoEncoderRunner:
 
         # For purposes of calculating normalized values, call this method with train data followed by test
         train_data = self.data_reader(self.data_read_path + 'train_challenge_with_d1_data.npy',
-                                      self.data_read_path + 'train_challenge_with_d1_ocnn_labels.npy',
+                                      self.data_read_path + 'train_challenge_with_d1_labels.npy',
                                       shuffle=True,
                                       train=True)
         dev_data = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_data.npy',
-                                    self.data_read_path + 'dev_challenge_with_d1_ocnn_labels.npy',
+                                    self.data_read_path + 'dev_challenge_with_d1_labels.npy',
                                     shuffle=False, train=False)
         test_data = self.data_reader(self.data_read_path + 'test_challenge_data.npy',
-                                     self.data_read_path + 'test_challenge_ocnn_labels.npy',
+                                     self.data_read_path + 'test_challenge_labels.npy',
                                      shuffle=False, train=False)
 
         total_step = len(train_data)

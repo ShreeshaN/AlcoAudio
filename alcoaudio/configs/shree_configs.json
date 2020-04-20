@@ -7,6 +7,8 @@
   "threshold": 0.5,
   "alpha": 1,
   "beta": 1,
+  "nu": 0.01,
+  "r": 1,
   "audio_basepath": "/Users/badgod/badgod_documents/Alco_audio/data/ALC/DATA/",
   "train_data_file": "/Users/badgod/badgod_documents/Alco_audio/data/ALC/DOC/IS2011CHALLENGE/TRAIN.TBL",
   "dev_data_file": "/Users/badgod/badgod_documents/Alco_audio/data/ALC/DOC/IS2011CHALLENGE/D1.TBL",
@@ -29,5 +31,7 @@
   "data_save_path": "/Users/badgod/badgod_documents/Alco_audio/small_data/40_mels/",
   "image_data_save_path": "/Users/badgod/badgod_documents/Alco_audio/images/",
   "data_processing_method": "fbank",
-  "debug_filename": "predictions_debug.npy"
+  "debug_filename": "predictions_debug.npy",
+  "cae_model_restore_path": "",
+  "ocnn_classes": 2
 }
