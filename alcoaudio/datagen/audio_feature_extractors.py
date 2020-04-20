@@ -279,15 +279,40 @@ def mel_filters_x():
 
 # mel_filters_x()
 
+#
+# import matplotlib.pyplot as plt
+# import numpy as np
+#
+# input_data = np.load("/Users/badgod/badgod_documents/Alco_audio/server_data/2d/train_challenge_with_d1_data.npy",
+#                      allow_pickle=True)
+#
+#
+# def norm(d):
+#     minv = d.min()
+#     maxv = d.max()
+#
+#     for i, x in enumerate(d):
+#         d[i] = (x - minv) / (maxv - minv)
+#     return d
 
-import matplotlib.pyplot as plt
-import numpy as np
 
-data = np.load("/Users/badgod/badgod_documents/Alco_audio/small_data/40_mels/train_challenge_data.npy",
-               allow_pickle=True)
-print(data.shape)
-
-data_means = np.array([x.mean() for x in data])
-
-plt.hist(data_means)
-plt.show()
+# labels = np.load("/Users/badgod/badgod_documents/Alco_audio/server_data/2d/train_challenge_with_d1_labels.npy",
+#                  allow_pickle=True)
+# ones_idx = [idx for idx, x in enumerate(labels) if x == 1]
+# zeros_idx = [idx for idx, x in enumerate(labels) if x == 0]
+# ones_data = input_data[ones_idx]
+# zeros_data = input_data[zeros_idx]
+#
+# ones_data = norm(ones_data)
+# zeros_data = norm(zeros_data)
+# # ones_data = np.array([x.mean() for x in ones_data])
+# # zeros_data = np.array([x.mean() for x in zeros_data])
+#
+# ones_data = np.mean(np.mean(ones_data, axis=1), axis=0)
+# zeros_data = np.mean(np.mean(zeros_data, axis=1), axis=0)
+#
+# plt.subplot(2, 1, 1)
+# plt.plot(ones_data)
+# plt.subplot(2, 1, 2)
+# plt.plot(zeros_data)
+# plt.show()

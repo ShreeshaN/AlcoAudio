@@ -1,6 +1,6 @@
 {
-  "run_name": "emotion_alco_audio_challenge_data_posweight_augmented_with_d1_cnn_full_augmentation_lr_decay_reduced_paramters_debug_loss_norm_local_mse",
-  "epochs": 50000,
+  "run_name": "emotion_alco_audio_challenge_data_cae",
+  "epochs": 50,
   "batch_size": 32,
   "learning_rate": 0.001,
   "transfer_learning_rate": 0.00005,
