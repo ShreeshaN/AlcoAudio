@@ -113,12 +113,10 @@ class OCNNRunner:
         input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
 
         if train:
-            ones_len = len([x for x in labels if x == 1])
-            zeros_len = len(labels) - ones_len
 
             # nu declared in init, initialized here based on the number of anomalies.
             # Here intoxicated samples are considered anomalies
-            self.nu = ones_len / zeros_len
+            self.nu = sum(labels) / len(labels)
             print('Calculated value of Nu ', self.nu)
             print('Calculated value of Nu ', self.nu, file=self.log_file)
 
