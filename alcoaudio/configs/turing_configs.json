@@ -1,5 +1,5 @@
 {
-  "run_name": "emotion_alco_audio_challenge_data_cae_based_ocnn",
+  "run_name": "emotion_alco_audio_challenge_data_cae_based_ocnn_paperlossfunction",
   "epochs": 1000,
   "batch_size": 32,
   "learning_rate": 0.001,
