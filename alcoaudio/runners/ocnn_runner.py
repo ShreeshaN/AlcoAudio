@@ -188,11 +188,12 @@ class OCNNRunner:
         return latent_vector.detach()
 
     def loss_function(self, y_pred, w, v):
+        w = w.state_dict()['weight']
+        v = v.state_dict()['weight']
         term1 = 0.5 * torch.sum(w ** 2)
         term2 = 0.5 * torch.sum(v ** 2)
-        term3 = 1 / self.nu * torch.mean(torch.max(0, self.r - y_pred))
+        term3 = 1 / self.nu * torch.mean(torch.max(tensor(0.0), self.r - y_pred))
         term4 = -1 * self.r
-
         # term3 = self.r ** 2 + torch.sum(torch.max(tensor(0.0), (y_pred - self.c) ** 2 - self.r ** 2), axis=1)
         # term3 = 1 / self.nu * torch.mean(term3)
         return term1 + term2 + term3 + term4
