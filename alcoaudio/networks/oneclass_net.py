@@ -124,7 +124,6 @@ class OneClassNN(nn.Module):
         self.v = nn.Linear(2048, 100)
 
     def forward(self, x):
-        print("x.shape", x.shape)
         x = F.relu(self.w(x))
         x = self.dropout1(x)
         return self.v(x).squeeze(1), self.w, self.v
