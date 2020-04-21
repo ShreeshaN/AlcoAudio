@@ -119,6 +119,8 @@ class OCNNRunner:
             # nu declared in init, initialized here based on the number of anomalies.
             # Here intoxicated samples are considered anomalies
             self.nu = ones_len / zeros_len
+            print('Calculated value of Nu ', self.nu)
+            print('Calculated value of Nu ', self.nu, file=self.log_file)
 
             for x in input_data:
                 self._min = min(np.min(x), self._min)
