@@ -32,6 +32,5 @@
   "image_data_save_path": "/Users/badgod/badgod_documents/Alco_audio/images/",
   "data_processing_method": "fbank",
   "debug_filename": "predictions_debug.npy",
-  "cae_model_restore_path": "",
-  "ocnn_classes": 2
+  "cae_model_restore_path": "/Users/badgod/badgod_documents/Alco_audio/server_data/2d/emotion_alco_audio_challenge_data_cae_both_classes_1587421865/alco_trained_models/emotion_alco_audio_challenge_data_cae_both_classes_1587421865_27.pt"
 }

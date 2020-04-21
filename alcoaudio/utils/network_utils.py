@@ -26,15 +26,10 @@ def accuracy_fn(preds, labels, threshold):
     return accuracy, uar
 
 
-def accuracy_fn_ocnn(preds, labels, threshold, r):
-    def sgn(preds, r):
-        Sn = preds
-        return Sn
-
-    predictions = preds - r
-    predictions = torch.where(predictions >= tensor(0), tensor(1), tensor(0))
-    accuracy = torch.sum(predictions == labels) / float(len(labels))
-    uar = recall_score(labels, predictions.numpy(), average='macro')
+def accuracy_fn_ocnn(preds, labels):
+    preds = torch.where(preds >= tensor(0), tensor(0), tensor(1))
+    accuracy = torch.sum(preds == labels) / float(len(labels))
+    uar = recall_score(labels, preds.numpy(), average='macro')
     return accuracy, uar
 
 

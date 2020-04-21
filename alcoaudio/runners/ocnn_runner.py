@@ -52,6 +52,10 @@ class OCNNRunner:
         self.sampling_rate = args.sampling_rate
         self.sample_size_in_seconds = args.sample_size_in_seconds
         self.overlap = args.overlap
+        self.c = tensor(0.0)
+        self.r = tensor(0.0)
+        self.nu = None  # Updated in data_reader()
+        self.eps = 0.1
 
         self.network_metrics_basepath = args.network_metrics_basepath
         self.tensorboard_summary_path = self.current_run_basepath + args.tensorboard_summary_path
@@ -69,15 +73,13 @@ class OCNNRunner:
         paths = [self.network_save_path, self.tensorboard_summary_path]
         file_utils.create_dirs(paths)
 
-        self.cae_network = ConvAutoEncoder().encoder
+        self.cae_network = ConvAutoEncoder()
         self.cae_model_restore_path = args.cae_model_restore_path
         self.cae_network.load_state_dict(torch.load(self.cae_model_restore_path, map_location=self.device))
         self.cae_network.eval()
 
         self.network = OneClassNN().to(self.device)
         self.learning_rate_decay = args.learning_rate_decay
-        self.nu = args.nu
-        self.r = args.r
         self.optimiser = optim.Adam(self.network.parameters(), lr=self.learning_rate)
         self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimiser, gamma=self.learning_rate_decay)
 
@@ -110,9 +112,13 @@ class OCNNRunner:
         input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
 
         if train:
-            ones_idx = [i for i, x in enumerate(labels) if x == 1]
-            input_data = input_data[ones_idx]
-            labels = labels[ones_idx]
+            ones_len = len([x for x in labels if x == 1])
+            zeros_len = len(labels) - ones_len
+
+            # nu declared in init, initialized here based on the number of anomalies.
+            # Here intoxicated samples are considered anomalies
+            self.nu = 0.5  # ones_len / zeros_len
+
             for x in input_data:
                 self._min = min(np.min(x), self._min)
                 self._max = max(np.max(x), self._max)
@@ -144,39 +150,20 @@ class OCNNRunner:
         else:
             return input_data, labels
 
-    def loss_function(self, y_pred, w, v):
-        term1 = 0.5 * torch.sum(w ** 2)
-        term2 = 0.5 * torch.sum(v ** 2)
-        term3 = 1 / self.nu * torch.mean(torch.max(0, self.r - y_pred))
-        term4 = -1 * self.r
-
-        # scores =
-
-        # Update value of r
-        self.r = np.percentile(y_pred, 100 * self.nu)
-        return term1 + term2 + term3 + term4
-
     def run_for_epoch(self, epoch, x, y, type):
-        predictions_dict = {"tp": [], "fp": [], "tn": [], "fn": []}
-        predictions = []
         self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
         with torch.no_grad():
             for i, (audio_data, label) in enumerate(zip(x, y)):
                 label = tensor(label).float()
+                audio_data = tensor(audio_data)
                 latent_vector = self.get_latent_vector(audio_data)
-                test_predictions, w, v = self.network(latent_vector).squeeze(1)
+                test_predictions, w, v = self.network(latent_vector)
                 test_loss = self.loss_function(test_predictions, w, v)
-
-                predictions.append(test_predictions.numpy())
-                test_accuracy, test_uar = accuracy_fn_ocnn(test_predictions, label, self.threshold, self.r)
+                test_scores = self.calc_scores(test_predictions)
+                test_accuracy, test_uar = accuracy_fn_ocnn(test_scores, label)
                 self.test_batch_loss.append(test_loss.numpy())
                 self.test_batch_accuracy.append(test_accuracy.numpy())
                 self.test_batch_uar.append(test_uar)
-                # tp, fp, tn, fn = custom_confusion_matrix(test_predictions, label, threshold=self.threshold)
-                # predictions_dict['tp'].extend(tp)
-                # predictions_dict['fp'].extend(fp)
-                # predictions_dict['tn'].extend(tn)
-                # predictions_dict['fn'].extend(fn)
 
         print(f'***** {type} Metrics ***** ')
         print(f'***** {type} Metrics ***** ', file=self.log_file)
@@ -190,19 +177,51 @@ class OCNNRunner:
                          loss=np.mean(self.test_batch_loss),
                          uar=np.mean(self.test_batch_uar), lr=self.optimiser.state_dict()['param_groups'][0]['lr'],
                          type=type)
-        log_conf_matrix(self.writer, epoch, predictions_dict=predictions_dict, type=type)
-
-        y = [element for sublist in y for element in sublist]
-        predictions = [element for sublist in predictions for element in sublist]
-        write_to_npy(filename=self.debug_filename, predictions=predictions, labels=y, epoch=epoch, accuracy=np.mean(
-                self.test_batch_accuracy), loss=np.mean(self.test_batch_loss), uar=np.mean(self.test_batch_uar),
-                     lr=self.optimiser.state_dict()['param_groups'][0]['lr'], predictions_dict=predictions_dict,
-                     type=type)
 
     def get_latent_vector(self, audio_data):
-        latent_filter_maps = self.cae_network(audio_data)
+        latent_filter_maps, _, _ = self.cae_network.encoder(audio_data)
         latent_vector = latent_filter_maps.view(-1, latent_filter_maps.size()[1:].numel())
-        return latent_vector
+        return latent_vector.detach()
+
+    def predict(self, model, data):
+        pass
+
+    def after_every_epoch(self):
+        pass
+
+    def loss_function(self, y_pred, w, v):
+        # term1 = 0.5 * torch.sum(w ** 2)
+        # term2 = 0.5 * torch.sum(v ** 2)
+        # term3 = 1 / self.nu * torch.mean(torch.max(0, self.r - y_pred))
+        # term4 = -1 * self.r
+
+        term3 = self.r ** 2 + torch.sum(torch.max(tensor(0.0), (y_pred - self.c) ** 2 - self.r ** 2), axis=1)
+        term3 = 1 / self.nu * torch.mean(term3)
+        return term3
+
+    def calc_scores(self, outputs):
+        scores = torch.sum((outputs - self.c) ** 2, axis=1)
+        return scores
+
+    def update_r_and_c(self, outputs):
+        centroids = torch.mean(outputs, axis=0)
+
+        centroids[(abs(centroids) < self.eps) & (centroids < 0)] = -self.eps
+        centroids[(abs(centroids) < self.eps) & (centroids > 0)] = self.eps
+
+        scores = torch.sum((outputs - centroids) ** 2, axis=1)
+        sorted_scores, _ = torch.sort(scores)
+        self.r = np.percentile(sorted_scores, self.nu * 100)  # Updating the value of self.r
+        self.c = centroids
+
+    def initalize_c_and_r(self, train_x):
+        predictions_list = []
+        for batch in train_x:
+            batch = tensor(batch)
+            latent_vec = self.get_latent_vector(batch)
+            preds, _, _ = self.network(latent_vec)
+            predictions_list.extend(preds.detach().numpy())
+        self.update_r_and_c(tensor(predictions_list))
 
     def train(self):
 
@@ -219,20 +238,27 @@ class OCNNRunner:
                                                   shuffle=False, train=False)
 
         total_step = len(train_data)
+
+        # Initialize c and r which is declared in init, on entire train data
+        self.initalize_c_and_r(train_data)
+
         for epoch in range(1, self.epochs):
-            self.batch_loss, self.batch_accuracy, self.batch_uar, audio_for_tensorboard_train = [], [], [], None
+            self.batch_loss, self.batch_accuracy, self.batch_uar, self.total_predictions, audio_for_tensorboard_train = [], [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
                 self.optimiser.zero_grad()
                 label = tensor(label).float()
-                if i == 0:
-                    self.writer.add_graph(self.network, tensor(audio_data))
+                audio_data = tensor(audio_data)
                 latent_vector = self.get_latent_vector(audio_data)
-                predictions, w, v = self.network(latent_vector).squeeze(1)
+                # if i == 0 and epoch == 1:
+                #     self.writer.add_graph(self.network, tensor(sample_data))
+                predictions, w, v = self.network(latent_vector)
                 loss = self.loss_function(predictions, w, v)
-
                 loss.backward()
                 self.optimiser.step()
-                accuracy, uar = accuracy_fn_ocnn(predictions, label, self.threshold, self.r)
+
+                self.total_predictions.extend(predictions.detach().numpy())
+                scores = self.calc_scores(predictions)
+                accuracy, uar = accuracy_fn_ocnn(scores, label)
                 self.batch_loss.append(loss.detach().numpy())
                 self.batch_accuracy.append(accuracy)
                 self.batch_uar.append(uar)
@@ -243,6 +269,9 @@ class OCNNRunner:
                     print(
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}",
                             file=self.log_file)
+
+            self.update_r_and_c(tensor(self.total_predictions))  # Update value of r and c after every epoch
+
             # Decay learning rate
             self.scheduler.step(epoch=epoch)
             log_summary_ocnn(self.writer, epoch, accuracy=np.mean(self.batch_accuracy),
