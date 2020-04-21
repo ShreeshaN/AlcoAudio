@@ -26,11 +26,19 @@ def accuracy_fn(preds, labels, threshold):
     return accuracy, uar
 
 
-def accuracy_fn_ocnn(preds, labels):
-    preds = torch.where(preds >= tensor(0), tensor(0), tensor(1))
-    accuracy = torch.sum(preds == labels) / float(len(labels))
-    uar = recall_score(labels, preds.numpy(), average='macro')
+def accuracy_fn_ocnn(scores, labels):
+    scores = torch.where(scores >= tensor(0), tensor(0), tensor(1))
+    accuracy = torch.sum(scores == labels) / float(len(labels))
+    uar = recall_score(labels, scores.numpy(), average='macro')
     return accuracy, uar
+
+
+def calc_average_class_score(scores, labels):
+    ones_idx = [i for i, x in enumerate(labels) if x == 1]
+    zeros_idx = [i for i, x in enumerate(labels) if x == 0]
+    pos_score = torch.mean(scores[ones_idx])
+    neg_score = torch.mean(scores[zeros_idx])
+    return pos_score, neg_score
 
 
 def log_summary(writer, global_step, rloss, lr, type):
@@ -39,11 +47,15 @@ def log_summary(writer, global_step, rloss, lr, type):
     writer.flush()
 
 
-def log_summary_ocnn(writer, global_step, accuracy, loss, uar, lr, type):
+def log_summary_ocnn(writer, global_step, accuracy, loss, uar, lr, r, positive_class_score, negative_class_score,
+                     type):
     writer.add_scalar(f'{type}/Loss', loss, global_step)
     writer.add_scalar(f'{type}/Accuracy', accuracy, global_step)
     writer.add_scalar(f'{type}/UAR', uar, global_step)
     writer.add_scalar(f'{type}/LR', lr, global_step)
+    writer.add_scalar(f'{type}/R parameter', r, global_step)
+    writer.add_scalar(f'{type}/Pos class score', positive_class_score, global_step)
+    writer.add_scalar(f'{type}/Neg class score', negative_class_score, global_step)
     writer.flush()
 
 

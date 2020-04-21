@@ -27,7 +27,8 @@ import random
 from alcoaudio.networks.oneclass_net import OneClassNN, ConvAutoEncoder
 from alcoaudio.utils import file_utils
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
-from alcoaudio.utils.network_utils import accuracy_fn_ocnn, log_summary_ocnn, normalize_image, custom_confusion_matrix, \
+from alcoaudio.utils.network_utils import accuracy_fn_ocnn, calc_average_class_score, log_summary_ocnn, normalize_image, \
+    custom_confusion_matrix, \
     log_conf_matrix, write_to_npy
 from alcoaudio.utils.data_utils import read_h5py, read_npy
 from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask, time_warp
@@ -117,7 +118,7 @@ class OCNNRunner:
 
             # nu declared in init, initialized here based on the number of anomalies.
             # Here intoxicated samples are considered anomalies
-            self.nu = 0.5  # ones_len / zeros_len
+            self.nu = ones_len / zeros_len
 
             for x in input_data:
                 self._min = min(np.min(x), self._min)
@@ -151,7 +152,7 @@ class OCNNRunner:
             return input_data, labels
 
     def run_for_epoch(self, epoch, x, y, type):
-        self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
+        self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_scores_list, audio_for_tensorboard_test = [], [], [], [], None
         with torch.no_grad():
             for i, (audio_data, label) in enumerate(zip(x, y)):
                 label = tensor(label).float()
@@ -161,6 +162,7 @@ class OCNNRunner:
                 test_loss = self.loss_function(test_predictions, w, v)
                 test_scores = self.calc_scores(test_predictions)
                 test_accuracy, test_uar = accuracy_fn_ocnn(test_scores, label)
+                self.test_scores_list.extend(test_scores)
                 self.test_batch_loss.append(test_loss.numpy())
                 self.test_batch_accuracy.append(test_accuracy.numpy())
                 self.test_batch_uar.append(test_uar)
@@ -172,22 +174,18 @@ class OCNNRunner:
         print(
                 f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}",
                 file=self.log_file)
-
+        y = [item for sublist in y for item in sublist]
+        pos_score, neg_score = calc_average_class_score(tensor(self.test_scores_list), y)
         log_summary_ocnn(self.writer, epoch, accuracy=np.mean(self.test_batch_accuracy),
                          loss=np.mean(self.test_batch_loss),
                          uar=np.mean(self.test_batch_uar), lr=self.optimiser.state_dict()['param_groups'][0]['lr'],
+                         r=self.r, positive_class_score=pos_score, negative_class_score=neg_score,
                          type=type)
 
     def get_latent_vector(self, audio_data):
         latent_filter_maps, _, _ = self.cae_network.encoder(audio_data)
         latent_vector = latent_filter_maps.view(-1, latent_filter_maps.size()[1:].numel())
         return latent_vector.detach()
-
-    def predict(self, model, data):
-        pass
-
-    def after_every_epoch(self):
-        pass
 
     def loss_function(self, y_pred, w, v):
         # term1 = 0.5 * torch.sum(w ** 2)
@@ -238,12 +236,13 @@ class OCNNRunner:
                                                   shuffle=False, train=False)
 
         total_step = len(train_data)
+        train_labels_flattened = [item for sublist in train_labels for item in sublist]
 
         # Initialize c and r which is declared in init, on entire train data
         self.initalize_c_and_r(train_data)
 
         for epoch in range(1, self.epochs):
-            self.batch_loss, self.batch_accuracy, self.batch_uar, self.total_predictions, audio_for_tensorboard_train = [], [], [], [], None
+            self.batch_loss, self.batch_accuracy, self.batch_uar, self.total_predictions, self.total_scores, audio_for_tensorboard_train = [], [], [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
                 self.optimiser.zero_grad()
                 label = tensor(label).float()
@@ -257,7 +256,9 @@ class OCNNRunner:
                 self.optimiser.step()
 
                 self.total_predictions.extend(predictions.detach().numpy())
+
                 scores = self.calc_scores(predictions)
+                self.total_scores.extend(scores)
                 accuracy, uar = accuracy_fn_ocnn(scores, label)
                 self.batch_loss.append(loss.detach().numpy())
                 self.batch_accuracy.append(accuracy)
@@ -270,6 +271,8 @@ class OCNNRunner:
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}",
                             file=self.log_file)
 
+            pos_class_score, neg_class_score = calc_average_class_score(tensor(self.total_scores),
+                                                                        train_labels_flattened)
             self.update_r_and_c(tensor(self.total_predictions))  # Update value of r and c after every epoch
 
             # Decay learning rate
@@ -277,6 +280,7 @@ class OCNNRunner:
             log_summary_ocnn(self.writer, epoch, accuracy=np.mean(self.batch_accuracy),
                              loss=np.mean(self.batch_loss),
                              uar=np.mean(self.batch_uar), lr=self.optimiser.state_dict()['param_groups'][0]['lr'],
+                             r=self.r, positive_class_score=pos_class_score, negative_class_score=neg_class_score,
                              type='Train')
             print('***** Overall Train Metrics ***** ')
             print('***** Overall Train Metrics ***** ', file=self.log_file)
