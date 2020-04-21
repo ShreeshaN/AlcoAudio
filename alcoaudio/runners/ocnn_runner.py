@@ -188,14 +188,14 @@ class OCNNRunner:
         return latent_vector.detach()
 
     def loss_function(self, y_pred, w, v):
-        # term1 = 0.5 * torch.sum(w ** 2)
-        # term2 = 0.5 * torch.sum(v ** 2)
-        # term3 = 1 / self.nu * torch.mean(torch.max(0, self.r - y_pred))
-        # term4 = -1 * self.r
+        term1 = 0.5 * torch.sum(w ** 2)
+        term2 = 0.5 * torch.sum(v ** 2)
+        term3 = 1 / self.nu * torch.mean(torch.max(0, self.r - y_pred))
+        term4 = -1 * self.r
 
-        term3 = self.r ** 2 + torch.sum(torch.max(tensor(0.0), (y_pred - self.c) ** 2 - self.r ** 2), axis=1)
-        term3 = 1 / self.nu * torch.mean(term3)
-        return term3
+        # term3 = self.r ** 2 + torch.sum(torch.max(tensor(0.0), (y_pred - self.c) ** 2 - self.r ** 2), axis=1)
+        # term3 = 1 / self.nu * torch.mean(term3)
+        return term1 + term2 + term3 + term4
 
     def calc_scores(self, outputs):
         scores = torch.sum((outputs - self.c) ** 2, axis=1)
@@ -237,6 +237,7 @@ class OCNNRunner:
 
         total_step = len(train_data)
         train_labels_flattened = [item for sublist in train_labels for item in sublist]
+        self.w, self.v = None, None
 
         # Initialize c and r which is declared in init, on entire train data
         self.initalize_c_and_r(train_data)
