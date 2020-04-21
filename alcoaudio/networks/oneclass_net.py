@@ -120,12 +120,12 @@ class OneClassNN(nn.Module):
         super(OneClassNN, self).__init__()
 
         self.w = nn.Linear(5184, 2048)
-        self.dropout1 = nn.Dropout(p=0.3)
+        # self.dropout1 = nn.Dropout(p=0.3)
         self.v = nn.Linear(2048, 100)
 
     def forward(self, x):
-        x = F.relu(self.w(x))
-        x = self.dropout1(x)
+        x = F.sigmoid(self.w(x))
+        # x = self.dropout1(x)
         return self.v(x).squeeze(1), self.w, self.v
 
 
