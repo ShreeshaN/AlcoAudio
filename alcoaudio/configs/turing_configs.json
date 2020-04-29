@@ -4,7 +4,7 @@
   "batch_size": 32,
   "learning_rate": 0.001,
   "transfer_learning_rate": 0.00005,
-  "learning_rate_decay": 1,
+  "learning_rate_decay": 0.95,
   "threshold": 0.5,
   "alpha": 2,
   "beta": 0.5,
