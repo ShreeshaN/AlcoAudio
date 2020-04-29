@@ -266,7 +266,6 @@ class ConvNetRunner:
                 predictions = self.network(audio_data).squeeze(1)
                 loss = self.loss_function(predictions, label)
                 loss.backward()
-
                 self.optimiser.step()
                 predictions = nn.Sigmoid()(predictions)
                 accuracy, uar = accuracy_fn(predictions, label, self.threshold)
