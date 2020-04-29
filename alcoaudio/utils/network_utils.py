@@ -41,9 +41,11 @@ def calc_average_class_score(scores, labels):
     return pos_score, neg_score
 
 
-def log_summary(writer, global_step, rloss, lr, type):
-    writer.add_scalar(f'{type}/RLoss', rloss, global_step)
+def log_summary(writer, global_step, loss, accuracy, uar, lr, type):
+    writer.add_scalar(f'{type}/RLoss', loss, global_step)
     writer.add_scalar(f'{type}/LR', lr, global_step)
+    writer.add_scalar(f'{type}/Accuracy', accuracy, global_step)
+    writer.add_scalar(f'{type}/UAR', uar, global_step)
     writer.flush()
 
 

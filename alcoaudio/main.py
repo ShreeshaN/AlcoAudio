@@ -10,7 +10,7 @@ Description:
 
 """
 
-from alcoaudio.runners.ocnn_runner import OCNNRunner
+from alcoaudio.runners.convnet_runner import ConvNetRunner
 from alcoaudio.utils.class_utils import AttributeDict
 import json
 import argparse
@@ -26,7 +26,7 @@ def parse():
 
 
 def run(args):
-    network = OCNNRunner(args=args)
+    network = ConvNetRunner(args=args)
     if args.train_net:
         network.train()
 

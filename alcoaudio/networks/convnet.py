@@ -36,7 +36,7 @@ class ConvNet(nn.Module):
         self.conv2 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1)
         self.conv2_bn = nn.BatchNorm2d(64)
         self.pool1 = nn.MaxPool2d(kernel_size=4, stride=2)
-        self.dropout0 = nn.Dropout(p=0.4)
+        self.dropout0 = nn.Dropout(p=0.3)
 
         # self.conv3 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=1)
         # self.conv3_bn = nn.BatchNorm2d(256)

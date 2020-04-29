@@ -249,8 +249,8 @@ class ConvNetRunner:
                                                   shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
-        # self.loss_function = nn.BCEWithLogitsLoss(pos_weight=tensor(self.pos_weight))
-        self.loss_function = nn.MSELoss()
+        self.loss_function = nn.BCEWithLogitsLoss(pos_weight=tensor(self.pos_weight))
+        # self.loss_function = nn.MSELoss()
 
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
@@ -310,6 +310,7 @@ class ConvNetRunner:
 
     def test(self):
         test_data, test_labels = self.data_reader(self.data_read_path + 'test_data.npy',
+
                                                   shuffle=False,
                                                   should_batch=False)
         test_data, test_labels = test_data, test_labels
@@ -321,3 +322,51 @@ class ConvNetRunner:
         test_accuracy = accuracy_fn(test_predictions, test_labels, self.threshold)
         print(f"Accuracy: {test_accuracy}")
         print(f"Accuracy: {test_accuracy}", file=self.log_file)
+
+# def test():
+#     def read_data():
+#         batch_size = 32
+#         test_data, test_labels = \
+#             np.load('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_data.npy'), \
+#             np.load('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_labels.npy')
+#         # for i, x in enumerate(test_data):
+#         #     min_, max_ = np.min(x), np.max(x)
+#         #     test_data[i] = (x - min_) / (max_ - min_)
+#         batched_input = [test_data[pos:pos + batch_size] for pos in
+#                          range(0, len(test_data), batch_size)]
+#         batched_labels = [test_labels[pos:pos + batch_size] for pos in range(0, len(test_labels), batch_size)]
+#         return batched_input, batched_labels
+#
+#     def read_model():
+#         network_restore_path = '/Users/badgod/badgod_documents/Alco_audio/server_data/2d/emotion_alco_audio_challenge_data_posweight_augmented_with_d1_cnn_full_augmentation_lr_decay_reduced_paramters_debug_loss_1586805617/alco_trained_models/emotion_alco_audio_challenge_data_posweight_augmented_with_d1_cnn_full_augmentation_lr_decay_reduced_paramters_debug_loss_1586805617_9.pt'
+#         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#         from alcoaudio.networks.convnet import ConvNet
+#         network = ConvNet().to(device)
+#         network.load_state_dict(torch.load(network_restore_path, map_location=device))
+#         network.eval()
+#         return network
+#
+#     batched_input, batched_labels = read_data()
+#     print('Data read done')
+#     network = read_model()
+#
+#     flattened_preds, flattened_labels = [], []
+#
+#     print('starting prediction')
+#     for i, (x, y) in enumerate(zip(batched_input, batched_labels)):
+#         print(f'Running on {i}/{len(batched_labels)}')
+#         test_predictions = network(x).detach()
+#         test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
+#         # print(test_predictions)
+#         # exit()
+#         flattened_preds.extend(test_predictions)
+#         flattened_labels.extend(y)
+#
+#     print('saving file')
+#     np.save('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_data_preds.npy', flattened_preds)
+#     for threshold in range(1, 10):
+#         test_accuracy, test_uar = accuracy_fn(tensor(flattened_preds), tensor(flattened_labels), threshold / 10)
+#         print(f"Threshold: {threshold / 10} || Accuracy: {test_accuracy} | UAR: {test_uar}")
+
+
+# test()
