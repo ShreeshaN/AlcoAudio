@@ -199,9 +199,8 @@ class ConvNetRunner:
             for i, (audio_data, label) in enumerate(zip(x, y)):
                 label = tensor(label).float()
                 test_predictions = self.network(audio_data).squeeze(1)
-                test_predictions = nn.Sigmoid()(test_predictions)
                 test_loss = self.loss_function(test_predictions, label)
-
+                test_predictions = nn.Sigmoid()(test_predictions)
                 predictions.append(test_predictions.numpy())
                 test_accuracy, test_uar = accuracy_fn(test_predictions, label, self.threshold)
                 self.test_batch_loss.append(test_loss.numpy())
@@ -265,11 +264,11 @@ class ConvNetRunner:
                 if i == 0:
                     self.writer.add_graph(self.network, tensor(audio_data))
                 predictions = self.network(audio_data).squeeze(1)
-                predictions = nn.Sigmoid()(predictions)
                 loss = self.loss_function(predictions, label)
-
                 loss.backward()
+
                 self.optimiser.step()
+                predictions = nn.Sigmoid()(predictions)
                 accuracy, uar = accuracy_fn(predictions, label, self.threshold)
                 self.batch_loss.append(loss.detach().numpy())
                 self.batch_accuracy.append(accuracy)
