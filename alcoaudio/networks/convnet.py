@@ -51,7 +51,7 @@ class ConvNet(nn.Module):
         self.fc1 = nn.Linear(40 * 64, 256)
         self.dropout1 = nn.Dropout(p=0.3)
         self.fc2 = nn.Linear(256, 32)
-        self.fc3 = nn.Linear(32, 1)
+        self.fc3 = nn.Linear(32, 2)
 
     def forward(self, x):
         """
@@ -81,5 +81,5 @@ class ConvNet(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.dropout1(x)
         x = F.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = F.log_softmax(self.fc3(x))
         return x

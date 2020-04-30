@@ -1,5 +1,5 @@
 {
-  "run_name": "emotion_alco_audio_challenge_data_cnn_reproducing_results",
+  "run_name": "emotion_alco_audio_challenge_data_cnn_2class_nn",
   "epochs": 1000,
   "batch_size": 32,
   "learning_rate": 0.001,
@@ -18,7 +18,7 @@
   "network_restore_path": "",
   "normalise_while_creating": false,
   "normalise_while_training": true,
-  "num_classes": 1,
+  "num_classes": 2,
   "data_augment": true,
   "network_save_interval": 3,
   "display_interval": 50,
