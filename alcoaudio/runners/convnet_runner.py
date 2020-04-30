@@ -323,51 +323,51 @@ class ConvNetRunner:
         print(f"Accuracy: {test_accuracy}")
         print(f"Accuracy: {test_accuracy}", file=self.log_file)
 
-# def test():
-#     def read_data():
-#         batch_size = 32
-#         test_data, test_labels = \
-#             np.load('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_data.npy'), \
-#             np.load('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_labels.npy')
-#         min_, max_ = -80, 9.536743e-07
-#         # for i, x in enumerate(test_data):
-#         # min_, max_ = np.min(x), np.max(x)
-#         test_data = (test_data - min_) / (max_ - min_)
-#         bi = [test_data[pos:pos + batch_size] for pos in
-#               range(0, len(test_data), batch_size)]
-#         bl = [test_labels[pos:pos + batch_size] for pos in range(0, len(test_labels), batch_size)]
-#         return bi, bl
-#
-#     def read_model():
-#         network_restore_path = '/Users/badgod/badgod_documents/Alco_audio/server_data/2d/emotion_alco_audio_challenge_data_cnn_reproducing_results_1588245582/alco_trained_models/emotion_alco_audio_challenge_data_cnn_reproducing_results_1588245582_3.pt'
-#         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#         from alcoaudio.networks.convnet import ConvNet
-#         network = ConvNet().to(device)
-#         network.load_state_dict(torch.load(network_restore_path, map_location=device))
-#         network.eval()
-#         return network
-#
-#     bi, bl = read_data()
-#     print('Data read done')
-#     network = read_model()
-#
-#     flattened_preds, flattened_labels = [], []
-#
-#     print('starting prediction')
-#     with torch.no_grad():
-#         for i, (x, y) in enumerate(zip(bi, bl)):
-#             test_predictions = network(x).detach()
-#             test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
-#             flattened_preds.extend(test_predictions)
-#             flattened_labels.extend(y)
-#             print(f'Running on {i}/{len(bl)} | Mean pred: {np.mean(test_predictions.numpy())}')
-#
-#     print(np.array(flattened_preds).mean())
-#     print('saving file')
-#     np.save('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_data_preds.npy', flattened_preds)
-#
-#     for threshold in range(1, 10):
-#         test_accuracy, test_uar = accuracy_fn(tensor(flattened_preds), tensor(flattened_labels), threshold / 10)
-#         print(f"Threshold: {threshold / 10} || Accuracy: {test_accuracy} | UAR: {test_uar}")
+def test():
+    def read_data():
+        batch_size = 32
+        test_data, test_labels = \
+            np.load('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_data.npy'), \
+            np.load('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_labels.npy')
+        min_, max_ = -80, 9.536743e-07
+        # for i, x in enumerate(test_data):
+        # min_, max_ = np.min(x), np.max(x)
+        test_data = (test_data - min_) / (max_ - min_)
+        bi = [test_data[pos:pos + batch_size] for pos in
+              range(0, len(test_data), batch_size)]
+        bl = [test_labels[pos:pos + batch_size] for pos in range(0, len(test_labels), batch_size)]
+        return bi, bl
 
-# test()
+    def read_model():
+        network_restore_path = '/Users/badgod/badgod_documents/Alco_audio/server_data/2d/emotion_alco_audio_challenge_data_cnn_reproducing_results_1588245582/alco_trained_models/emotion_alco_audio_challenge_data_cnn_reproducing_results_1588245582_6.pt'
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        from alcoaudio.networks.convnet import ConvNet
+        network = ConvNet().to(device)
+        network.load_state_dict(torch.load(network_restore_path, map_location=device))
+        network.eval()
+        return network
+
+    bi, bl = read_data()
+    print('Data read done')
+    network = read_model()
+
+    flattened_preds, flattened_labels = [], []
+
+    print('starting prediction')
+    with torch.no_grad():
+        for i, (x, y) in enumerate(zip(bi, bl)):
+            test_predictions = network(x).detach()
+            test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
+            flattened_preds.extend(test_predictions)
+            flattened_labels.extend(y)
+            print(f'Running on {i}/{len(bl)} | Mean pred: {np.mean(test_predictions.numpy())}')
+
+    print(np.array(flattened_preds).mean())
+    print('saving file')
+    np.save('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_data_preds.npy', flattened_preds)
+
+    for threshold in range(1, 10):
+        test_accuracy, test_uar = accuracy_fn(tensor(flattened_preds), tensor(flattened_labels), threshold / 10)
+        print(f"Threshold: {threshold / 10} || Accuracy: {test_accuracy} | UAR: {test_uar}")
+
+test()

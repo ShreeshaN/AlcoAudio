@@ -41,6 +41,12 @@ def calc_average_class_score(scores, labels):
     return pos_score, neg_score
 
 
+def log_summary_autoencoder_only(writer, global_step, rloss, lr, type):
+    writer.add_scalar(f'{type}/RLoss', rloss, global_step)
+    writer.add_scalar(f'{type}/LR', lr, global_step)
+    writer.flush()
+
+
 def log_summary(writer, global_step, loss, accuracy, uar, lr, type):
     writer.add_scalar(f'{type}/RLoss', loss, global_step)
     writer.add_scalar(f'{type}/LR', lr, global_step)

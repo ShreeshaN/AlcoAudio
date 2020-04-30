@@ -24,7 +24,7 @@ import random
 from alcoaudio.networks.oneclass_net import ConvAutoEncoder
 from alcoaudio.utils import file_utils
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data
-from alcoaudio.utils.network_utils import accuracy_fn, log_summary, normalize_image
+from alcoaudio.utils.network_utils import accuracy_fn, log_summary_autoencoder_only, normalize_image
 from alcoaudio.utils.data_utils import read_h5py, read_npy
 from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask, time_warp
 
@@ -98,9 +98,9 @@ class ConvAutoEncoderRunner:
     def data_reader(self, data_filepath, label_filepath, train, should_batch=True, shuffle=True):
         input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
 
-        # label_to_use = 1  # Sober samples
-        # ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_use]
-        # input_data = input_data[ones_ids]
+        label_to_use = 0  # Sober samples
+        zeros_ids = [idx for idx, x in enumerate(labels) if x == label_to_use]
+        input_data = input_data[zeros_ids]
 
         if train:
             for x in input_data:
@@ -116,6 +116,9 @@ class ConvAutoEncoderRunner:
         if self.normalise:
             input_data = (input_data - self._min) / (self._max - self._min)
 
+        print('Min max values used for normalisation ', self._min, self._max)
+        print('Min max values used for normalisation ', self._min, self._max, file=self.log_file)
+
         if should_batch:
             batched_input = [input_data[pos:pos + self.batch_size] for pos in
                              range(0, len(input_data), self.batch_size)]
@@ -124,6 +127,7 @@ class ConvAutoEncoderRunner:
             return input_data
 
     def run_for_epoch(self, epoch, x, type):
+        self.network.eval()
         self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, self.test_batch_reconstruction_loss, self.test_total_loss, audio_for_tensorboard_test = [], [], [], [], [], None
         with torch.no_grad():
             for i, audio_data in enumerate(x):
@@ -137,9 +141,9 @@ class ConvAutoEncoderRunner:
         print(f"RLoss: {np.mean(self.test_batch_reconstruction_loss)}")
         print(f"RLoss: {np.mean(self.test_batch_reconstruction_loss)}", file=self.log_file)
 
-        log_summary(self.writer, epoch,
-                    rloss=np.mean(self.test_batch_reconstruction_loss),
-                    lr=self.learning_rate, type=type)
+        log_summary_autoencoder_only(self.writer, epoch,
+                                     rloss=np.mean(self.test_batch_reconstruction_loss),
+                                     lr=self.learning_rate, type=type)
 
     def train(self):
 
@@ -157,8 +161,10 @@ class ConvAutoEncoderRunner:
 
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
+            self.network.train()
             self.batch_accuracy, self.batch_uar, self.batch_reconstruction_loss, self.batch_total_loss, audio_for_tensorboard_train = [], [], [], [], None
             for i, audio_data in enumerate(train_data):
+
                 self.optimiser.zero_grad()
                 audio_data = tensor(audio_data)
                 if i == 0:
@@ -176,8 +182,9 @@ class ConvAutoEncoderRunner:
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | RLoss: {reconstruction_loss} ",
                             file=self.log_file)
 
-            log_summary(self.writer, epoch,
-                        rloss=np.mean(self.batch_reconstruction_loss), lr=self.learning_rate, type='Train')
+            log_summary_autoencoder_only(self.writer, epoch,
+                                         rloss=np.mean(self.batch_reconstruction_loss), lr=self.learning_rate,
+                                         type='Train')
             print('***** Overall Train Metrics ***** ')
             print('***** Overall Train Metrics ***** ', file=self.log_file)
             print(f"CLoss: RLoss: {np.mean(self.batch_reconstruction_loss)}")
