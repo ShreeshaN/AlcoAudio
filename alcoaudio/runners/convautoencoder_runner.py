@@ -167,8 +167,8 @@ class ConvAutoEncoderRunner:
 
                 self.optimiser.zero_grad()
                 audio_data = tensor(audio_data)
-                if i == 0:
-                    self.writer.add_graph(self.network, audio_data)
+                # if i == 0:
+                #     self.writer.add_graph(self.network, audio_data)
                 train_reconstructions = self.network(audio_data)
                 train_reconstructions = train_reconstructions.squeeze(1)
                 reconstruction_loss = self.reconstruction_loss(train_reconstructions, audio_data)
