@@ -38,7 +38,6 @@ class Encoder(nn.Module):
         self.conv5_bn = nn.BatchNorm2d(32)
 
     def forward(self, x):
-        x = x.unsqueeze(1)
         # print('x.size() ', x.size())
         encoder_op1 = F.relu(self.conv1(x))
         # print('conv 1', encoder_op1.size())
@@ -105,10 +104,12 @@ class ConvAutoEncoder(nn.Module):
 
     def __init__(self):
         super(ConvAutoEncoder, self).__init__()
+
         self.encoder = Encoder()
         self.decoder = Decoder()
 
     def forward(self, x):
+        x = x.unsqueeze(1)
         latent_filter_maps, pool1_indices, pool2_indices = self.encoder(x)
         reconstructed_x = self.decoder(latent_filter_maps, pool1_indices=pool1_indices, pool2_indices=pool2_indices,
                                        final_op_shape=x.size())
