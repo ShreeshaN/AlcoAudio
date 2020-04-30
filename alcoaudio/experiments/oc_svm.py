@@ -23,7 +23,7 @@ def norm(data):
     min_val = data.min()
     max_val = data.max()
     data = (data - min_val) / (max_val - min_val)
-    return data
+    return np.mean(data, axis=2)
 
 
 def uar(y, yhat):
@@ -170,11 +170,11 @@ def uar(y, yhat):
 # print('Running CAE on test')
 # test_data = get_predcitions(tensor(test_data))
 
-train_data = np.load("/Users/badgod/badgod_documents/Alco_audio/server_data/2d/train_challenge_with_d1_cae_data.npy")
+train_data = norm(np.load("/Users/badgod/badgod_documents/Alco_audio/server_data/2d/train_challenge_with_d1_data.npy"))
 train_labels = np.load("/Users/badgod/badgod_documents/Alco_audio/server_data/2d/train_challenge_with_d1_labels.npy")
-dev_data = np.load("/Users/badgod/badgod_documents/Alco_audio/server_data/2d/dev_challenge_with_d1_cae_data.npy")
+dev_data = norm(np.load("/Users/badgod/badgod_documents/Alco_audio/server_data/2d/dev_challenge_with_d1_data.npy"))
 dev_labels = np.load("/Users/badgod/badgod_documents/Alco_audio/server_data/2d/dev_challenge_with_d1_labels.npy")
-test_data = np.load("/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_cae_data.npy")
+test_data = norm(np.load("/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_data.npy"))
 test_labels = np.load("/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_labels.npy")
 
 inliers_ids, outliers_ids = [i for i, x in enumerate(train_labels) if x == 0], [i for i, x in enumerate(train_labels) if

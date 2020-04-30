@@ -323,7 +323,6 @@ class ConvNetRunner:
         print(f"Accuracy: {test_accuracy}")
         print(f"Accuracy: {test_accuracy}", file=self.log_file)
 
-
 # def test():
 #     def read_data():
 #         batch_size = 32
@@ -331,21 +330,21 @@ class ConvNetRunner:
 #             np.load('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_data.npy'), \
 #             np.load('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_labels.npy')
 #         min_, max_ = -80, 9.536743e-07
-#         for i, x in enumerate(test_data):
-#             # min_, max_ = np.min(x), np.max(x)
-#             test_data[i] = (x - min_) / (max_ - min_)
+#         # for i, x in enumerate(test_data):
+#         # min_, max_ = np.min(x), np.max(x)
+#         test_data = (test_data - min_) / (max_ - min_)
 #         bi = [test_data[pos:pos + batch_size] for pos in
 #               range(0, len(test_data), batch_size)]
 #         bl = [test_labels[pos:pos + batch_size] for pos in range(0, len(test_labels), batch_size)]
 #         return bi, bl
 #
 #     def read_model():
-#         network_restore_path = '/Users/badgod/badgod_documents/Alco_audio/server_data/2d/emotion_alco_audio_challenge_data_cnn_reproducing_results_1588198928/alco_trained_models/emotion_alco_audio_challenge_data_cnn_reproducing_results_1588198928_9.pt'
+#         network_restore_path = '/Users/badgod/badgod_documents/Alco_audio/server_data/2d/emotion_alco_audio_challenge_data_cnn_reproducing_results_1588245582/alco_trained_models/emotion_alco_audio_challenge_data_cnn_reproducing_results_1588245582_3.pt'
 #         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #         from alcoaudio.networks.convnet import ConvNet
 #         network = ConvNet().to(device)
 #         network.load_state_dict(torch.load(network_restore_path, map_location=device))
-#         # network.eval()
+#         network.eval()
 #         return network
 #
 #     bi, bl = read_data()
