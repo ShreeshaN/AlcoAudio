@@ -216,3 +216,63 @@ class ConvAutoEncoderRunner:
         test_accuracy = accuracy_fn(test_predictions, test_labels, self.threshold)
         print(f"Accuracy: {test_accuracy}")
         print(f"Accuracy: {test_accuracy}", file=self.log_file)
+
+
+reconstruction_loss = nn.BCEWithLogitsLoss()
+ones_loss, zeros_loss = [], []
+
+
+def test():
+    def read_data():
+        batch_size = 32
+        test_data, test_labels = \
+            np.load('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_data.npy'), \
+            np.load('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_labels.npy')
+        min_, max_ = -80, 9.536743e-07
+        # for i, x in enumerate(test_data):
+        # min_, max_ = np.min(x), np.max(x)
+        test_data = (test_data - min_) / (max_ - min_)
+        bi = [test_data[pos:pos + batch_size] for pos in
+              range(0, len(test_data), batch_size)]
+        bl = [test_labels[pos:pos + batch_size] for pos in range(0, len(test_labels), batch_size)]
+        return bi, bl
+
+    def read_model():
+        network_restore_path = '/Users/badgod/badgod_documents/Alco_audio/server_data/2d/emotion_alco_audio_challenge_data_autoencoder_just_sober_class_1588251865/alco_trained_models/emotion_alco_audio_challenge_data_autoencoder_just_sober_class_1588251865_12.pt'
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        from alcoaudio.networks.oneclass_net import ConvAutoEncoder
+        network = ConvAutoEncoder().to(device)
+        network.load_state_dict(torch.load(network_restore_path, map_location=device))
+        network.eval()
+        return network
+
+    bi, bl = read_data()
+    print('Data read done')
+    network = read_model()
+
+    flattened_preds, flattened_labels, flattened_true_data = [], [], []
+
+    print('starting prediction')
+    with torch.no_grad():
+        for i, (x, y) in enumerate(zip(bi, bl)):
+            test_predictions = network(tensor(x)).detach().squeeze(1)
+            # test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
+            flattened_preds.extend(test_predictions.numpy())
+            flattened_labels.extend(y)
+            flattened_true_data.extend(x)
+
+            ones_idx = [int(label) for label in y if label == 1]
+            zeros_idx = [int(label) for label in y if label == 0]
+            ones_l = reconstruction_loss(test_predictions[ones_idx], tensor(x[ones_idx])).numpy()
+            zeros_l = reconstruction_loss(test_predictions[zeros_idx], tensor(x[zeros_idx])).numpy()
+            ones_loss.append(ones_l)
+            zeros_loss.append(zeros_l)
+            print(f'Running on {i}/{len(bl)} | Ones Loss: {ones_l} | Zeros Loss: {zeros_l}')
+
+    print('saving file')
+    np.save('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_data_preds_cae.npy',
+            flattened_preds)
+    print(f'Overall Ones Loss: {np.mean(ones_loss)} | Zeros Loss: {np.mean(zeros_loss)}')
+
+
+test()
