@@ -1,5 +1,5 @@
 {
-  "run_name": "emotion_alco_audio_challenge_data_cnn_2class_nn",
+  "run_name": "emotion_alco_audio_challenge_data_cnn_2class_nn_undersampled",
   "epochs": 1000,
   "batch_size": 32,
   "learning_rate": 0.001,
