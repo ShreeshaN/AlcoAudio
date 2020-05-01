@@ -243,10 +243,6 @@ class ConvNetRunner:
                                                   self.data_read_path + 'test_challenge_labels.npy',
                                                   shuffle=False, train=False)
 
-        # For the purposes of assigning pos weight on the fly we are initializing the cost function here
-        self.loss_function = nn.BCEWithLogitsLoss(pos_weight=tensor(self.pos_weight))
-        # self.loss_function = nn.MSELoss()
-
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
             self.network.train()
