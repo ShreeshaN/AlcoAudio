@@ -181,7 +181,7 @@ class ConvNetRunner:
         print('Min max values used for normalisation ', self._min, self._max, file=self.log_file)
 
         # Convert binary label into 2 class
-        labels = np.eye(self.num_classes)[np.array(labels).astype(int)]
+        # labels = np.eye(self.num_classes)[np.array(labels).astype(int)]
 
         # Normalizing `input data` on train dataset's min and max values
         if self.normalise:
@@ -201,7 +201,7 @@ class ConvNetRunner:
         self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
         with torch.no_grad():
             for i, (audio_data, label) in enumerate(zip(x, y)):
-                label = tensor(label).float()
+                label = tensor(label).long()
                 test_predictions = self.network(audio_data)
                 test_loss = self.loss_function(test_predictions, label)
                 predictions.append(test_predictions.numpy())
@@ -249,7 +249,7 @@ class ConvNetRunner:
             self.batch_loss, self.batch_accuracy, self.batch_uar, audio_for_tensorboard_train = [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
                 self.optimiser.zero_grad()
-                label = tensor(label).float()
+                label = tensor(label).long()
                 if i == 0:
                     self.writer.add_graph(self.network, tensor(audio_data))
                 predictions = self.network(audio_data)

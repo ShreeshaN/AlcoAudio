@@ -28,7 +28,7 @@ def accuracy_fn(preds, labels, threshold):
 
 def accuracy_fn_two_class_nn(preds, labels):
     preds = torch.argmax(preds, dim=1).type(torch.int)
-    labels = torch.argmax(labels, dim=1).type(torch.int)
+    # labels = torch.argmax(labels, dim=1).type(torch.int)
     accuracy = torch.sum(preds == labels) / float(len(labels))
     uar = recall_score(labels, preds.numpy(), average='macro')
     return accuracy.numpy(), uar
