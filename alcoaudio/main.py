@@ -10,7 +10,6 @@ Description:
 
 """
 
-from alcoaudio.runners.convnet_runner import ConvNetRunner
 from alcoaudio.utils.class_utils import AttributeDict
 import json
 import argparse
@@ -21,12 +20,31 @@ def parse():
     parser.add_argument('--train_net', type=bool)
     parser.add_argument('--test_net', type=bool)
     parser.add_argument('--configs_file', type=str)
+    parser.add_argument('--network', type=str, choices=['convnet', 'lstm', 'crnn', 'ocnn', 'cae'])
     args = parser.parse_args()
     return args
 
 
 def run(args):
-    network = ConvNetRunner(args=args)
+    if network == 'convnet':
+        from alcoaudio.runners.convnet_runner import ConvNetRunner
+        network = ConvNetRunner(args=args)
+    elif network == 'lstm':
+        from alcoaudio.runners.convnet_runner import ConvNetRunner
+        network = ConvNetRunner(args=args)
+    elif network == 'crnn':
+        from alcoaudio.runners.convnet_runner import ConvNetRunner
+        network = ConvNetRunner(args=args)
+    elif network == 'ocnn':
+        from alcoaudio.runners.convnet_runner import ConvNetRunner
+        network = ConvNetRunner(args=args)
+    elif network == 'cae':
+        from alcoaudio.runners.convnet_runner import ConvNetRunner
+        network = ConvNetRunner(args=args)
+    if network is None:
+        from alcoaudio.runners.convnet_runner import ConvNetRunner
+        network = ConvNetRunner(args=args)
+
     if args.train_net:
         network.train()
 
