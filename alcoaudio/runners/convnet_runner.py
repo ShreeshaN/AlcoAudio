@@ -97,13 +97,61 @@ class ConvNetRunner:
         print('Configs used:\n', json.dumps(args, indent=4))
         print('Configs used:\n', json.dumps(args, indent=4), file=self.log_file)
 
-    def data_reader(self, data_filepath, label_filepath, train, should_batch=True, shuffle=True):
-        input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
+    def data_reader(self, data_filepath, label_filepath='', train=False, should_batch=True, shuffle=True, infer=False):
 
-        if train:
+        if infer:
+            input_data = read_npy(data_filepath)
+            if self.normalise:
+                input_data = (input_data - np.min(input_data)) / (np.max(input_data) - np.min(input_data))
+            return input_data
+        else:
+            input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
+            if train:
 
-            print('Original data size - before Augmentation')
-            print('Original data size - before Augmentation', file=self.log_file)
+                print('Original data size - before Augmentation')
+                print('Original data size - before Augmentation', file=self.log_file)
+                print('Total data ', len(input_data))
+                print('Event rate', sum(labels) / len(labels))
+                print(np.array(input_data).shape, np.array(labels).shape)
+
+                print('Total data ', len(input_data), file=self.log_file)
+                print('Event rate', sum(labels) / len(labels), file=self.log_file)
+                print(np.array(input_data).shape, np.array(labels).shape, file=self.log_file)
+
+                for x in input_data:
+                    self._min = min(np.min(x), self._min)
+                    self._max = max(np.max(x), self._max)
+
+                print('Data Augmentation starts . . .')
+                print('Data Augmentation starts . . .', file=self.log_file)
+                label_to_augment = 1
+                amount_to_augment = 1
+                ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_augment]
+                random_idxs = random.choices(ones_ids,
+                                             k=int(len(ones_ids) * amount_to_augment))
+                data_to_augment = input_data[random_idxs]
+                augmented_data = []
+                augmented_labels = []
+                for x in data_to_augment:
+                    x = librosaSpectro_to_torchTensor(x)
+                    x = random.choice([time_mask, freq_mask])(x)[0].numpy()
+                    augmented_data.append(x), augmented_labels.append(label_to_augment)
+
+                input_data = np.concatenate((input_data, augmented_data))
+                labels = np.concatenate((labels, augmented_labels))
+
+                print('Data Augmentation done . . .')
+                print('Data Augmentation done . . .', file=self.log_file)
+
+                data = [(x, y) for x, y in zip(input_data, labels)]
+                random.shuffle(data)
+                input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
+
+                # Initialize pos_weight based on training data
+                self.pos_weight = len([x for x in labels if x == 0]) / len([x for x in labels if x == 1])
+                print('Pos weight for the train data - ', self.pos_weight)
+                print('Pos weight for the train data - ', self.pos_weight, file=self.log_file)
+
             print('Total data ', len(input_data))
             print('Event rate', sum(labels) / len(labels))
             print(np.array(input_data).shape, np.array(labels).shape)
@@ -112,62 +160,20 @@ class ConvNetRunner:
             print('Event rate', sum(labels) / len(labels), file=self.log_file)
             print(np.array(input_data).shape, np.array(labels).shape, file=self.log_file)
 
-            for x in input_data:
-                self._min = min(np.min(x), self._min)
-                self._max = max(np.max(x), self._max)
+            print('Min max values used for normalisation ', self._min, self._max)
+            print('Min max values used for normalisation ', self._min, self._max, file=self.log_file)
 
-            print('Data Augmentation starts . . .')
-            print('Data Augmentation starts . . .', file=self.log_file)
-            label_to_augment = 1
-            amount_to_augment = 1
-            ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_augment]
-            random_idxs = random.choices(ones_ids,
-                                         k=int(len(ones_ids) * amount_to_augment))
-            data_to_augment = input_data[random_idxs]
-            augmented_data = []
-            augmented_labels = []
-            for x in data_to_augment:
-                x = librosaSpectro_to_torchTensor(x)
-                x = random.choice([time_mask, freq_mask])(x)[0].numpy()
-                augmented_data.append(x), augmented_labels.append(label_to_augment)
+            # Normalizing `input data` on train dataset's min and max values
+            if self.normalise:
+                input_data = (input_data - self._min) / (self._max - self._min)
 
-            input_data = np.concatenate((input_data, augmented_data))
-            labels = np.concatenate((labels, augmented_labels))
-
-            print('Data Augmentation done . . .')
-            print('Data Augmentation done . . .', file=self.log_file)
-
-            data = [(x, y) for x, y in zip(input_data, labels)]
-            random.shuffle(data)
-            input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
-
-            # Initialize pos_weight based on training data
-            self.pos_weight = len([x for x in labels if x == 0]) / len([x for x in labels if x == 1])
-            print('Pos weight for the train data - ', self.pos_weight)
-            print('Pos weight for the train data - ', self.pos_weight, file=self.log_file)
-
-        print('Total data ', len(input_data))
-        print('Event rate', sum(labels) / len(labels))
-        print(np.array(input_data).shape, np.array(labels).shape)
-
-        print('Total data ', len(input_data), file=self.log_file)
-        print('Event rate', sum(labels) / len(labels), file=self.log_file)
-        print(np.array(input_data).shape, np.array(labels).shape, file=self.log_file)
-
-        print('Min max values used for normalisation ', self._min, self._max)
-        print('Min max values used for normalisation ', self._min, self._max, file=self.log_file)
-
-        # Normalizing `input data` on train dataset's min and max values
-        if self.normalise:
-            input_data = (input_data - self._min) / (self._max - self._min)
-
-        if should_batch:
-            batched_input = [input_data[pos:pos + self.batch_size] for pos in
-                             range(0, len(input_data), self.batch_size)]
-            batched_labels = [labels[pos:pos + self.batch_size] for pos in range(0, len(labels), self.batch_size)]
-            return batched_input, batched_labels
-        else:
-            return input_data, labels
+            if should_batch:
+                batched_input = [input_data[pos:pos + self.batch_size] for pos in
+                                 range(0, len(input_data), self.batch_size)]
+                batched_labels = [labels[pos:pos + self.batch_size] for pos in range(0, len(labels), self.batch_size)]
+                return batched_input, batched_labels
+            else:
+                return input_data, labels
 
     def run_for_epoch(self, epoch, x, y, type):
         self.network.eval()
@@ -179,7 +185,6 @@ class ConvNetRunner:
                 label = tensor(label).float()
                 test_predictions = self.network(audio_data).squeeze(1)
                 test_loss = self.loss_function(test_predictions, label)
-
                 test_predictions = nn.Sigmoid()(test_predictions)
                 predictions.append(test_predictions.numpy())
                 test_accuracy, test_uar = accuracy_fn(test_predictions, label, self.threshold)
@@ -282,15 +287,18 @@ class ConvNetRunner:
                 print('Network successfully saved: ' + save_path)
 
     def test(self):
-        test_data, test_labels = self.data_reader(self.data_read_path + 'test_data.npy',
-                                                  shuffle=False,
-                                                  should_batch=False)
-        test_data, test_labels = test_data, test_labels
-        test_predictions = self.network(test_data).detach()
-        print(test_predictions)
+        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_data.npy',
+                                                  self.data_read_path + 'test_challenge_labels.npy',
+                                                  shuffle=False, train=False)
+        test_predictions = self.network(test_data).squeeze(1)
+        test_predictions = nn.Sigmoid()(test_predictions)
+        test_accuracy, test_uar = accuracy_fn(test_predictions, test_labels, self.threshold)
+        print(f"Accuracy: {test_accuracy} | UAR: {test_uar}")
+        print(f"Accuracy: {test_accuracy} | UAR: {test_uar}", file=self.log_file)
 
-        test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
-        print(test_predictions)
-        test_accuracy = accuracy_fn(test_predictions, test_labels, self.threshold)
-        print(f"Accuracy: {test_accuracy}")
-        print(f"Accuracy: {test_accuracy}", file=self.log_file)
+    def infer(self, data_file):
+        test_data = self.data_reader(data_file, shuffle=False, train=False, infer=True)
+        test_predictions = self.network(test_data).squeeze(1)
+        test_predictions = nn.Sigmoid()(test_predictions)
+
+        return test_predictions

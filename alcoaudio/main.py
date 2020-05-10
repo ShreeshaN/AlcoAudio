@@ -49,7 +49,7 @@ def run(args):
         network.train()
 
     if args.test_net:
-        network.test()
+        network.infer()
 
 
 if __name__ == '__main__':
