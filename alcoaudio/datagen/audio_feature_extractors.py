@@ -207,8 +207,7 @@ def preprocess_data_images(base_path, image_save_path, files, labels, normalise,
         out_labels.extend(x[1])
     return data, out_labels
 
-
-########## TESTING ###########
+############################## TESTING ##############################
 # file = '/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/132bpm/AM_HiTeeb[A]_132D.wav'
 # note, sr = librosa.load(file)
 # print(note.shape)
@@ -242,52 +241,53 @@ def preprocess_data_images(base_path, image_save_path, files, labels, normalise,
 
 # mfcc()
 
-def mel_filters_x():
-    file_name = '/Users/badgod/badgod_documents/Alco_audio/data/ALC/DATA/audio_2.wav'
-    audio, sample_rate = librosa.load(file_name, res_type='kaiser_fast')
-
-    print("audio, sample_rate", audio.shape, sample_rate)
-    logmel = librosa.feature.melspectrogram(y=audio, sr=sample_rate, n_mels=40)
-    print("melspectrogram ", logmel.shape)
-    exit()
-    print(np.min(logmel), np.max(logmel))
-    S_dB = librosa.power_to_db(logmel, ref=np.max)
-    print(np.min(S_dB), np.max(S_dB))
-    print(S_dB[0].shape)
-    print(S_dB.shape)
-    print(S_dB.mean())
-    # S_dB = S_dB / 255
-    print(S_dB.mean())
-    # exit()
-    # S_dB = np.mean(S_dB.T, axis=0)
-    # print(S_dB.shape)
-
-    plt.figure(figsize=(4, 3))
-    # plt.plot(audio)
-    # plt.plot(mfccsscaled)
-    # librosa.display.specshow(logmel, sr=sample_rate, x_axis='time')
-    librosa.display.specshow(S_dB, sr=sample_rate)
-    plt.xlabel('Time')
-    plt.ylabel('Mels')
-    plt.savefig("test_40mels.jpg")
-
-    # plt.plot(S_dB)
-    plt.show()
-
-    plt.close()
-
-
-# mel_filters_x()
-
-
-import matplotlib.pyplot as plt
-import numpy as np
-
-data = np.load("/Users/badgod/badgod_documents/Alco_audio/small_data/40_mels/train_challenge_data.npy",
-               allow_pickle=True)
-print(data.shape)
-
-data_means = np.array([x.mean() for x in data])
-
-plt.hist(data_means)
-plt.show()
+# def mel_filters_x():
+#     file_name = '/Users/badgod/badgod_documents/Alco_audio/data/ALC/DATA/audio_2.wav'
+#     audio, sample_rate = librosa.load(file_name, res_type='kaiser_fast')
+#
+#     print("audio, sample_rate", audio.shape, sample_rate)
+#     logmel = librosa.feature.melspectrogram(y=audio, sr=sample_rate, n_mels=40)
+#     print("melspectrogram ", logmel.shape)
+#     exit()
+#     print(np.min(logmel), np.max(logmel))
+#     S_dB = librosa.power_to_db(logmel, ref=np.max)
+#     print(np.min(S_dB), np.max(S_dB))
+#     print(S_dB[0].shape)
+#     print(S_dB.shape)
+#     print(S_dB.mean())
+#     # S_dB = S_dB / 255
+#     print(S_dB.mean())
+#     # exit()
+#     # S_dB = np.mean(S_dB.T, axis=0)
+#     # print(S_dB.shape)
+#
+#     plt.figure(figsize=(4, 3))
+#     # plt.plot(audio)
+#     # plt.plot(mfccsscaled)
+#     # librosa.display.specshow(logmel, sr=sample_rate, x_axis='time')
+#     librosa.display.specshow(S_dB, sr=sample_rate)
+#     plt.xlabel('Time')
+#     plt.ylabel('Mels')
+#     plt.savefig("test_40mels.jpg")
+#
+#     # plt.plot(S_dB)
+#     plt.show()
+#
+#     plt.close()
+#
+#
+# # mel_filters_x()
+#
+#
+# import matplotlib.pyplot as plt
+# import numpy as np
+#
+# data = np.load("/Users/badgod/badgod_documents/Alco_audio/small_data/40_mels/train_challenge_data.npy",
+#                allow_pickle=True)
+# print(data.shape)
+#
+# data_means = np.array([x.mean() for x in data])
+#
+# plt.hist(data_means)
+# plt.show()
+############################## TESTING ##############################

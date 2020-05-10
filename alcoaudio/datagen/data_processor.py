@@ -12,7 +12,6 @@ Description:
 import pandas as pd
 import argparse
 import json
-import time
 import numpy as np
 
 from alcoaudio.utils.class_utils import AttributeDict
@@ -98,8 +97,8 @@ class DataProcessor:
         self.process_audio_and_save_npy_challenge(self.train_data_file, filename_to_save='train_challenge_with_d1')
         print('Started processing dev data . . .')
         self.process_audio_and_save_npy_challenge(self.dev_data_file, filename_to_save='dev_challenge_with_d1')
-        # print('Started processing test data . . .')
-        # self.process_audio_and_save_npy_challenge(self.test_data_file, filename_to_save='test_challenge_with_d1')
+        print('Started processing test data . . .')
+        self.process_audio_and_save_npy_challenge(self.test_data_file, filename_to_save='test_challenge_with_d1')
 
 
 if __name__ == '__main__':
