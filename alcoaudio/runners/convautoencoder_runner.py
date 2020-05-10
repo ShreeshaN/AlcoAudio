@@ -222,57 +222,89 @@ reconstruction_loss = nn.BCEWithLogitsLoss()
 ones_loss, zeros_loss = [], []
 
 
-def test():
-    def read_data():
-        batch_size = 32
-        test_data, test_labels = \
-            np.load('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_data.npy'), \
-            np.load('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_labels.npy')
-        min_, max_ = -80, 9.536743e-07
-        # for i, x in enumerate(test_data):
-        # min_, max_ = np.min(x), np.max(x)
-        test_data = (test_data - min_) / (max_ - min_)
-        bi = [test_data[pos:pos + batch_size] for pos in
-              range(0, len(test_data), batch_size)]
-        bl = [test_labels[pos:pos + batch_size] for pos in range(0, len(test_labels), batch_size)]
-        return bi, bl
-
-    def read_model():
-        network_restore_path = '/Users/badgod/badgod_documents/Alco_audio/server_data/2d/emotion_alco_audio_challenge_data_autoencoder_just_sober_class_1588251865/alco_trained_models/emotion_alco_audio_challenge_data_autoencoder_just_sober_class_1588251865_12.pt'
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        from alcoaudio.networks.oneclass_net import ConvAutoEncoder
-        network = ConvAutoEncoder().to(device)
-        network.load_state_dict(torch.load(network_restore_path, map_location=device))
-        network.eval()
-        return network
-
-    bi, bl = read_data()
-    print('Data read done')
-    network = read_model()
-
-    flattened_preds, flattened_labels, flattened_true_data = [], [], []
-
-    print('starting prediction')
-    with torch.no_grad():
-        for i, (x, y) in enumerate(zip(bi, bl)):
-            test_predictions = network(tensor(x)).detach().squeeze(1)
-            # test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
-            flattened_preds.extend(test_predictions.numpy())
-            flattened_labels.extend(y)
-            flattened_true_data.extend(x)
-
-            ones_idx = [int(label) for label in y if label == 1]
-            zeros_idx = [int(label) for label in y if label == 0]
-            ones_l = reconstruction_loss(test_predictions[ones_idx], tensor(x[ones_idx])).numpy()
-            zeros_l = reconstruction_loss(test_predictions[zeros_idx], tensor(x[zeros_idx])).numpy()
-            ones_loss.append(ones_l)
-            zeros_loss.append(zeros_l)
-            print(f'Running on {i}/{len(bl)} | Ones Loss: {ones_l} | Zeros Loss: {zeros_l}')
-
-    print('saving file')
-    np.save('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_data_preds_cae.npy',
-            flattened_preds)
-    print(f'Overall Ones Loss: {np.mean(ones_loss)} | Zeros Loss: {np.mean(zeros_loss)}')
-
-
-test()
+# def test():
+#     from sklearn.metrics import recall_score
+#     def read_data():
+#         batch_size = 32
+#         test_data, test_labels = \
+#             np.load('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_data.npy'), \
+#             np.load('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_labels.npy')
+#         min_, max_ = -80, 9.536743e-07
+#         # for i, x in enumerate(test_data):
+#         # min_, max_ = np.min(x), np.max(x)
+#         test_data = (test_data - min_) / (max_ - min_)
+#         bi = [test_data[pos:pos + batch_size] for pos in
+#               range(0, len(test_data), batch_size)]
+#         bl = [test_labels[pos:pos + batch_size] for pos in range(0, len(test_labels), batch_size)]
+#         return bi, bl
+#
+#     def read_model():
+#         network_restore_path = '/Users/badgod/badgod_documents/Alco_audio/server_data/2d/emotion_alco_audio_challenge_data_autoencoder_just_sober_class_1588251865/alco_trained_models/emotion_alco_audio_challenge_data_autoencoder_just_sober_class_1588251865_12.pt'
+#         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#         from alcoaudio.networks.oneclass_net import ConvAutoEncoder
+#         network = ConvAutoEncoder().to(device)
+#         network.load_state_dict(torch.load(network_restore_path, map_location=device))
+#         network.eval()
+#         return network
+#
+#     bi, bl = read_data()
+#     print('Data read done')
+#     network = read_model()
+#
+#     flattened_preds, flattened_labels, flattened_true_data, flattened_pred_labels, flattened_loss, flattened_latent_space = [], [], [], [], [], []
+#
+#     print('starting prediction')
+#     with torch.no_grad():
+#         for i, (x, y) in enumerate(zip(bi, bl)):
+#             test_predictions, latent = network(tensor(x))  # .detach().squeeze(1)
+#             # test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
+#             test_predictions, latent = test_predictions.detach().squeeze(1), latent.detach().numpy()
+#
+#             # ones_idx = [i for i, label in enumerate(y) if label == 1]
+#             # zeros_idx = [i for i, label in enumerate(y) if label == 0]
+#             # ones_l = reconstruction_loss(test_predictions[ones_idx], tensor(x[ones_idx])).numpy()
+#             # zeros_l = reconstruction_loss(test_predictions[zeros_idx], tensor(x[zeros_idx])).numpy()
+#             # pred_l = reconstruction_loss(test_predictions, tensor(x)).numpy()
+#             each_sample_loss = [reconstruction_loss(tensor(yhat), tensor(true)).numpy() for yhat, true in
+#                                 zip(test_predictions, tensor(x))]
+#             pred_labels = []
+#             for p in each_sample_loss:
+#                 if abs(p - 0.44) > 0.1:
+#                     pred_labels.append(1)
+#                 else:
+#                     pred_labels.append(0)
+#             # latent_ones = latent[ones_idx]
+#             # latent_zeros = latent[zeros_idx]
+#             # print(np.cov(latent_ones.flatten()))
+#             # print(np.cov(latent_zeros.flatten()))
+#             # from scipy.stats import multivariate_normal
+#             # print(multivariate_normal(latent_ones.flatten(), np.mean(latent_ones.flatten()),
+#             #                           np.cov(latent_ones.flatten())))
+#             # exit()
+#             # ones_loss.append(ones_l)
+#             # zeros_loss.append(zeros_l)
+#             uar = recall_score(y, pred_labels, average='macro')
+#             flattened_preds.extend(test_predictions.numpy())
+#             flattened_labels.extend(y)
+#             flattened_true_data.extend(x)
+#             flattened_pred_labels.extend(pred_labels)
+#             flattened_loss.extend(each_sample_loss)
+#             flattened_latent_space.extend(latent)
+#             print(f'Running on {i}/{len(bl)} | UAR: {uar}')
+#             # print(f'Running on {i}/{len(bl)} | Ones Loss: {ones_l} | Zeros Loss: {zeros_l} | UAR: {uar}')
+#             # print(
+#             #         f'Ones Mean: {np.mean(latent_ones)} | Zeros Mean: {np.mean(latent_zeros)} | Ones Cov: {np.cov(latent_ones)} | Zeros Cov: {np.cov(latent_zeros)}')
+#
+#     print('saving file')
+#     np.save('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_data_preds_cae.npy',
+#             flattened_preds)
+#     np.save('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_data_cae_loss.npy',
+#             flattened_loss)
+#     np.save('/Users/badgod/badgod_documents/Alco_audio/server_data/2d/test_challenge_data_cae_latent.npy',
+#             flattened_latent_space)
+#
+#     print(f'Overall Ones Loss: {np.mean(ones_loss)} | Zeros Loss: {np.mean(zeros_loss)}')
+#     print()
+#
+#
+# test()

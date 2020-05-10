@@ -33,14 +33,15 @@ def mfcc_features(audio, sampling_rate, normalise=False):
 def mel_filters(audio, sampling_rate, normalise=False):
     mel_spec = librosa.feature.melspectrogram(y=audio, n_mels=40, sr=sampling_rate)
     if normalise:
-        return librosa.power_to_db(np.mean(mel_spec.T), ref=np.max)
+        return np.mean(mel_spec.T)
     else:
-        return librosa.power_to_db(mel_spec, ref=np.max)
+        return mel_spec
+        # return librosa.power_to_db(mel_spec, ref=np.max)
 
 
 def mel_filters_with_spectrogram(audio, sampling_rate, filename, normalise=False):
     plt.figure(figsize=(3, 2))
-    logmel = librosa.feature.melspectrogram(y=audio, n_mels=128, sr=sampling_rate)
+    logmel = librosa.feature.melspectrogram(y=audio, n_mels=40, sr=sampling_rate)
     logmel = librosa.power_to_db(logmel, ref=np.max)
     librosa.display.specshow(logmel)
     plt.savefig(filename)
@@ -179,15 +180,14 @@ def read_audio_n_save_spectrograms(file, label, base_path, image_save_path, samp
     :return:
     """
     data, out_labels = [], []
-    data.sort()
     if os.path.exists(base_path + file):
         audio, sr = librosa.load(base_path + file)
         chunks = cut_audio(audio, sampling_rate=sampling_rate, sample_size_in_seconds=sample_size_in_seconds,
                            overlap=overlap)
         for i, chunk in enumerate(chunks):
             filename = image_save_path + file.split("/")[-1] + "_" + str(i) + "_label_" + str(label) + '.jpg'
-            # mel_filters_with_spectrogram(chunk, filename, normalise)
-            mfcc_features(chunk, normalise)
+            mel_filters_with_spectrogram(chunk, sampling_rate, filename, normalise)
+            # mfcc_features(chunk, normalise)
             data.append(filename)
             out_labels.append(float(label))
     return data, out_labels
@@ -202,9 +202,14 @@ def preprocess_data_images(base_path, image_save_path, files, labels, normalise,
                                                     overlap,
                                                     normalise) for file, label in
             tqdm(zip(files, labels), total=len(labels)))
-    for x in aggregated_data:
-        data.extend(x[0])
-        out_labels.extend(x[1])
+
+    for per_file_data in aggregated_data:
+        # per_file_data[1] are labels for the audio file.
+        # Might be an array as one audio file can be split into many pieces based on sample_size_in_seconds parameter
+        for i, label in enumerate(per_file_data[1]):
+            # per_file_data[0] is array of audio samples based on sample_size_in_seconds parameter
+            data.append(per_file_data[0][i])
+            out_labels.append(label)
     return data, out_labels
 
 
@@ -275,7 +280,6 @@ def mel_filters_x():
     plt.show()
 
     plt.close()
-
 
 # mel_filters_x()
 

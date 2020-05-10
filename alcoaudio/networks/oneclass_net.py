@@ -113,7 +113,7 @@ class ConvAutoEncoder(nn.Module):
         latent_filter_maps, pool1_indices, pool2_indices = self.encoder(x)
         reconstructed_x = self.decoder(latent_filter_maps, pool1_indices=pool1_indices, pool2_indices=pool2_indices,
                                        final_op_shape=x.size())
-        return reconstructed_x
+        return reconstructed_x, latent_filter_maps
 
 
 class OneClassNN(nn.Module):
