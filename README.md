@@ -4,7 +4,6 @@ Detection of Alcohol induced intoxication through voice using Neural Networks
 
 ## Table of Contents
 
-* [About the Project](#about-the-project)
 * [Dataset](#dataset)
 * [Architectures](#architectures)
 * [Setup](#setup--usage)
