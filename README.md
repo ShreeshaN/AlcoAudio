@@ -80,19 +80,19 @@ One can use our model for inference. The best model is being saved under [best_m
 
 ### **Improve on Data Representations**
 
- - [] Work on frequency variance in voice
+ - [ ] Work on frequency variance in voice
 
- - [] Recurrence plots
+ - [ ] Recurrence plots
 
- - [] Extract features using Praat and Opensmile
+ - [ ] Extract features using Praat and Opensmile
 
- - [] Normalise audio sample based on average amplitude
+ - [ ] Normalise audio sample based on average amplitude
 
 ### **Try new architectures**
 
- - [] Conditional Variational AutoEncoder
+ - [ ] Conditional Variational AutoEncoder
 
- - [] Convolutional One class Neural Network
+ - [ ] Convolutional One class Neural Network
 
 ## **License**
 [MIT](https://choosealicense.com/licenses/mit/)
