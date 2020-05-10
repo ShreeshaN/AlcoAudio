@@ -25,11 +25,11 @@ Detection of Alcohol induced intoxication through voice using Neural Networks
 
 Audio samples are split into 8 seconds each. Below is the plot of a raw signal
 
-![Raw Signal](plots/raw_signal.jpg) <!-- .element height="50%" width="50% -->
+![Raw Signal](plots/raw_signal.jpg) <!-- .element height=250 width=250 -->
 
 These raw audio signals are converted into Mel filters using ```librosa```. Below is how it looks:
 
-![FBank](plots/fbank.jpg) <!-- .element height="50%" width="50% -->
+![FBank](plots/fbank.jpg) <!-- .element height=250 width=250 -->
 
 ## **Architectures**
 
@@ -51,7 +51,7 @@ Below are the architectures tried. All the files are under [networks](https://gi
 1. Download and run the requirements.txt to install all the dependencies.
 
       
-        pip install -r requirements.txt
+       pip install -r requirements.txt
      
      
 2. Create a [config](https://github.com/ShreeshaN/AlcoAudio/blob/master/alcoaudio/configs/shree_configs.json) file of your own
