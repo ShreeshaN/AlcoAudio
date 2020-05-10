@@ -80,7 +80,7 @@ One can use our model for inference. The best model is being saved under [best_m
 
 ### **Improve on Data Representations**
 
- - [ ] Work on frequency variance in voice
+ - [X] Work on frequency variance in voice
 
  - [ ] Recurrence plots
 
