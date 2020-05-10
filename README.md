@@ -50,7 +50,9 @@ Below are the architectures tried. All the files are under [networks](https://gi
 
 1. Download and run the requirements.txt to install all the dependencies.
 
-     pip install -r requirements.txt
+      
+        pip install -r requirements.txt
+     
      
 2. Create a [config](https://github.com/ShreeshaN/AlcoAudio/blob/master/alcoaudio/configs/shree_configs.json) file of your own
 
