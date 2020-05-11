@@ -37,11 +37,11 @@ def run(args):
         network = ConvNetRunner(args=args)
     elif args.network == 'ocnn':
         from alcoaudio.runners.ocnn_runner import OCNNRunner
-        network = ConvNetRunner(args=args)
+        network = OCNNRunner(args=args)
     elif args.network == 'cae':
         from alcoaudio.runners.convautoencoder_runner import ConvAutoEncoderRunner
-        network = ConvNetRunner(args=args)
-    if args.network is None:
+        network = ConvAutoEncoderRunner(args=args)
+    if args.network is None:  # Default
         from alcoaudio.runners.convnet_runner import ConvNetRunner
         network = ConvNetRunner(args=args)
 
