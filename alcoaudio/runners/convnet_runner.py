@@ -57,7 +57,7 @@ class ConvNetRunner:
         self.network_save_interval = args.network_save_interval
         self.normalise = args.normalise_while_training
         self.dropout = args.dropout
-        self.threshold = args.threshold
+        self.threshold = to_tensor(args.threshold, device=self.device)
         self.debug_filename = self.current_run_basepath + '/' + args.debug_filename
 
         paths = [self.network_save_path, self.tensorboard_summary_path]
@@ -187,12 +187,11 @@ class ConvNetRunner:
                 test_loss = self.loss_function(test_predictions, label)
                 test_predictions = nn.Sigmoid()(test_predictions)
                 predictions.append(test_predictions.numpy())
-                test_accuracy, test_uar = accuracy_fn(test_predictions, label,
-                                                      to_tensor(self.threshold, device=self.device))
+                test_accuracy, test_uar = accuracy_fn(test_predictions, label, self.threshold)
                 self.test_batch_loss.append(test_loss.numpy())
                 self.test_batch_accuracy.append(test_accuracy.numpy())
                 self.test_batch_uar.append(test_uar)
-                tp, fp, tn, fn = custom_confusion_matrix(test_predictions, label, threshold=to_tensor(self.threshold, device=self.device))
+                tp, fp, tn, fn = custom_confusion_matrix(test_predictions, label, threshold=self.threshold)
                 predictions_dict['tp'].extend(tp)
                 predictions_dict['fp'].extend(fp)
                 predictions_dict['tn'].extend(tn)
@@ -251,7 +250,7 @@ class ConvNetRunner:
                 loss.backward()
                 self.optimiser.step()
                 predictions = nn.Sigmoid()(predictions)
-                accuracy, uar = accuracy_fn(predictions, label, to_tensor(self.threshold, device=self.device))
+                accuracy, uar = accuracy_fn(predictions, label, self.threshold)
                 self.batch_loss.append(loss.detach().numpy())
                 self.batch_accuracy.append(accuracy)
                 self.batch_uar.append(uar)

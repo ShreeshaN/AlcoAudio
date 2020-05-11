@@ -18,8 +18,8 @@ import os
 
 
 def to_tensor(x, device=None):
-    if not device:
-        device = x.device
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return tensor(x).to(device=device)
 
 
