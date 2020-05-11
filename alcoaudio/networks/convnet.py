@@ -12,6 +12,7 @@ Description:
 
 import torch.nn as nn
 import torch.nn.functional as F
+from alcoaudio.utils.network_utils import to_tensor
 
 
 class ConvNet(nn.Module):
@@ -51,7 +52,7 @@ class ConvNet(nn.Module):
         a Tensor of output data. We can use Modules defined in the constructor as
         well as arbitrary operators on Tensors.
         """
-        x = x.unsqueeze(1)
+        x = to_tensor(x).unsqueeze(1)
         x = F.relu(self.conv1_bn(self.conv1(x)))
         x = F.relu(self.conv2_bn(self.conv2(x)))
         x = self.pool1(x)

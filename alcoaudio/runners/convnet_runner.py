@@ -242,7 +242,7 @@ class ConvNetRunner:
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
                 self.optimiser.zero_grad()
                 label = to_tensor(label, device=self.device).float()
-                audio_data = to_tensor(audio_data, device=self.device).float()
+                # audio_data = to_tensor(audio_data, device=self.device).float()
                 if i == 0:
                     self.writer.add_graph(self.network, audio_data)
                 predictions = self.network(audio_data).squeeze(1)
