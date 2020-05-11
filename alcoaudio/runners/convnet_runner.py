@@ -14,17 +14,23 @@ from torch.utils.tensorboard import SummaryWriter
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import pandas as pd
 import numpy as np
+from torch import tensor
 import time
 import json
+import cv2
+import random
+import torchvision
 import random
 
 from alcoaudio.networks.convnet import ConvNet
 from alcoaudio.utils import file_utils
-from alcoaudio.utils.network_utils import accuracy_fn, log_summary, custom_confusion_matrix, \
-    log_conf_matrix, write_to_npy, to_tensor, to_numpy
-from alcoaudio.utils.data_utils import read_npy
-from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask
+from alcoaudio.datagen.audio_feature_extractors import preprocess_data
+from alcoaudio.utils.network_utils import accuracy_fn, log_summary, normalize_image, custom_confusion_matrix, \
+    log_conf_matrix, write_to_npy
+from alcoaudio.utils.data_utils import read_h5py, read_npy
+from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask, time_warp
 
 
 class ConvNetRunner:
@@ -63,6 +69,8 @@ class ConvNetRunner:
         paths = [self.network_save_path, self.tensorboard_summary_path]
         file_utils.create_dirs(paths)
 
+        self.weights = np.load(args.keras_model_weights, allow_pickle=True)
+        self.network = None
         self.network = ConvNet().to(self.device)
         self.pos_weight = None
         self.loss_function = None
@@ -96,61 +104,19 @@ class ConvNetRunner:
         print('Configs used:\n', json.dumps(args, indent=4))
         print('Configs used:\n', json.dumps(args, indent=4), file=self.log_file)
 
-    def data_reader(self, data_filepath, label_filepath='', train=False, should_batch=True, shuffle=True, infer=False):
+    def data_reader(self, data_filepath, label_filepath, train, should_batch=True, shuffle=True):
+        # data = pd.read_csv(data_file)[:50]
+        # if shuffle:
+        #     data = data.sample(frac=1)
+        # input_data, labels = preprocess_data(self.audio_basepath, data['WAV_PATH'].values, data['label'].values,
+        #                                      normalise=normalise, sample_size_in_seconds=self.sample_size_in_seconds,
+        #                                      sampling_rate=self.sampling_rate, overlap=self.overlap)
+        input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
 
-        if infer:
-            input_data = read_npy(data_filepath)
-            if self.normalise:
-                input_data = (input_data - np.min(input_data)) / (np.max(input_data) - np.min(input_data))
-            return input_data
-        else:
-            input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
-            if train:
+        if train:
 
-                print('Original data size - before Augmentation')
-                print('Original data size - before Augmentation', file=self.log_file)
-                print('Total data ', len(input_data))
-                print('Event rate', sum(labels) / len(labels))
-                print(np.array(input_data).shape, np.array(labels).shape)
-
-                print('Total data ', len(input_data), file=self.log_file)
-                print('Event rate', sum(labels) / len(labels), file=self.log_file)
-                print(np.array(input_data).shape, np.array(labels).shape, file=self.log_file)
-
-                for x in input_data:
-                    self._min = min(np.min(x), self._min)
-                    self._max = max(np.max(x), self._max)
-
-                print('Data Augmentation starts . . .')
-                print('Data Augmentation starts . . .', file=self.log_file)
-                label_to_augment = 1
-                amount_to_augment = 1
-                ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_augment]
-                random_idxs = random.choices(ones_ids,
-                                             k=int(len(ones_ids) * amount_to_augment))
-                data_to_augment = input_data[random_idxs]
-                augmented_data = []
-                augmented_labels = []
-                for x in data_to_augment:
-                    x = librosaSpectro_to_torchTensor(x)
-                    x = random.choice([time_mask, freq_mask])(x)[0].numpy()
-                    augmented_data.append(x), augmented_labels.append(label_to_augment)
-
-                input_data = np.concatenate((input_data, augmented_data))
-                labels = np.concatenate((labels, augmented_labels))
-
-                print('Data Augmentation done . . .')
-                print('Data Augmentation done . . .', file=self.log_file)
-
-                data = [(x, y) for x, y in zip(input_data, labels)]
-                random.shuffle(data)
-                input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
-
-                # Initialize pos_weight based on training data
-                self.pos_weight = len([x for x in labels if x == 0]) / len([x for x in labels if x == 1])
-                print('Pos weight for the train data - ', self.pos_weight)
-                print('Pos weight for the train data - ', self.pos_weight, file=self.log_file)
-
+            print('Original data size - before Augmentation')
+            print('Original data size - before Augmentation', file=self.log_file)
             print('Total data ', len(input_data))
             print('Event rate', sum(labels) / len(labels))
             print(np.array(input_data).shape, np.array(labels).shape)
@@ -159,39 +125,88 @@ class ConvNetRunner:
             print('Event rate', sum(labels) / len(labels), file=self.log_file)
             print(np.array(input_data).shape, np.array(labels).shape, file=self.log_file)
 
-            print('Min max values used for normalisation ', self._min, self._max)
-            print('Min max values used for normalisation ', self._min, self._max, file=self.log_file)
+            # Under-sampling train data. Balancing the classes
+            # ones_idx, zeros_idx = [idx for idx, label in enumerate(labels) if label == 1], [idx for idx, label in
+            #                                                                                 enumerate(labels) if
+            #                                                                                 label == 0]
+            # zeros_idx = zeros_idx[:len(ones_idx)]
+            # ids = ones_idx + zeros_idx
+            # input_data, labels = input_data[ids], labels[ids]
+            #
+            for x in input_data:
+                self._min = min(np.min(x), self._min)
+                self._max = max(np.max(x), self._max)
 
-            # Normalizing `input data` on train dataset's min and max values
-            if self.normalise:
-                input_data = (input_data - self._min) / (self._max - self._min)
+            print('Data Augmentation starts . . .')
+            print('Data Augmentation starts . . .', file=self.log_file)
+            label_to_augment = 1
+            amount_to_augment = 1.3
+            ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_augment]
+            random_idxs = random.choices(ones_ids,
+                                         k=int(len(ones_ids) * amount_to_augment))
+            data_to_augment = input_data[random_idxs]
+            augmented_data = []
+            augmented_labels = []
+            for x in data_to_augment:
+                x = librosaSpectro_to_torchTensor(x)
+                x = random.choice([time_mask, freq_mask])(x)[0].numpy()
+                # x = time_warp(x)[0].numpy()
+                augmented_data.append(x), augmented_labels.append(label_to_augment)
 
-            if should_batch:
-                batched_input = [input_data[pos:pos + self.batch_size] for pos in
-                                 range(0, len(input_data), self.batch_size)]
-                batched_labels = [labels[pos:pos + self.batch_size] for pos in range(0, len(labels), self.batch_size)]
-                return batched_input, batched_labels
-            else:
-                return input_data, labels
+            input_data = np.concatenate((input_data, augmented_data))
+            labels = np.concatenate((labels, augmented_labels))
+
+            print('Data Augmentation done . . .')
+            print('Data Augmentation done . . .', file=self.log_file)
+
+            data = [(x, y) for x, y in zip(input_data, labels)]
+            random.shuffle(data)
+            input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
+
+            # Initialize pos_weight based on training data
+            self.pos_weight = len([x for x in labels if x == 0]) / len([x for x in labels if x == 1])
+            print('Pos weight for the train data - ', self.pos_weight)
+            print('Pos weight for the train data - ', self.pos_weight, file=self.log_file)
+
+        print('Total data ', len(input_data))
+        print('Event rate', sum(labels) / len(labels))
+        print(np.array(input_data).shape, np.array(labels).shape)
+
+        print('Total data ', len(input_data), file=self.log_file)
+        print('Event rate', sum(labels) / len(labels), file=self.log_file)
+        print(np.array(input_data).shape, np.array(labels).shape, file=self.log_file)
+
+        print('Min max values used for normalisation ', self._min, self._max)
+        print('Min max values used for normalisation ', self._min, self._max, file=self.log_file)
+
+        # Normalizing `input data` on train dataset's min and max values
+        if self.normalise:
+            input_data = (input_data - self._min) / (self._max - self._min)
+
+        if should_batch:
+            batched_input = [input_data[pos:pos + self.batch_size] for pos in
+                             range(0, len(input_data), self.batch_size)]
+            batched_labels = [labels[pos:pos + self.batch_size] for pos in range(0, len(labels), self.batch_size)]
+            return batched_input, batched_labels
+        else:
+            return input_data, labels
 
     def run_for_epoch(self, epoch, x, y, type):
-        self.network.eval()
         predictions_dict = {"tp": [], "fp": [], "tn": [], "fn": []}
         predictions = []
         self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
         with torch.no_grad():
             for i, (audio_data, label) in enumerate(zip(x, y)):
-                label = to_tensor(label, device=self.device)
-                audio_data = to_tensor(audio_data, device=self.device)
+                label = tensor(label).float()
                 test_predictions = self.network(audio_data).squeeze(1)
                 test_loss = self.loss_function(test_predictions, label)
-                test_predictions = to_numpy(nn.Sigmoid()(test_predictions))
-                predictions.append(test_predictions)
-                test_accuracy, test_uar = accuracy_fn(test_predictions, to_numpy(label), self.threshold)
-                self.test_batch_loss.append(to_numpy(test_loss))
-                self.test_batch_accuracy.append(test_accuracy)
+                test_predictions = nn.Sigmoid()(test_predictions)
+                predictions.append(test_predictions.numpy())
+                test_accuracy, test_uar = accuracy_fn(test_predictions, label, self.threshold)
+                self.test_batch_loss.append(test_loss.numpy())
+                self.test_batch_accuracy.append(test_accuracy.numpy())
                 self.test_batch_uar.append(test_uar)
-                tp, fp, tn, fn = custom_confusion_matrix(test_predictions, to_numpy(label), threshold=self.threshold)
+                tp, fp, tn, fn = custom_confusion_matrix(test_predictions, label, threshold=self.threshold)
                 predictions_dict['tp'].extend(tp)
                 predictions_dict['fp'].extend(fp)
                 predictions_dict['tn'].extend(tn)
@@ -233,25 +248,27 @@ class ConvNetRunner:
                                                   shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
-        self.loss_function = nn.BCEWithLogitsLoss(pos_weight=to_tensor(self.pos_weight, device=self.device))
+        self.loss_function = nn.BCEWithLogitsLoss(pos_weight=tensor(self.pos_weight))
 
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
-            self.network.train()
             self.batch_loss, self.batch_accuracy, self.batch_uar, audio_for_tensorboard_train = [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
                 self.optimiser.zero_grad()
-                label = to_tensor(label, device=self.device)
-                audio_data = to_tensor(audio_data, device=self.device)
+                # audio_data = tensor(
+                #         [normalize_image(cv2.cvtColor(cv2.imread(spec_image), cv2.COLOR_BGR2RGB)) for spec_image in
+                #          audio_data])
+                # audio_data = audio_data.float()
+                label = tensor(label).float()
                 if i == 0:
-                    self.writer.add_graph(self.network, to_tensor(audio_data, device=self.device))
+                    self.writer.add_graph(self.network, tensor(audio_data))
                 predictions = self.network(audio_data).squeeze(1)
                 loss = self.loss_function(predictions, label)
+                predictions = nn.Sigmoid()(predictions)
                 loss.backward()
                 self.optimiser.step()
-                predictions = to_numpy(nn.Sigmoid()(predictions))
-                accuracy, uar = accuracy_fn(predictions, to_numpy(label), self.threshold)
-                self.batch_loss.append(to_numpy(loss))
+                accuracy, uar = accuracy_fn(predictions, label, self.threshold)
+                self.batch_loss.append(loss.detach().numpy())
                 self.batch_accuracy.append(accuracy)
                 self.batch_uar.append(uar)
 
@@ -274,6 +291,7 @@ class ConvNetRunner:
             print(
                     f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ",
                     file=self.log_file)
+            print('Learning rate ', self.optimiser.state_dict()['param_groups'][0]['lr'])
             print('Learning rate ', self.optimiser.state_dict()['param_groups'][0]['lr'], file=self.log_file)
 
             # dev data
@@ -288,18 +306,15 @@ class ConvNetRunner:
                 print('Network successfully saved: ' + save_path)
 
     def test(self):
-        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_data.npy',
-                                                  self.data_read_path + 'test_challenge_labels.npy',
-                                                  shuffle=False, train=False)
-        test_predictions = self.network(test_data).squeeze(1)
-        test_predictions = nn.Sigmoid()(test_predictions)
-        test_accuracy, test_uar = accuracy_fn(test_predictions, test_labels, self.threshold)
-        print(f"Accuracy: {test_accuracy} | UAR: {test_uar}")
-        print(f"Accuracy: {test_accuracy} | UAR: {test_uar}", file=self.log_file)
+        test_data, test_labels = self.data_reader(self.data_read_path + 'test_data.npy',
+                                                  shuffle=False,
+                                                  should_batch=False)
+        test_data, test_labels = test_data, test_labels
+        test_predictions = self.network(test_data).detach()
+        print(test_predictions)
 
-    def infer(self, data_file):
-        test_data = self.data_reader(data_file, shuffle=False, train=False, infer=True)
-        test_predictions = self.network(test_data).squeeze(1)
-        test_predictions = nn.Sigmoid()(test_predictions)
-
-        return test_predictions
+        test_predictions = nn.Sigmoid()(test_predictions).squeeze(1)
+        print(test_predictions)
+        test_accuracy = accuracy_fn(test_predictions, test_labels, self.threshold)
+        print(f"Accuracy: {test_accuracy}")
+        print(f"Accuracy: {test_accuracy}", file=self.log_file)
