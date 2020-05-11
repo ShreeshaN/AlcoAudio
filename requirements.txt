@@ -1,7 +1,6 @@
 torch
 numpy
 pandas
-tensorboardx
 tensorboard
 pandas
 librosa
@@ -11,3 +10,4 @@ h5py
 tqdm
 joblib
 torchvision
+plotly

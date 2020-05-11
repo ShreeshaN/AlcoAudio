@@ -12,7 +12,6 @@ Description:
 import pandas as pd
 import argparse
 import json
-import time
 import numpy as np
 
 from alcoaudio.utils.class_utils import AttributeDict
