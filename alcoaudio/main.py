@@ -30,18 +30,18 @@ def run(args):
         from alcoaudio.runners.convnet_runner import ConvNetRunner
         network = ConvNetRunner(args=args)
     elif args.network == 'lstm':
-        from alcoaudio.runners.convnet_runner import ConvNetRunner
-        network = ConvNetRunner(args=args)
+        from alcoaudio.runners.rnn_runner import RNNRunner
+        network = RNNRunner(args=args)
     elif args.network == 'crnn':
-        from alcoaudio.runners.convnet_runner import ConvNetRunner
-        network = ConvNetRunner(args=args)
+        from alcoaudio.runners.crnn_runner import CRNNRunner
+        network = CRNNRunner(args=args)
     elif args.network == 'ocnn':
         from alcoaudio.runners.ocnn_runner import OCNNRunner
         network = OCNNRunner(args=args)
     elif args.network == 'cae':
         from alcoaudio.runners.convautoencoder_runner import ConvAutoEncoderRunner
         network = ConvAutoEncoderRunner(args=args)
-    if args.network is None:  # Default
+    if args.network is None:  # Default network
         from alcoaudio.runners.convnet_runner import ConvNetRunner
         network = ConvNetRunner(args=args)
 
