@@ -24,7 +24,7 @@ def to_tensor(x, device=None):
 
 
 def to_numpy(x):
-    if isinstance(x, torch.tensor):
+    if isinstance(x, torch.Tensor):
         if x.requires_grad:
             return x.detach().cpu().numpy()
         else:
