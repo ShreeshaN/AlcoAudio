@@ -10,8 +10,8 @@ Description:
 
 """
 
-from torch import tensor
 import torch
+from torch import tensor
 from sklearn.metrics import recall_score
 import numpy as np
 import os
@@ -24,14 +24,14 @@ def to_tensor(x, device=None):
 
 
 def accuracy_fn(preds, labels, threshold):
-    predictions = torch.where(preds > threshold, tensor(1), tensor(0))
+    predictions = torch.where(preds > threshold, to_tensor(1), to_tensor(0))
     accuracy = torch.sum(predictions == labels) / float(len(labels))
     uar = recall_score(labels, predictions.numpy(), average='macro')
     return accuracy, uar
 
 
 def accuracy_fn_ocnn(scores, labels):
-    scores = torch.where(scores >= tensor(0), tensor(0), tensor(1))
+    scores = torch.where(scores >= to_tensor(0), to_tensor(0), to_tensor(1))
     accuracy = torch.sum(scores == labels) / float(len(labels))
     uar = recall_score(labels, scores.numpy(), average='macro')
     return accuracy, uar
@@ -100,8 +100,8 @@ def normalize_image(image):
     return (image - image.min()) / (image.max() - image.min())
 
 
-def custom_confusion_matrix(predictions, target, threshold=tensor(0.5)):
-    preds = torch.where(predictions > threshold, tensor(1), tensor(0))
+def custom_confusion_matrix(predictions, target, threshold=to_tensor(0.5)):
+    preds = torch.where(predictions > threshold, to_tensor(1), to_tensor(0))
     TP = []
     FP = []
     TN = []
