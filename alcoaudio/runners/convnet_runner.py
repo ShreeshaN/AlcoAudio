@@ -192,7 +192,7 @@ class ConvNetRunner:
                 self.test_batch_loss.append(test_loss.numpy())
                 self.test_batch_accuracy.append(test_accuracy.numpy())
                 self.test_batch_uar.append(test_uar)
-                tp, fp, tn, fn = custom_confusion_matrix(test_predictions, label, threshold=to_tensor(self.threshold))
+                tp, fp, tn, fn = custom_confusion_matrix(test_predictions, label, threshold=to_tensor(self.threshold, device=self.device))
                 predictions_dict['tp'].extend(tp)
                 predictions_dict['fp'].extend(fp)
                 predictions_dict['tn'].extend(tn)
