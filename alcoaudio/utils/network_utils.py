@@ -24,9 +24,9 @@ def to_tensor(x, device=None):
 
 
 def accuracy_fn(preds, labels, threshold):
-    predictions = torch.where(preds > threshold, to_tensor(1), to_tensor(0))
-    accuracy = torch.sum(predictions == labels) / float(len(labels))
-    uar = recall_score(labels, predictions.numpy(), average='macro')
+    predictions = np.where(preds > threshold, 1, 0)
+    accuracy = np.sum(predictions == labels) / float(len(labels))
+    uar = recall_score(labels, predictions, average='macro')
     return accuracy, uar
 
 

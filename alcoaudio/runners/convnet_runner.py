@@ -57,7 +57,7 @@ class ConvNetRunner:
         self.network_save_interval = args.network_save_interval
         self.normalise = args.normalise_while_training
         self.dropout = args.dropout
-        self.threshold = to_tensor(args.threshold, device=self.device)
+        self.threshold = args.threshold
         self.debug_filename = self.current_run_basepath + '/' + args.debug_filename
 
         paths = [self.network_save_path, self.tensorboard_summary_path]
@@ -189,7 +189,7 @@ class ConvNetRunner:
                 predictions.append(test_predictions.numpy())
                 test_accuracy, test_uar = accuracy_fn(test_predictions, label, self.threshold)
                 self.test_batch_loss.append(test_loss.numpy())
-                self.test_batch_accuracy.append(test_accuracy.numpy())
+                self.test_batch_accuracy.append(test_accuracy)
                 self.test_batch_uar.append(test_uar)
                 tp, fp, tn, fn = custom_confusion_matrix(test_predictions, label, threshold=self.threshold)
                 predictions_dict['tp'].extend(tp)
