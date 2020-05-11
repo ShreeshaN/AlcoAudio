@@ -20,7 +20,15 @@ import os
 def to_tensor(x, device=None):
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    return tensor(x).to(device=device)
+    return tensor(x).to(device=device).float()
+
+
+def to_numpy(x):
+    if isinstance(x, torch.tensor):
+        if x.requires_grad:
+            return x.detach().cpu().numpy()
+        else:
+            return x.cpu().numpy()
 
 
 def accuracy_fn(preds, labels, threshold):
@@ -101,20 +109,17 @@ def normalize_image(image):
 
 
 def custom_confusion_matrix(predictions, target, threshold=to_tensor(0.5)):
-    preds = torch.where(predictions > threshold, to_tensor(1), to_tensor(0))
-    TP = []
-    FP = []
-    TN = []
-    FN = []
+    preds = np.where(predictions > threshold, 1, 0)
+    TP, FP, TN, FN = [], [], [], []
 
     for i in range(len(preds)):
         if target[i] == preds[i] == 1:
-            TP.append(predictions[i].numpy())
+            TP.append(predictions[i])
         if preds[i] == 1 and target[i] != preds[i]:
-            FP.append(predictions[i].numpy())
+            FP.append(predictions[i])
         if target[i] == preds[i] == 0:
-            TN.append(predictions[i].numpy())
+            TN.append(predictions[i])
         if preds[i] == 0 and target[i] != preds[i]:
-            FN.append(predictions[i].numpy())
+            FN.append(predictions[i])
 
     return TP, FP, TN, FN
