@@ -17,9 +17,10 @@ import numpy as np
 import os
 
 
-def to_tensor(x, device):
-    x = tensor(x)
-    return x.to(device=device)
+def to_tensor(x, device=None):
+    if not device:
+        device = x.device
+    return tensor(x).to(device=device)
 
 
 def accuracy_fn(preds, labels, threshold):
