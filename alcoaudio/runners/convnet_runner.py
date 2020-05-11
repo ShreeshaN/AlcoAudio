@@ -21,7 +21,6 @@ import time
 import json
 import cv2
 import random
-import torchvision
 import random
 
 from alcoaudio.networks.convnet import ConvNet
