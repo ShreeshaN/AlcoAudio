@@ -182,7 +182,6 @@ class ConvNetRunner:
         with torch.no_grad():
             for i, (audio_data, label) in enumerate(zip(x, y)):
                 label = to_tensor(label, device=self.device).float()
-                audio_data = to_tensor(audio_data, device=self.device)
                 test_predictions = self.network(audio_data).squeeze(1)
                 test_loss = self.loss_function(test_predictions, label)
                 test_predictions = nn.Sigmoid()(test_predictions)
@@ -244,7 +243,7 @@ class ConvNetRunner:
                 label = to_tensor(label, device=self.device).float()
                 # audio_data = to_tensor(audio_data, device=self.device).float()
                 if i == 0:
-                    self.writer.add_graph(self.network, audio_data)
+                    self.writer.add_graph(self.network, to_tensor(audio_data, device=self.device))
                 predictions = self.network(audio_data).squeeze(1)
                 loss = self.loss_function(predictions, label)
                 loss.backward()
