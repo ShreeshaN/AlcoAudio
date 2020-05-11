@@ -29,6 +29,8 @@ def to_numpy(x):
             return x.detach().cpu().numpy()
         else:
             return x.cpu().numpy()
+    else:
+        return x
 
 
 def accuracy_fn(preds, labels, threshold):
