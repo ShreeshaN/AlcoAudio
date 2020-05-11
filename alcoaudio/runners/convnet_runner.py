@@ -15,7 +15,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
-from torch import tensor
 import time
 import json
 import random
@@ -23,7 +22,7 @@ import random
 from alcoaudio.networks.convnet import ConvNet
 from alcoaudio.utils import file_utils
 from alcoaudio.utils.network_utils import accuracy_fn, log_summary, custom_confusion_matrix, \
-    log_conf_matrix, write_to_npy
+    log_conf_matrix, write_to_npy, to_tensor
 from alcoaudio.utils.data_utils import read_npy
 from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask
 
@@ -182,16 +181,18 @@ class ConvNetRunner:
         self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
         with torch.no_grad():
             for i, (audio_data, label) in enumerate(zip(x, y)):
-                label = tensor(label).float()
+                label = to_tensor(label, device=self.device).float()
+                audio_data = to_tensor(audio_data, device=self.device)
                 test_predictions = self.network(audio_data).squeeze(1)
                 test_loss = self.loss_function(test_predictions, label)
                 test_predictions = nn.Sigmoid()(test_predictions)
                 predictions.append(test_predictions.numpy())
-                test_accuracy, test_uar = accuracy_fn(test_predictions, label, self.threshold)
+                test_accuracy, test_uar = accuracy_fn(test_predictions, label,
+                                                      to_tensor(self.threshold, device=self.device))
                 self.test_batch_loss.append(test_loss.numpy())
                 self.test_batch_accuracy.append(test_accuracy.numpy())
                 self.test_batch_uar.append(test_uar)
-                tp, fp, tn, fn = custom_confusion_matrix(test_predictions, label, threshold=self.threshold)
+                tp, fp, tn, fn = custom_confusion_matrix(test_predictions, label, threshold=to_tensor(self.threshold))
                 predictions_dict['tp'].extend(tp)
                 predictions_dict['fp'].extend(fp)
                 predictions_dict['tn'].extend(tn)
@@ -233,7 +234,7 @@ class ConvNetRunner:
                                                   shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
-        self.loss_function = nn.BCEWithLogitsLoss(pos_weight=tensor(self.pos_weight))
+        self.loss_function = nn.BCEWithLogitsLoss(pos_weight=to_tensor(self.pos_weight, device=self.device))
 
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
@@ -241,15 +242,16 @@ class ConvNetRunner:
             self.batch_loss, self.batch_accuracy, self.batch_uar, audio_for_tensorboard_train = [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
                 self.optimiser.zero_grad()
-                label = tensor(label).float()
+                label = to_tensor(label, device=self.device).float()
+                audio_data = to_tensor(audio_data, device=self.device).float()
                 if i == 0:
-                    self.writer.add_graph(self.network, tensor(audio_data))
+                    self.writer.add_graph(self.network, audio_data)
                 predictions = self.network(audio_data).squeeze(1)
                 loss = self.loss_function(predictions, label)
                 loss.backward()
                 self.optimiser.step()
                 predictions = nn.Sigmoid()(predictions)
-                accuracy, uar = accuracy_fn(predictions, label, self.threshold)
+                accuracy, uar = accuracy_fn(predictions, label, to_tensor(self.threshold, device=self.device))
                 self.batch_loss.append(loss.detach().numpy())
                 self.batch_accuracy.append(accuracy)
                 self.batch_uar.append(uar)

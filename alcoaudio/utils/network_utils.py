@@ -13,14 +13,17 @@ Description:
 from torch import tensor
 import torch
 from sklearn.metrics import recall_score
-from sklearn.metrics import confusion_matrix
 import numpy as np
 import os
-import json
+
+
+def to_tensor(x, device):
+    x = tensor(x)
+    return x.to(device=device)
 
 
 def accuracy_fn(preds, labels, threshold):
-    predictions = torch.where(preds > tensor(threshold), tensor(1), tensor(0))
+    predictions = torch.where(preds > threshold, tensor(1), tensor(0))
     accuracy = torch.sum(predictions == labels) / float(len(labels))
     uar = recall_score(labels, predictions.numpy(), average='macro')
     return accuracy, uar
@@ -96,8 +99,8 @@ def normalize_image(image):
     return (image - image.min()) / (image.max() - image.min())
 
 
-def custom_confusion_matrix(predictions, target, threshold=0.5):
-    preds = torch.where(predictions > tensor(threshold), tensor(1), tensor(0))
+def custom_confusion_matrix(predictions, target, threshold=tensor(0.5)):
+    preds = torch.where(predictions > threshold, tensor(1), tensor(0))
     TP = []
     FP = []
     TN = []
