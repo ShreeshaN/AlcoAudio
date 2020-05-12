@@ -246,7 +246,7 @@ class ConvNetRunner:
                 loss.backward()
                 self.optimiser.step()
                 accuracy, uar = accuracy_fn(predictions, label, self.threshold)
-                self.batch_loss.append(loss.detach().numpy())
+                self.batch_loss.append(to_numpy(loss))
                 self.batch_accuracy.append(to_numpy(accuracy))
                 self.batch_uar.append(uar)
 
