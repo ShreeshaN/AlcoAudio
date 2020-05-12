@@ -154,7 +154,7 @@ def accuracy_fn(preds, labels, threshold):
     # todo: UAR implementation is wrong. Tweak it once the model is ready
     predictions = torch.where(preds > to_tensor(threshold), to_tensor(1), to_tensor(0))
     accuracy = torch.sum(predictions == labels) / float(len(labels))
-    uar = recall_score(labels, to_numpy(predictions), average='macro')
+    uar = recall_score(to_numpy(labels), to_numpy(predictions), average='macro')
     return accuracy, uar
 
 
