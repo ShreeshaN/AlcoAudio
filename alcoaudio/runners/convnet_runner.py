@@ -63,8 +63,6 @@ class ConvNetRunner:
         paths = [self.network_save_path, self.tensorboard_summary_path]
         file_utils.create_dirs(paths)
 
-        self.weights = np.load(args.keras_model_weights, allow_pickle=True)
-        self.network = None
         self.network = ConvNet().to(self.device)
         self.pos_weight = None
         self.loss_function = None
