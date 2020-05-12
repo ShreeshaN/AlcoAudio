@@ -19,7 +19,7 @@ import cv2
 import numpy as np
 
 
-class ConvNet(nn.Module):
+class ConvNet_Parallel_FFN(nn.Module):
 
     def __init__(self):
         """
@@ -28,7 +28,9 @@ class ConvNet(nn.Module):
         member variables.
         """
 
-        super(ConvNet, self).__init__()
+        super(ConvNet_Parallel_FFN, self).__init__()
+
+        #Conv Layers -------------------------------------------------------------------------
 
         # self.conv1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, stride=1)
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=1)
@@ -48,12 +50,21 @@ class ConvNet(nn.Module):
         self.conv4_bn = nn.BatchNorm2d(64)
         self.pool2 = nn.MaxPool2d(kernel_size=4, stride=2)
 
-        self.conv5 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=1, stride=1)
+        self.conv5 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=[1,2])
         # torch.nn.init.xavier_uniform(self.conv5.weight)
         self.conv5_bn = nn.BatchNorm2d(64)
-        self.pool3 = nn.MaxPool2d(kernel_size=1, stride=1)
+        self.pool3 = nn.MaxPool2d(kernel_size=3, stride=[1,2])
+        
+        #Parallel FFN-------------------------------------------------------------------------
 
-        self.fc1 = nn.Linear(40 * 64, 256)
+        self.ff1 = nn.Linear(1, 1)
+        # torch.nn.init.xavier_uniform(self.fc1.weight)
+        # self.dropout_f = nn.Dropout(p=0.4)
+        # self.ff2 = nn.Linear(24, 5)        
+
+        #FC Layers-------------------------------------------------------------------------        
+
+        self.fc1 = nn.Linear(2561, 256)
         # torch.nn.init.xavier_uniform(self.fc1.weight)
         self.dropout1 = nn.Dropout(p=0.3)
         self.fc2 = nn.Linear(256, 32)
@@ -61,7 +72,7 @@ class ConvNet(nn.Module):
         self.fc3 = nn.Linear(32, 1)
         # torch.nn.init.xavier_uniform(self.fc3.weight)
 
-    def forward(self, x):
+    def forward(self, x, y):
         """
         In the forward function we accept a Tensor of input data and we must return
         a Tensor of output data. We can use Modules defined in the constructor as
@@ -83,8 +94,15 @@ class ConvNet(nn.Module):
         x = self.pool3(x)
         x = x.unsqueeze(2)
 
+        # y = F.relu(self.ff1(y))
+        # y = self.dropout_f(y)
+        # y = F.relu(self.ff2(y))
+        # x = torch.cat((x,y),0)
+
         # Flattening to feed it to FFN
         x = x.view(-1, x.shape[1:].numel())
+
+        x = torch.cat((x,y),1)
 
         x = F.relu(self.fc1(x))
         x = self.dropout1(x)

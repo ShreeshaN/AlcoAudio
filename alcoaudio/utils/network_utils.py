@@ -1,43 +1,29 @@
-# # -*- coding: utf-8 -*-
-# """
-# @created on: 2/23/20,
-# @author: Shreesha N,
-# @version: v0.0.1
-# @system name: badgod
-# Description:
-#
-# ..todo::
-#
-# """
+# -*- coding: utf-8 -*-
+"""
+@created on: 2/23/20,
+@author: Shreesha N,
+@version: v0.0.1
+@system name: badgod
+Description:
+
+..todo::
+
+"""
 
 from torch import tensor
 import torch
 from sklearn.metrics import recall_score
+from sklearn.metrics import confusion_matrix
 import numpy as np
 import os
-
-
-def to_tensor(x, device=None):
-    if device is None:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    return tensor(x).to(device=device).float()
-
-
-def to_numpy(x):
-    if isinstance(x, torch.Tensor):
-        if x.requires_grad:
-            return x.detach().cpu().numpy()
-        else:
-            return x.cpu().numpy()
-    else:
-        return x
+import json
 
 
 def accuracy_fn(preds, labels, threshold):
     # todo: UAR implementation is wrong. Tweak it once the model is ready
-    predictions = torch.where(preds > to_tensor(threshold), to_tensor(1), to_tensor(0))
+    predictions = torch.where(preds > tensor(threshold), tensor(1), tensor(0))
     accuracy = torch.sum(predictions == labels) / float(len(labels))
-    uar = recall_score(to_numpy(labels), to_numpy(predictions), average='macro')
+    uar = recall_score(labels, predictions.numpy(), average='macro')
     return accuracy, uar
 
 
@@ -79,7 +65,7 @@ def normalize_image(image):
 
 
 def custom_confusion_matrix(predictions, target, threshold=0.5):
-    preds = torch.where(predictions > to_tensor(threshold), to_tensor(1), to_tensor(0))
+    preds = torch.where(predictions > tensor(threshold), tensor(1), tensor(0))
     TP = []
     FP = []
     TN = []
@@ -87,12 +73,12 @@ def custom_confusion_matrix(predictions, target, threshold=0.5):
 
     for i in range(len(preds)):
         if target[i] == preds[i] == 1:
-            TP.append(to_numpy(predictions[i]))
+            TP.append(predictions[i].numpy())
         if preds[i] == 1 and target[i] != preds[i]:
-            FP.append(to_numpy(predictions[i]))
+            FP.append(predictions[i].numpy())
         if target[i] == preds[i] == 0:
-            TN.append(to_numpy(predictions[i]))
+            TN.append(predictions[i].numpy())
         if preds[i] == 0 and target[i] != preds[i]:
-            FN.append(to_numpy(predictions[i]))
+            FN.append(predictions[i].numpy())
 
     return TP, FP, TN, FN

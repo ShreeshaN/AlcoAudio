@@ -33,15 +33,14 @@ def mfcc_features(audio, sampling_rate, normalise=False):
 def mel_filters(audio, sampling_rate, normalise=False):
     mel_spec = librosa.feature.melspectrogram(y=audio, n_mels=40, sr=sampling_rate)
     if normalise:
-        return np.mean(mel_spec.T)
+        return librosa.power_to_db(np.mean(mel_spec.T), ref=np.max)
     else:
-        return mel_spec
-        # return librosa.power_to_db(mel_spec, ref=np.max)
+        return librosa.power_to_db(mel_spec, ref=np.max)
 
 
 def mel_filters_with_spectrogram(audio, sampling_rate, filename, normalise=False):
     plt.figure(figsize=(3, 2))
-    logmel = librosa.feature.melspectrogram(y=audio, n_mels=40, sr=sampling_rate)
+    logmel = librosa.feature.melspectrogram(y=audio, n_mels=128, sr=sampling_rate)
     logmel = librosa.power_to_db(logmel, ref=np.max)
     librosa.display.specshow(logmel)
     plt.savefig(filename)
@@ -113,7 +112,7 @@ def cut_audio(audio, sampling_rate, sample_size_in_seconds, overlap):
     return audio_list
 
 
-def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap, normalise, method):
+def read_audio_n_process(file, label, demo, base_path, sampling_rate, sample_size_in_seconds, overlap, normalise, method):
     """
     This method is called by the preprocess data method
     :param file:
@@ -162,8 +161,60 @@ def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds,
             # per_file_data[0] is array of audio samples based on sample_size_in_seconds parameter
             data.append(per_file_data[0][i])
             out_labels.append(label)
-    return data, out_labels
+    return data, out_labels, out_demo
 
+def read_audio_n_process_with_demo(file, label, demogra, base_path, sampling_rate, sample_size_in_seconds, overlap, normalise, method):
+    """
+    This method is called by the preprocess data method
+    :param file:
+    :param label:
+    :param base_path:
+    :param sampling_rate:
+    :param sample_size_in_seconds:
+    :param overlap:
+    :param normalise:
+    :return:
+    """
+    data, out_labels, out_demo = [], [], []
+    filepath = base_path + file
+    if os.path.exists(filepath):
+        audio, sr = librosa.load(filepath, sr=sampling_rate)
+        chunks = cut_audio(audio, sampling_rate=sr, sample_size_in_seconds=sample_size_in_seconds,
+                           overlap=overlap)
+        for chunk in chunks:
+            if method == 'fbank':
+                features = mel_filters(chunk, sr, normalise)
+            elif method == 'mfcc':
+                features = mfcc_features(chunk, sr, normalise)
+            elif method == 'gaf':
+                features = gaf(chunk)
+            else:
+                raise Exception(
+                        'Specify a method to use for pre processing raw audio signal. Available options - {fbank, mfcc, gaf}')
+            data.append(features)
+            out_labels.append(float(label))
+            out_demo.append(demogra.loc[file].values)
+    else:
+        print('File not found ', filepath)
+    return data, out_labels, out_demo
+
+def preprocess_data_with_demogra(base_path, files, labels, demogra, normalise, sample_size_in_seconds, sampling_rate, overlap, method):
+    data, out_labels, out_demo = [], [], []
+    aggregated_data = Parallel(n_jobs=8, backend='multiprocessing')(
+            delayed(read_audio_n_process_with_demo)(file, label, demogra, base_path, sampling_rate, sample_size_in_seconds, overlap,
+                                          normalise, method) for file, label in
+            tqdm(zip(files, labels), total=len(labels)))
+
+    for per_file_data in aggregated_data:
+        # per_file_data[1] are labels for the audio file.
+        # Might be an array as one audio file can be split into many pieces based on sample_size_in_seconds parameter
+        for i, label in enumerate(per_file_data[1]):
+            # per_file_data[0] is array of audio samples based on sample_size_in_seconds parameter
+            data.append(per_file_data[0][i])
+            out_labels.append(label)
+            out_demo.append(per_file_data[2][i])
+
+    return data, out_labels, out_demo
 
 # for images
 def read_audio_n_save_spectrograms(file, label, base_path, image_save_path, sampling_rate, sample_size_in_seconds,
@@ -187,8 +238,8 @@ def read_audio_n_save_spectrograms(file, label, base_path, image_save_path, samp
                            overlap=overlap)
         for i, chunk in enumerate(chunks):
             filename = image_save_path + file.split("/")[-1] + "_" + str(i) + "_label_" + str(label) + '.jpg'
-            mel_filters_with_spectrogram(chunk, sampling_rate, filename, normalise)
-            # mfcc_features(chunk, normalise)
+            # mel_filters_with_spectrogram(chunk, filename, normalise)
+            mfcc_features(chunk, normalise)
             data.append(filename)
             out_labels.append(float(label))
     return data, out_labels
@@ -203,18 +254,13 @@ def preprocess_data_images(base_path, image_save_path, files, labels, normalise,
                                                     overlap,
                                                     normalise) for file, label in
             tqdm(zip(files, labels), total=len(labels)))
-
-    for per_file_data in aggregated_data:
-        # per_file_data[1] are labels for the audio file.
-        # Might be an array as one audio file can be split into many pieces based on sample_size_in_seconds parameter
-        for i, label in enumerate(per_file_data[1]):
-            # per_file_data[0] is array of audio samples based on sample_size_in_seconds parameter
-            data.append(per_file_data[0][i])
-            out_labels.append(label)
+    for x in aggregated_data:
+        data.extend(x[0])
+        out_labels.extend(x[1])
     return data, out_labels
 
 
-############################## TESTING ##############################
+########## TESTING ###########
 # file = '/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/132bpm/AM_HiTeeb[A]_132D.wav'
 # note, sr = librosa.load(file)
 # print(note.shape)
@@ -248,57 +294,52 @@ def preprocess_data_images(base_path, image_save_path, files, labels, normalise,
 
 # mfcc()
 
-# def mel_filters_x():
-#     file_name = '/Users/badgod/badgod_documents/Projects/Alco_audio/data/ALC/DATA/audio_2.wav'
-#     audio, sample_rate = librosa.load(file_name, res_type='kaiser_fast')
-#
-#     print("audio, sample_rate", audio.shape, sample_rate)
-#     # plt.plot(range(len(audio)), audio)
-#     # plt.savefig('/Users/badgod/badgod_documents/Projects/Alco_audio/raw_signal.jpg')
-#     # plt.show()
-#     # exit()
-#     logmel = librosa.feature.melspectrogram(y=audio, sr=sample_rate, n_mels=40)
-#     print("melspectrogram ", logmel.shape)
-#     # exit()
-#     print(np.min(logmel), np.max(logmel))
-#     S_dB = librosa.power_to_db(logmel, ref=np.max)
-#     print(np.min(S_dB), np.max(S_dB))
-#     print(S_dB[0].shape)
-#     print(S_dB.shape)
-#     print(S_dB.mean())
-#     # S_dB = S_dB / 255
-#     print(S_dB.mean())
-#     # exit()
-#     # S_dB = np.mean(S_dB.T, axis=0)
-#     # print(S_dB.shape)
-#
-#     # plt.figure(figsize=(12, 8))
-#     # plt.plot(audio)
-#     # plt.plot(mfccsscaled)
-#     # librosa.display.specshow(logmel, sr=sample_rate, x_axis='time')
-#     librosa.display.specshow(S_dB, sr=sample_rate)
-#     plt.xlabel('Time')
-#     plt.ylabel('Mels')
-#     plt.savefig("/Users/badgod/badgod_documents/Projects/Alco_audio/test_40mels.jpg")
-#
-#     # plt.plot(S_dB)
-#     plt.show()
-#
-#     plt.close()
-#
-#
+def mel_filters_x():
+    file_name = '/Users/badgod/badgod_documents/Alco_audio/data/ALC/DATA/audio_2.wav'
+    audio, sample_rate = librosa.load(file_name, res_type='kaiser_fast')
+
+    print("audio, sample_rate", audio.shape, sample_rate)
+    logmel = librosa.feature.melspectrogram(y=audio, sr=sample_rate, n_mels=40)
+    print("melspectrogram ", logmel.shape)
+    exit()
+    print(np.min(logmel), np.max(logmel))
+    S_dB = librosa.power_to_db(logmel, ref=np.max)
+    print(np.min(S_dB), np.max(S_dB))
+    print(S_dB[0].shape)
+    print(S_dB.shape)
+    print(S_dB.mean())
+    # S_dB = S_dB / 255
+    print(S_dB.mean())
+    # exit()
+    # S_dB = np.mean(S_dB.T, axis=0)
+    # print(S_dB.shape)
+
+    plt.figure(figsize=(4, 3))
+    # plt.plot(audio)
+    # plt.plot(mfccsscaled)
+    # librosa.display.specshow(logmel, sr=sample_rate, x_axis='time')
+    librosa.display.specshow(S_dB, sr=sample_rate)
+    plt.xlabel('Time')
+    plt.ylabel('Mels')
+    plt.savefig("test_40mels.jpg")
+
+    # plt.plot(S_dB)
+    plt.show()
+
+    plt.close()
+
+
 # mel_filters_x()
-#
-#
+
+
 # import matplotlib.pyplot as plt
 # import numpy as np
-#
+
 # data = np.load("/Users/badgod/badgod_documents/Alco_audio/small_data/40_mels/train_challenge_data.npy",
 #                allow_pickle=True)
 # print(data.shape)
-#
+
 # data_means = np.array([x.mean() for x in data])
-#
+
 # plt.hist(data_means)
 # plt.show()
-############################## TESTING ##############################

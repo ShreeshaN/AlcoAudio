@@ -16,7 +16,7 @@ import librosa.display
 import matplotlib.pyplot as plt
 import torch
 import random
-from alcoaudio.datagen.nb_sparseImage_warp import sparse_image_warp
+from alcoaudio.datagen.nb_SparseImageWarp import sparse_image_warp
 
 
 def librosaSpectro_to_torchTensor(librosa_spectro):
