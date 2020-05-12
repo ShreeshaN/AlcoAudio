@@ -138,7 +138,7 @@ class ConvNet(nn.Module):
         """
         # x = self.reshape_for_pytorch(x)
         # x = x.permute(0, 3, 1, 2)
-        x = tensor(x).unsqueeze(1)
+        x = x.unsqueeze(1)
         x = F.relu(self.conv1_bn(self.conv1(x)))
         x = F.relu(self.conv2_bn(self.conv2(x)))
         x = self.pool1(x)
