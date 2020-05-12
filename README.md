@@ -14,6 +14,7 @@ Detection of Alcohol induced intoxication through voice using Neural Networks
 * [Future work](#future-work-todo)
   * [Data Representations](#improve-on-data-representations)
   * [New Architecture try outs](#try-new-architectures)
+* [Known Issues](#known-issues)
 * [License](#license)
 * [Acknowledgement](#acknowledgements)
 
@@ -35,13 +36,13 @@ These raw audio signals are converted into Mel filters using ```librosa```. Belo
 Below are the architectures tried. All the files are under [networks](https://github.com/ShreeshaN/AlcoAudio/tree/master/alcoaudio/networks) folder. 
 
 
-|Networks   |  Loss | UAR  |
+|Networks   |  Log Loss | UAR(Unweighted Average Recall)  |
 |---|---|---|
-|  [Convolutional Neural Networks](https://github.com/ShreeshaN/AlcoAudio/blob/master/alcoaudio/networks/convnet.py)(convnet) |   |   |
-| [LSTM](https://github.com/ShreeshaN/AlcoAudio/blob/master/alcoaudio/networks/recurrent_net.py)(lstm)  |   |   |
-| [Conv LSTMs](https://github.com/ShreeshaN/AlcoAudio/blob/master/alcoaudio/networks/crnn.py)(crnn)  |   |   |
-| [One class Neural Networks](https://github.com/ShreeshaN/AlcoAudio/blob/OC_NN/alcoaudio/networks/oneclass_net.py)(ocnn)  |   |   |
-| [Conv Auto Encoders](https://github.com/ShreeshaN/AlcoAudio/blob/autoencoders/alcoaudio/networks/convautoencoder_net.py)(cae)  |   |   |
+|  [Convolutional Neural Networks](https://github.com/ShreeshaN/AlcoAudio/blob/master/alcoaudio/networks/convnet.py)(convnet) |  0.89 | 66.28  |
+| [LSTM](https://github.com/ShreeshaN/AlcoAudio/blob/master/alcoaudio/networks/recurrent_net.py)(lstm)  |  1.59 | 58.12  |
+| [Conv LSTMs](https://github.com/ShreeshaN/AlcoAudio/blob/master/alcoaudio/networks/crnn.py)(crnn)  |  1.17 | 62.27  |
+| [One class Neural Networks](https://github.com/ShreeshaN/AlcoAudio/blob/OC_NN/alcoaudio/networks/oneclass_net.py)(ocnn)  |  1.81 |  55 |
+| [Conv Auto Encoders](https://github.com/ShreeshaN/AlcoAudio/blob/autoencoders/alcoaudio/networks/convautoencoder_net.py)(cae)  | 0.92  | 65.53  |
 
 
 
@@ -91,6 +92,13 @@ One can use our model for inference. The best model is being saved under [best_m
 
  - [ ] Conditional Variational AutoEncoder
  - [ ] Convolutional One class Neural Network
+
+## Known Issues
+1. As training progresses, test and valid log losses increase. The confidence with which the network miss predicts increase. The below graph depicts this behaviour
+![CF plot](plots/cf_plot.png) <!-- .element height=250 width=250 -->
+
+2. Mel filters or MFCC are not the best representation for this use case as these representations fail to capture variance in the amplitudes rather just try to mimic human voice. 
+![Data 2d plot ](plots/data_plot.png) <!-- .element height=250 width=250 -->
 
 ## **License**
 [MIT](https://choosealicense.com/licenses/mit/)
