@@ -104,5 +104,5 @@ One can use our model for inference. The best model is being saved under [best_m
 [MIT](https://choosealicense.com/licenses/mit/)
 
 ## **Acknowledgements**
-I would like to thank [Emmanuel O. Agu](https://www.wpi.edu/people/faculty/emmanuel) for guiding our team throughout. I would also like to thank team members [Pratik](https://github.com/PRAkTIKal24), [Arjun](https://github.com/arjunrao796123) and [Mitesh]() for all their contributions.
+Our team would like to thank Professor [Emmanuel O. Agu](https://www.wpi.edu/people/faculty/emmanuel) for guiding our team throughout. I would like to thank team members [Pratik](https://github.com/PRAkTIKal24), [Arjun](https://github.com/arjunrao796123) and [Mitesh]() for all their contributions.
 
