@@ -15,7 +15,6 @@ Detection of Alcohol induced intoxication through voice using Neural Networks
   * [Data Representations](#improve-on-data-representations)
   * [New Architecture try outs](#try-new-architectures)
 * [Known Issues](#known-issues)
-* [License](#license)
 * [Acknowledgement](#acknowledgements)
 
 
@@ -100,8 +99,6 @@ One can use our model for inference. The best model is being saved under [best_m
 2. Mel filters or MFCC are not the best representation for this use case as these representations fail to capture variance in the amplitudes rather just try to mimic human voice. 
 ![Data 2d plot ](plots/data_plot.png) <!-- .element height=250 width=250 -->
 
-## **License**
-[MIT](https://choosealicense.com/licenses/mit/)
 
 ## **Acknowledgements**
 Our team would like to thank Professor [Emmanuel O. Agu](https://www.wpi.edu/people/faculty/emmanuel) for guiding our team throughout. I would like to thank team members [Pratik](https://github.com/PRAkTIKal24), [Arjun](https://github.com/arjunrao796123) and [Mitesh]() for all their contributions.
