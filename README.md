@@ -58,7 +58,7 @@ Below are the architectures tried. All the files are under [networks](https://gi
 
 ## Usage
 
-###**Data generation**
+### **Data generation**
 
 Run ```data_processor.py``` to generate data required for training the model. It reads the raw audio samples, splits into ```n``` seconds and generates Mel filters, also called as Filter Banks (```fbank``` paramater in config file. Other available audio features are ```mfcc``` & ```gaf```)
 
