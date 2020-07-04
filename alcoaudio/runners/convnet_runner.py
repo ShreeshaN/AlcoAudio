@@ -262,7 +262,7 @@ class ConvNetRunner:
                             file=self.log_file)
 
             # Decay learning rate
-            self.scheduler.step(epoch=epoch)
+            # self.scheduler.step(epoch=epoch)
             log_summary(self.writer, epoch, accuracy=np.mean(self.batch_accuracy),
                         loss=np.mean(self.batch_loss),
                         uar=np.mean(self.batch_uar), lr=self.optimiser.state_dict()['param_groups'][0]['lr'],
