@@ -20,6 +20,10 @@ from tqdm import tqdm
 import time
 from joblib import Parallel, delayed
 from pyts.image import GramianAngularField
+import torch
+from pyannote.audio.utils.signal import Binarize
+
+sad = torch.hub.load('pyannote/pyannote-audio', 'sad_ami')
 
 
 def mfcc_features(audio, sampling_rate, normalise=False):
@@ -127,6 +131,28 @@ def envelope(y, rate, threshold):
     return mask
 
 
+def remove_silent_parts(filepath, sr):
+    audio, sr = librosa.load(filepath, sr=sr)
+    test_file = {'uri': filepath.split('/')[-1], 'audio': filepath}
+
+    # obtain raw SAD scores (as `pyannote.core.SlidingWindowFeature` instance)
+    sad_scores = sad(test_file)
+
+    # binarize raw SAD scores
+    # NOTE: both onset/offset values were tuned on AMI dataset.
+    # you might need to use different values for better results.
+    binarize = Binarize(offset=0.52, onset=0.52, log_scale=True,
+                        min_duration_off=0.1, min_duration_on=0.1)
+
+    # speech regions (as `pyannote.core.Timeline` instance)
+    speech = binarize.apply(sad_scores, dimension=1)
+
+    audio_pieces = []
+    for segment in speech:
+        segment = list(segment)
+        audio_pieces.extend(audio[int(segment[0] * sr):int(segment[1] * sr)])
+    return np.array(audio_pieces)
+
 def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap, normalise, method):
     """
     This method is called by the preprocess data method
@@ -142,9 +168,11 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
     data, out_labels = [], []
     filepath = base_path + file
     if os.path.exists(filepath):
-        audio, sr = librosa.load(filepath, sr=sampling_rate)
-        mask = envelope(audio, sr, 0.0005)
-        audio = audio[mask]
+        # audio, sr = librosa.load(filepath, sr=sampling_rate)
+        # mask = envelope(audio, sr, 0.0005)
+        # audio = audio[mask]
+        sr = sampling_rate
+        audio = remove_silent_parts(filepath, sr=sampling_rate)
         chunks = cut_audio(audio, sampling_rate=sr, sample_size_in_seconds=sample_size_in_seconds,
                            overlap=overlap)
         for chunk in chunks:
