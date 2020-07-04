@@ -174,7 +174,7 @@ class ConvNetRunner:
         self.network.eval()
         for m in self.network.modules():
             if isinstance(m, nn.BatchNorm2d):
-                m.track_runing_stats = False
+                m.track_running_stats = False
         predictions_dict = {"tp": [], "fp": [], "tn": [], "fn": []}
         predictions = []
         self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
