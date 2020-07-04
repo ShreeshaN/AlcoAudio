@@ -15,6 +15,7 @@ import librosa.display
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import pandas as pd
 from tqdm import tqdm
 import time
 from joblib import Parallel, delayed
@@ -113,6 +114,19 @@ def cut_audio(audio, sampling_rate, sample_size_in_seconds, overlap):
     return audio_list
 
 
+def envelope(y, rate, threshold):
+    mask = []
+    y = pd.Series(y).apply(np.abs)
+    y_mean = y.rolling(window=int(rate / 10), min_periods=1, center=True).mean()
+    for e, mean in enumerate(y_mean):
+        # print('Mean - ', e, int(e/rate) ,mean) if e%500==0 else None
+        if mean > threshold:
+            mask.append(True)
+        else:
+            mask.append(False)
+    return mask
+
+
 def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap, normalise, method):
     """
     This method is called by the preprocess data method
@@ -129,6 +143,8 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
     filepath = base_path + file
     if os.path.exists(filepath):
         audio, sr = librosa.load(filepath, sr=sampling_rate)
+        mask = envelope(audio, sr, 0.0005)
+        audio = audio[mask]
         chunks = cut_audio(audio, sampling_rate=sr, sample_size_in_seconds=sample_size_in_seconds,
                            overlap=overlap)
         for chunk in chunks:
@@ -212,7 +228,6 @@ def preprocess_data_images(base_path, image_save_path, files, labels, normalise,
             data.append(per_file_data[0][i])
             out_labels.append(label)
     return data, out_labels
-
 
 ############################## TESTING ##############################
 # file = '/Users/badgod/Downloads/musicradar-303-style-acid-samples/High Arps/132bpm/AM_HiTeeb[A]_132D.wav'
