@@ -171,7 +171,7 @@ class ConvNetRunner:
                 return input_data, labels
 
     def run_for_epoch(self, epoch, x, y, type):
-        self.network.eval()
+        # self.network.eval()
         predictions_dict = {"tp": [], "fp": [], "tn": [], "fn": []}
         predictions = []
         self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
@@ -233,7 +233,7 @@ class ConvNetRunner:
 
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
-            self.network.train()
+            # self.network.train()
             self.batch_loss, self.batch_accuracy, self.batch_uar, audio_for_tensorboard_train = [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
                 self.optimiser.zero_grad()
