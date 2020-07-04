@@ -171,6 +171,7 @@ class ConvNetRunner:
                 return input_data, labels
 
     def run_for_epoch(self, epoch, x, y, type):
+        self.network.eval()
         predictions_dict = {"tp": [], "fp": [], "tn": [], "fn": []}
         predictions = []
         self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
@@ -216,15 +217,15 @@ class ConvNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_with_d1_without_powerdb_silence_data.npy',
-                                                    self.data_read_path + 'train_challenge_with_d1_without_powerdb_silence_labels.npy',
+        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_with_d1_data.npy',
+                                                    self.data_read_path + 'train_challenge_with_d1_labels.npy',
                                                     shuffle=True,
                                                     train=True)
-        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_without_powerdb_silence_data.npy',
-                                                self.data_read_path + 'dev_challenge_with_d1_without_powerdb_silence_labels.npy',
+        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_data.npy',
+                                                self.data_read_path + 'dev_challenge_with_d1_labels.npy',
                                                 shuffle=False, train=False)
-        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_with_d1_without_powerdb_silence_data.npy',
-                                                  self.data_read_path + 'test_challenge_with_d1_without_powerdb_silence_labels.npy',
+        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_data.npy',
+                                                  self.data_read_path + 'test_challenge_labels.npy',
                                                   shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
@@ -232,6 +233,7 @@ class ConvNetRunner:
 
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
+            self.network.train()
             self.batch_loss, self.batch_accuracy, self.batch_uar, audio_for_tensorboard_train = [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
                 self.optimiser.zero_grad()
