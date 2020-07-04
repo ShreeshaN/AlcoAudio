@@ -168,11 +168,11 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
     data, out_labels = [], []
     filepath = base_path + file
     if os.path.exists(filepath):
-        # audio, sr = librosa.load(filepath, sr=sampling_rate)
+        audio, sr = librosa.load(filepath, sr=sampling_rate)
         # mask = envelope(audio, sr, 0.0005)
         # audio = audio[mask]
         sr = sampling_rate
-        audio = remove_silent_parts(filepath, sr=sampling_rate)
+        # audio = remove_silent_parts(filepath, sr=sampling_rate)
         chunks = cut_audio(audio, sampling_rate=sr, sample_size_in_seconds=sample_size_in_seconds,
                            overlap=overlap)
         for chunk in chunks:
@@ -207,6 +207,18 @@ def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds,
             data.append(per_file_data[0][i])
             out_labels.append(label)
     return data, out_labels
+
+
+def remove_silent_parts_from_audio(base_path, files, sampling_rate):
+    for file in tqdm(files):
+        filepath = base_path + file
+        if os.path.exists(filepath):
+            sr = sampling_rate
+            audio = remove_silent_parts(filepath, sr=sampling_rate)
+            new_filename = 'removed_'+filepath.split('/')[-1]
+            librosa.output.write_wav(base_path+new_filename, audio, sr)
+        else:
+            print('File not found ', filepath)
 
 
 # for images

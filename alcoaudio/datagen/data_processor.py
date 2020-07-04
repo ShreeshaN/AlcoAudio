@@ -15,7 +15,8 @@ import json
 import numpy as np
 
 from alcoaudio.utils.class_utils import AttributeDict
-from alcoaudio.datagen.audio_feature_extractors import preprocess_data, preprocess_data_images
+from alcoaudio.datagen.audio_feature_extractors import preprocess_data, preprocess_data_images, \
+    remove_silent_parts_from_audio
 from alcoaudio.utils.data_utils import save_h5py, save_npy, save_csv
 
 
@@ -100,16 +101,31 @@ class DataProcessor:
         save_csv(concat_data, columns=["spectrogram_path", "labels"], filename=
         self.data_save_path + '/' + filename_to_save + '_data_melfilter_specs.csv')
 
+    def silent_parts_removal(self, data_file):
+        df = pd.read_csv(data_file, header=None, delimiter='\t')
+        print('Number of audio files ', len(df))
+
+        # Irregular use of extensions in data, so handling it here
+        df[0] = df[0].apply(lambda x: x.replace('WAV', 'wav'))
+        remove_silent_parts_from_audio(self.base_path, df[0].values,self.sampling_rate)
+
     def run(self):
+        # print('Started processing train data . . .')
+        # self.process_audio_and_save_npy_challenge(self.train_data_file,
+        #                                           filename_to_save='train_challenge_with_d1_without_powerdb_silence_pyannote')
+        # print('Started processing dev data . . .')
+        # self.process_audio_and_save_npy_challenge(self.dev_data_file,
+        #                                           filename_to_save='dev_challenge_with_d1_without_powerdb_silence_pyannote')
+        # print('Started processing test data . . .')
+        # self.process_audio_and_save_npy_challenge(self.test_data_file,
+        #                                           filename_to_save='test_challenge_with_d1_without_powerdb_silence_pyannote')
+
         print('Started processing train data . . .')
-        self.process_audio_and_save_npy_challenge(self.train_data_file,
-                                                  filename_to_save='train_challenge_with_d1_without_powerdb_silence_pyannote')
+        self.silent_parts_removal(self.train_data_file)
         print('Started processing dev data . . .')
-        self.process_audio_and_save_npy_challenge(self.dev_data_file,
-                                                  filename_to_save='dev_challenge_with_d1_without_powerdb_silence_pyannote')
+        self.silent_parts_removal(self.dev_data_file)
         print('Started processing test data . . .')
-        self.process_audio_and_save_npy_challenge(self.test_data_file,
-                                                  filename_to_save='test_challenge_with_d1_without_powerdb_silence_pyannote')
+        self.silent_parts_removal(self.test_data_file)
 
     def run_images(self):
         print('Started processing train data . . .')
