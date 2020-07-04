@@ -215,8 +215,9 @@ def remove_silent_parts_from_audio(base_path, files, sampling_rate):
         if os.path.exists(filepath):
             sr = sampling_rate
             audio = remove_silent_parts(filepath, sr=sampling_rate)
-            new_filename = 'removed_'+filepath.split('/')[-1]
-            librosa.output.write_wav(base_path+new_filename, audio, sr)
+            path_to_create = base_path+'removed/'+file
+            os.makedirs('/'.join(path_to_create.split('/')[:-1]), exist_ok=True)
+            librosa.output.write_wav(path_to_create, audio, sr)
         else:
             print('File not found ', filepath)
 
