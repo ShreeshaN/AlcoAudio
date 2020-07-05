@@ -177,7 +177,7 @@ class ConvNetRunner:
                 m.track_running_stats = False
         predictions_dict = {"tp": [], "fp": [], "tn": [], "fn": []}
         predictions = []
-        self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, audio_for_tensorboard_test = [], [], [], [], None
+        self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, self.test_batch_f1, self.test_batch_precision, self.test_batch_recall, audio_for_tensorboard_test = [], [], [], [], [], [], [], None
         with torch.no_grad():
             for i, (audio_data, label) in enumerate(zip(x, y)):
                 label = to_tensor(label, device=self.device).float()
@@ -186,10 +186,15 @@ class ConvNetRunner:
                 test_loss = self.loss_function(test_predictions, label)
                 test_predictions = nn.Sigmoid()(test_predictions)
                 predictions.append(to_numpy(test_predictions))
-                test_accuracy, test_uar = accuracy_fn(test_predictions, label, self.threshold)
+                test_accuracy, test_uar, test_precision, test_recall, test_f1 = accuracy_fn(test_predictions, label,
+                                                                                            self.threshold)
                 self.test_batch_loss.append(to_numpy(test_loss))
                 self.test_batch_accuracy.append(to_numpy(test_accuracy))
                 self.test_batch_uar.append(test_uar)
+                self.test_batch_f1.append(test_f1)
+                self.test_batch_precision.append(test_precision)
+                self.test_batch_recall.append(test_recall)
+
                 tp, fp, tn, fn = custom_confusion_matrix(test_predictions, label, threshold=self.threshold)
                 predictions_dict['tp'].extend(tp)
                 predictions_dict['fp'].extend(fp)
@@ -199,9 +204,9 @@ class ConvNetRunner:
         print(f'***** {type} Metrics ***** ')
         print(f'***** {type} Metrics ***** ', file=self.log_file)
         print(
-                f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}")
+                f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}| F1:{np.mean(self.test_batch_f1)} | Precision:{np.mean(self.test_batch_precision)} | Recall:{np.mean(self.test_batch_recall)}")
         print(
-                f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}",
+                f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}| F1:{np.mean(self.test_batch_f1)} | Precision:{np.mean(self.test_batch_precision)} | Recall:{np.mean(self.test_batch_recall)}",
                 file=self.log_file)
 
         log_summary(self.writer, epoch, accuracy=np.mean(self.test_batch_accuracy),
@@ -220,17 +225,6 @@ class ConvNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        # train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_with_d1_without_powerdb_silence_pyannote_data.npy',
-        #                                             self.data_read_path + 'train_challenge_with_d1_without_powerdb_silence_pyannote_labels.npy',
-        #                                             shuffle=True,
-        #                                             train=True)
-        # dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_without_powerdb_silence_pyannote_data.npy',
-        #                                         self.data_read_path + 'dev_challenge_with_d1_without_powerdb_silence_pyannote_labels.npy',
-        #                                         shuffle=False, train=False)
-        # test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_with_d1_without_powerdb_silence_pyannote_data.npy',
-        #                                           self.data_read_path + 'test_challenge_with_d1_without_powerdb_silence_pyannote_labels.npy',
-        #                                           shuffle=False, train=False)
-
         train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_with_d1_data.npy',
                                                     self.data_read_path + 'train_challenge_with_d1_labels.npy',
                                                     shuffle=True,
@@ -248,7 +242,7 @@ class ConvNetRunner:
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
             self.network.train()
-            self.batch_loss, self.batch_accuracy, self.batch_uar, audio_for_tensorboard_train = [], [], [], None
+            self.batch_loss, self.batch_accuracy, self.batch_uar, self.batch_f1, self.batch_precision, self.batch_recall, audio_for_tensorboard_train = [], [], [], [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
                 self.optimiser.zero_grad()
                 label = to_tensor(label, device=self.device).float()
@@ -260,14 +254,17 @@ class ConvNetRunner:
                 predictions = nn.Sigmoid()(predictions)
                 loss.backward()
                 self.optimiser.step()
-                accuracy, uar = accuracy_fn(predictions, label, self.threshold)
+                accuracy, uar, precision, recall, f1 = accuracy_fn(predictions, label, self.threshold)
                 self.batch_loss.append(to_numpy(loss))
                 self.batch_accuracy.append(to_numpy(accuracy))
                 self.batch_uar.append(uar)
+                self.batch_f1.append(f1)
+                self.batch_precision.append(precision)
+                self.batch_recall.append(recall)
 
                 if i % self.display_interval == 0:
                     print(
-                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}")
+                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}| F1:{f1} | Precision:{precision} | Recall:{recall}")
                     print(
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}",
                             file=self.log_file)
@@ -281,9 +278,9 @@ class ConvNetRunner:
             print('***** Overall Train Metrics ***** ')
             print('***** Overall Train Metrics ***** ', file=self.log_file)
             print(
-                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ")
+                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} | F1:{np.mean(self.batch_f1)} | Precision:{np.mean(self.batch_precision)} | Recall:{np.mean(self.batch_recall)}")
             print(
-                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} ",
+                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} | F1:{np.mean(self.batch_f1)} | Precision:{np.mean(self.batch_precision)} | Recall:{np.mean(self.batch_recall)}",
                     file=self.log_file)
             print('Learning rate ', self.optimiser.state_dict()['param_groups'][0]['lr'])
             print('Learning rate ', self.optimiser.state_dict()['param_groups'][0]['lr'], file=self.log_file)

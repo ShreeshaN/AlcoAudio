@@ -12,7 +12,7 @@
 
 from torch import tensor
 import torch
-from sklearn.metrics import recall_score
+from sklearn.metrics import recall_score, precision_recall_fscore_support
 import numpy as np
 import os
 
@@ -34,11 +34,14 @@ def to_numpy(x):
 
 
 def accuracy_fn(preds, labels, threshold):
-    # todo: UAR implementation is wrong. Tweak it once the model is ready
+    # todo: Remove F1, Precision, Recall from returm , or change all caller method dynamics
+
     predictions = torch.where(preds > to_tensor(threshold), to_tensor(1), to_tensor(0))
+    precision, recall, f1, _ = precision_recall_fscore_support(to_numpy(labels), to_numpy(predictions),
+                                                               average='binary')
     accuracy = torch.sum(predictions == labels) / float(len(labels))
     uar = recall_score(to_numpy(labels), to_numpy(predictions), average='macro')
-    return accuracy, uar
+    return accuracy, uar, precision, recall, f1
 
 
 def log_summary(writer, global_step, accuracy, loss, uar, lr, type):
