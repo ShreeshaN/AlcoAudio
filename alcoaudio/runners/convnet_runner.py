@@ -220,15 +220,26 @@ class ConvNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_with_d1_without_powerdb_silence_pyannote_data.npy',
-                                                    self.data_read_path + 'train_challenge_with_d1_without_powerdb_silence_pyannote_labels.npy',
+        # train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_with_d1_without_powerdb_silence_pyannote_data.npy',
+        #                                             self.data_read_path + 'train_challenge_with_d1_without_powerdb_silence_pyannote_labels.npy',
+        #                                             shuffle=True,
+        #                                             train=True)
+        # dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_without_powerdb_silence_pyannote_data.npy',
+        #                                         self.data_read_path + 'dev_challenge_with_d1_without_powerdb_silence_pyannote_labels.npy',
+        #                                         shuffle=False, train=False)
+        # test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_with_d1_without_powerdb_silence_pyannote_data.npy',
+        #                                           self.data_read_path + 'test_challenge_with_d1_without_powerdb_silence_pyannote_labels.npy',
+        #                                           shuffle=False, train=False)
+
+        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_with_d1_data.npy',
+                                                    self.data_read_path + 'train_challenge_with_d1_labels.npy',
                                                     shuffle=True,
                                                     train=True)
-        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_without_powerdb_silence_pyannote_data.npy',
-                                                self.data_read_path + 'dev_challenge_with_d1_without_powerdb_silence_pyannote_labels.npy',
+        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_data.npy',
+                                                self.data_read_path + 'dev_challenge_with_d1_labels.npy',
                                                 shuffle=False, train=False)
-        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_with_d1_without_powerdb_silence_pyannote_data.npy',
-                                                  self.data_read_path + 'test_challenge_with_d1_without_powerdb_silence_pyannote_labels.npy',
+        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_data.npy',
+                                                  self.data_read_path + 'test_challenge_labels.npy',
                                                   shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
