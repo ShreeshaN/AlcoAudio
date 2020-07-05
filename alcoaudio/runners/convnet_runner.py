@@ -204,9 +204,9 @@ class ConvNetRunner:
         print(f'***** {type} Metrics ***** ')
         print(f'***** {type} Metrics ***** ', file=self.log_file)
         print(
-                f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}| F1:{np.mean(self.test_batch_f1)} | Precision:{np.mean(self.test_batch_precision)} | Recall:{np.mean(self.test_batch_recall)}")
+                f"Loss: {'%.3f' % np.mean(self.test_batch_loss)} | Accuracy: {'%.3f' % np.mean(self.test_batch_accuracy)} | UAR: {'%.3f' % np.mean(self.test_batch_uar)}| F1:{'%.3f' % np.mean(self.test_batch_f1)} | Precision:{'%.3f' % np.mean(self.test_batch_precision)} | Recall:{'%.3f' % np.mean(self.test_batch_recall)}")
         print(
-                f"Loss: {np.mean(self.test_batch_loss)} | Accuracy: {np.mean(self.test_batch_accuracy)} | UAR: {np.mean(self.test_batch_uar)}| F1:{np.mean(self.test_batch_f1)} | Precision:{np.mean(self.test_batch_precision)} | Recall:{np.mean(self.test_batch_recall)}",
+                f"Loss: {'%.3f' % np.mean(self.test_batch_loss)} | Accuracy: {'%.3f' % np.mean(self.test_batch_accuracy)} | UAR: {'%.3f' % np.mean(self.test_batch_uar)}| F1:{'%.3f' % np.mean(self.test_batch_f1)} | Precision:{'%.3f' % np.mean(self.test_batch_precision)} | Recall:{'%.3f' % np.mean(self.test_batch_recall)}",
                 file=self.log_file)
 
         log_summary(self.writer, epoch, accuracy=np.mean(self.test_batch_accuracy),
@@ -264,9 +264,9 @@ class ConvNetRunner:
 
                 if i % self.display_interval == 0:
                     print(
-                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}| F1:{f1} | Precision:{precision} | Recall:{recall}")
+                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {'%.3f' % loss} | Accuracy: {'%.3f' % accuracy} | UAR: {'%.3f' % uar}| F1:{'%.3f' % f1} | Precision: {'%.3f' % precision} | Recall: {'%.3f' % recall}")
                     print(
-                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {loss} | Accuracy: {accuracy} | UAR: {uar}",
+                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {'%.3f' % loss} | Accuracy: {accuracy} | UAR: {'%.3f' % uar}| F1:{'%.3f' % f1} | Precision: {'%.3f' % precision} | Recall: {'%.3f' % recall}",
                             file=self.log_file)
 
             # Decay learning rate
@@ -278,9 +278,9 @@ class ConvNetRunner:
             print('***** Overall Train Metrics ***** ')
             print('***** Overall Train Metrics ***** ', file=self.log_file)
             print(
-                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} | F1:{np.mean(self.batch_f1)} | Precision:{np.mean(self.batch_precision)} | Recall:{np.mean(self.batch_recall)}")
+                    f"Loss: {'%.3f' % np.mean(self.batch_loss)} | Accuracy: {'%.3f' % np.mean(self.batch_accuracy)} | UAR: {'%.3f' % np.mean(self.batch_uar)} | F1:{'%.3f' % np.mean(self.batch_f1)} | Precision:{'%.3f' % np.mean(self.batch_precision)} | Recall:{'%.3f' % np.mean(self.batch_recall)}")
             print(
-                    f"Loss: {np.mean(self.batch_loss)} | Accuracy: {np.mean(self.batch_accuracy)} | UAR: {np.mean(self.batch_uar)} | F1:{np.mean(self.batch_f1)} | Precision:{np.mean(self.batch_precision)} | Recall:{np.mean(self.batch_recall)}",
+                    f"Loss: {'%.3f' % np.mean(self.batch_loss)} | Accuracy: {'%.3f' % np.mean(self.batch_accuracy)} | UAR: {'%.3f' % np.mean(self.batch_uar)} | F1:{'%.3f' % np.mean(self.batch_f1)} | Precision:{'%.3f' % np.mean(self.batch_precision)} | Recall:{'%.3f' % np.mean(self.batch_recall)}",
                     file=self.log_file)
             print('Learning rate ', self.optimiser.state_dict()['param_groups'][0]['lr'])
             print('Learning rate ', self.optimiser.state_dict()['param_groups'][0]['lr'], file=self.log_file)
