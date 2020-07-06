@@ -80,6 +80,8 @@ class DataProcessor:
         print('Number of audio files after processing ', len(data))
         save_npy(data, self.data_save_path + '/' + filename_to_save + '_data.npy')
         save_npy(labels, self.data_save_path + '/' + filename_to_save + '_labels.npy')
+        del data
+        del labels
 
     def process_audio_and_save_csv(self, data_file, filename_to_save, shuffle=True):
         df = pd.read_csv(data_file, header=None, delimiter='\t')
@@ -107,12 +109,12 @@ class DataProcessor:
 
         # Irregular use of extensions in data, so handling it here
         df[0] = df[0].apply(lambda x: x.replace('WAV', 'wav'))
-        remove_silent_parts_from_audio(self.base_path, df[0].values,self.sampling_rate)
+        remove_silent_parts_from_audio(self.base_path, df[0].values, self.sampling_rate)
 
     def run(self):
-        print('Started processing train data . . .')
-        self.process_audio_and_save_npy_challenge(self.train_data_file,
-                                                  filename_to_save='train_challenge_with_d1_raw_16k')
+        # print('Started processing train data . . .')
+        # self.process_audio_and_save_npy_challenge(self.train_data_file,
+        #                                           filename_to_save='train_challenge_with_d1_raw_16k')
         print('Started processing dev data . . .')
         self.process_audio_and_save_npy_challenge(self.dev_data_file,
                                                   filename_to_save='dev_challenge_with_d1_raw_16k')
