@@ -259,8 +259,8 @@ class SincNetRunner:
                 self.optimiser.zero_grad()
                 label = to_tensor(label, device=self.device).float()
                 audio_data = to_tensor(audio_data, device=self.device)
-                if i == 0:
-                    self.writer.add_graph(self.network, audio_data)
+                # if i == 0:
+                #     self.writer.add_graph(self.network, audio_data)
                 predictions = self.network(audio_data).squeeze(1)
                 loss = self.loss_function(predictions, label)
                 predictions = nn.Sigmoid()(predictions)
