@@ -28,7 +28,22 @@
   "overlap": 1,
   "data_save_path": "/home/aostapenko/dr_alcocudio/AlcoAudio/",
   "image_data_save_path": "/home/snarasimhamurthy/images/",
-  "data_processing_method": "fbank",
+  "data_processing_method": "raw",
   "debug_filename": "predictions_debug.npy",
-  "cae_model_restore_path": "/home/aostapenko/dr_alcocudio/shell_scripts/results/emotion_alco_audio_challenge_data_cae_both_classes_1587421865/alco_trained_models/emotion_alco_audio_challenge_data_cae_both_classes_1587421865_27.pt"
+  "cae_model_restore_path": "/home/aostapenko/dr_alcocudio/shell_scripts/results/emotion_alco_audio_challenge_data_cae_both_classes_1587421865/alco_trained_models/emotion_alco_audio_challenge_data_cae_both_classes_1587421865_27.pt",
+
+
+  "sincnet_configs": "",
+  "cnn_N_filt": [80,60,60],
+  "cnn_len_filt": [251,5,5],
+  "cnn_max_pool_len": [3,3,3],
+  "cnn_act": ["leaky_relu","leaky_relu","leaky_relu"],
+  "cnn_drop": [0.0,0.0,0.0],
+  "cnn_use_laynorm": [true,true,true],
+  "cnn_use_batchnorm": [false,false,false],
+  "cnn_use_laynorm_inp": true,
+  "cnn_use_batchnorm_inp": false,
+  "input_dim": "",
+  "fs": "44100",
+  "sincnet_saved_model": "raw_model.pkl"
 }

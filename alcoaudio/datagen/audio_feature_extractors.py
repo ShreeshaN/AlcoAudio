@@ -182,9 +182,11 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
                 features = mfcc_features(chunk, sr, normalise)
             elif method == 'gaf':
                 features = gaf(chunk)
+            elif method == 'raw':
+                features = chunk
             else:
                 raise Exception(
-                        'Specify a method to use for pre processing raw audio signal. Available options - {fbank, mfcc, gaf}')
+                        'Specify a method to use for pre processing raw audio signal. Available options - {fbank, mfcc, gaf, raw}')
             data.append(features)
             out_labels.append(float(label))
     else:
