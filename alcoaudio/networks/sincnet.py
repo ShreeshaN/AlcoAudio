@@ -188,9 +188,11 @@ class SincNet(nn.Module):
 
     def __init__(self, options):
         super(SincNet, self).__init__()
-        self.saved_model = \
-            torch.load(options['sincnet_saved_model'], map_location='gpu' if torch.cuda.is_available() else 'cpu')[
-                'CNN_model_par']
+        # self.saved_model = \
+        #     torch.load(options['sincnet_saved_model'], map_location='gpu' if torch.cuda.is_available() else 'cpu')[
+        #         'CNN_model_par']
+        # print(self.saved_model.keys())
+        # exit()
         self.batch_size = options['batch_size']
         self.cnn_N_filt = options['cnn_N_filt']
         self.cnn_len_filt = options['cnn_len_filt']
@@ -217,9 +219,16 @@ class SincNet(nn.Module):
 
         if self.cnn_use_laynorm_inp:
             self.ln0 = LayerNorm(self.input_dim)
+            # self.ln0.beta = nn.Parameter(self.saved_model['ln0.beta'])
+            # self.ln0.gamma = nn.Parameter(self.saved_model['ln0.gamma'])
 
         if self.cnn_use_batchnorm_inp:
             self.bn0 = nn.BatchNorm1d([self.input_dim], momentum=0.05)
+            # self.bn0.weight = nn.Parameter(self.saved_model['bn0.weight'])
+            # self.bn0.bias = nn.Parameter(self.saved_model['bn0.bias'])
+            # self.bn0.running_mean = nn.Parameter(self.saved_model['bn0.running_mean'])
+            # self.bn0.running_var = nn.Parameter(self.saved_model['bn0.running_var'])
+            # self.bn0.num_batches_tracked = nn.Parameter(self.saved_model['bn0.num_batches_tracked'])
 
         current_input = self.input_dim
 
@@ -235,12 +244,19 @@ class SincNet(nn.Module):
             self.act.append(act_fun(self.cnn_act[i]))
 
             # layer norm initialization
-            self.ln.append(
-                    LayerNorm([N_filt, int((current_input - self.cnn_len_filt[i] + 1) / self.cnn_max_pool_len[i])]))
+            ln = LayerNorm([N_filt, int((current_input - self.cnn_len_filt[i] + 1) / self.cnn_max_pool_len[i])])
+            # ln.beta = self.saved_model['ln' + str(i) + '.beta']
+            # ln.gamma = self.saved_model['ln' + str(i) + '.gamma']
+            self.ln.append(ln)
 
-            self.bn.append(
-                    nn.BatchNorm1d(N_filt, int((current_input - self.cnn_len_filt[i] + 1) / self.cnn_max_pool_len[i]),
-                                   momentum=0.05))
+            bn = nn.BatchNorm1d(N_filt, int((current_input - self.cnn_len_filt[i] + 1) / self.cnn_max_pool_len[i]),
+                                momentum=0.05)
+            # bn.weight = nn.Parameter(self.saved_model['bn' + str(i) + '.weight'])
+            # bn.bias = nn.Parameter(self.saved_model['bn' + str(i) + '.bias'])
+            # bn.running_mean = nn.Parameter(self.saved_model['bn' + str(i) + '.running_mean'])
+            # bn.running_var = nn.Parameter(self.saved_model['bn' + str(i) + '.running_var'])
+            # bn.num_batches_tracked = nn.Parameter(self.saved_model['bn' + str(i) + '.num_batches_tracked'])
+            self.bn.append(bn)
 
             if i == 0:
                 self.conv.append(SincConv_fast(self.cnn_N_filt[0], self.cnn_len_filt[0], self.fs))
@@ -266,7 +282,6 @@ class SincNet(nn.Module):
     def forward(self, sample):
         output = None
         sample = sample.view(self.batch_size, 40, self.input_dim)
-        print(sample.shape, sample[:, 0, :].shape)
 
         for e in range(sample.shape[1]):
             x = sample[:, e, :]
@@ -306,7 +321,7 @@ class SincNet(nn.Module):
         output = self.pool1(F.leaky_relu(self.conv1(output.view(batch, 1, -1))))
         # output = self.drp2(output)
         output = self.pool2(F.leaky_relu(self.conv2(output)))
-        output = output.view(batch,-1)
+        output = output.view(batch, -1)
         output = F.leaky_relu(self.fc1(output))
         output = F.leaky_relu(self.fc2(output))
         output = F.leaky_relu(self.fc3(output))

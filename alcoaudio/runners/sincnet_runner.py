@@ -66,6 +66,17 @@ class SincNetRunner:
         args.sincnet_saved_model = args.data_save_path + args.sincnet_saved_model
 
         self.network = SincNet(args).to(self.device)
+        # for x in self.network.state_dict().keys():
+        #     # if isinstance(self.network.state_dict()[x], float):
+        #     print(x, torch.max(self.network.state_dict()[x]), torch.min(self.network.state_dict()[x]))
+        self.saved_model = \
+            torch.load(args['sincnet_saved_model'], map_location='gpu' if torch.cuda.is_available() else 'cpu')[
+                'CNN_model_par']
+        self.load_my_state_dict(self.saved_model)
+        # for x in self.network.state_dict().keys():
+        #     # if isinstance(self.network.state_dict()[x], float):
+        #     print(x, torch.max(self.network.state_dict()[x]), torch.min(self.network.state_dict()[x]))
+
         self.pos_weight = None
         self.loss_function = None
         self.learning_rate_decay = args.learning_rate_decay
@@ -97,6 +108,17 @@ class SincNetRunner:
 
         print('Configs used:\n', json.dumps(args, indent=4))
         print('Configs used:\n', json.dumps(args, indent=4), file=self.log_file)
+
+    def load_my_state_dict(self, state_dict):
+
+        own_state = self.network.state_dict()
+        for name, param in state_dict.items():
+            if name not in own_state:
+                continue
+            if isinstance(param, nn.Parameter):
+                # backwards compatibility for serialized parameters
+                param = param.data
+            own_state[name].copy_(param)
 
     def data_reader(self, data_filepath, label_filepath, train, should_batch=True, shuffle=True, infer=False):
         if infer:
@@ -138,8 +160,6 @@ class SincNetRunner:
 
             print('Min max values used for normalisation ', self._min, self._max)
             print('Min max values used for normalisation ', self._min, self._max, file=self.log_file)
-
-
 
             # Normalizing `input data` on train dataset's min and max values
             if self.normalise:
@@ -267,7 +287,6 @@ class SincNetRunner:
                     file=self.log_file)
             print('Learning rate ', self.optimiser.state_dict()['param_groups'][0]['lr'])
             print('Learning rate ', self.optimiser.state_dict()['param_groups'][0]['lr'], file=self.log_file)
-
             # dev data
             self.run_for_epoch(epoch, dev_data, dev_labels, type='Dev')
 
