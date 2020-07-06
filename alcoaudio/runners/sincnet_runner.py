@@ -71,7 +71,7 @@ class SincNetRunner:
         #     # if isinstance(self.network.state_dict()[x], float):
         #     print(x, torch.max(self.network.state_dict()[x]), torch.min(self.network.state_dict()[x]))
         self.saved_model = \
-            torch.load(args['sincnet_saved_model'], map_location='gpu' if torch.cuda.is_available() else 'cpu')[
+            torch.load(args['sincnet_saved_model'], map_location=self.device)[
                 'CNN_model_par']
         self.load_my_state_dict(self.saved_model)
         print(self.sincnet_params)
