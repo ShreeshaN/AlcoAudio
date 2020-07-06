@@ -324,5 +324,5 @@ class SincNet(nn.Module):
         output = output.view(batch, -1)
         output = F.leaky_relu(self.fc1(output))
         output = F.leaky_relu(self.fc2(output))
-        output = F.leaky_relu(self.fc3(output))
+        output = self.fc3(output)
         return output

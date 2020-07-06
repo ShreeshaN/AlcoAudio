@@ -64,6 +64,7 @@ class SincNetRunner:
         file_utils.create_dirs(paths)
 
         args.sincnet_saved_model = args.data_save_path + args.sincnet_saved_model
+        self.sincnet_params = []
 
         self.network = SincNet(args).to(self.device)
         # for x in self.network.state_dict().keys():
@@ -73,6 +74,13 @@ class SincNetRunner:
             torch.load(args['sincnet_saved_model'], map_location='gpu' if torch.cuda.is_available() else 'cpu')[
                 'CNN_model_par']
         self.load_my_state_dict(self.saved_model)
+        print(self.sincnet_params)
+        # exit()
+        for i, param in enumerate(self.network.parameters()):
+            # if name in self.sincnet_params:
+                # self.network.state_dict()[name].requires_grad = False
+            if i <= 19:
+                param.requires_grad = False
         # for x in self.network.state_dict().keys():
         #     # if isinstance(self.network.state_dict()[x], float):
         #     print(x, torch.max(self.network.state_dict()[x]), torch.min(self.network.state_dict()[x]))
@@ -113,6 +121,7 @@ class SincNetRunner:
 
         own_state = self.network.state_dict()
         for name, param in state_dict.items():
+            self.sincnet_params.append(name)
             if name not in own_state:
                 continue
             if isinstance(param, nn.Parameter):
