@@ -170,13 +170,28 @@ def act_fun(act_type):
         return nn.LeakyReLU(1)  # initializzed like this, but not used in forward!
 
 
+class LayerNorm(nn.Module):
+
+    def __init__(self, features, eps=1e-6):
+        super(LayerNorm, self).__init__()
+        self.gamma = nn.Parameter(torch.ones(features))
+        self.beta = nn.Parameter(torch.zeros(features))
+        self.eps = eps
+
+    def forward(self, x):
+        mean = x.mean(-1, keepdim=True)
+        std = x.std(-1, keepdim=True)
+        return self.gamma * (x - mean) / (std + self.eps) + self.beta
+
+
 class SincNet(nn.Module):
 
     def __init__(self, options):
         super(SincNet, self).__init__()
         self.saved_model = \
-        torch.load(options['sincnet_saved_model'], map_location='gpu' if torch.cuda.is_available() else 'cpu')['CNN1']
-
+            torch.load(options['sincnet_saved_model'], map_location='gpu' if torch.cuda.is_available() else 'cpu')[
+                'CNN_model_par']
+        self.batch_size = options['batch_size']
         self.cnn_N_filt = options['cnn_N_filt']
         self.cnn_len_filt = options['cnn_len_filt']
         self.cnn_max_pool_len = options['cnn_max_pool_len']
@@ -191,7 +206,7 @@ class SincNet(nn.Module):
 
         self.input_dim = int(options['input_dim'])
 
-        self.fs = options['fs']
+        self.fs = options['sampling_rate']
 
         self.N_cnn_lay = len(options['cnn_N_filt'])
         self.conv = nn.ModuleList([])
@@ -201,7 +216,7 @@ class SincNet(nn.Module):
         self.drop = nn.ModuleList([])
 
         if self.cnn_use_laynorm_inp:
-            self.ln0 = nn.LayerNorm(self.input_dim)
+            self.ln0 = LayerNorm(self.input_dim)
 
         if self.cnn_use_batchnorm_inp:
             self.bn0 = nn.BatchNorm1d([self.input_dim], momentum=0.05)
@@ -221,7 +236,7 @@ class SincNet(nn.Module):
 
             # layer norm initialization
             self.ln.append(
-                    nn.LayerNorm([N_filt, int((current_input - self.cnn_len_filt[i] + 1) / self.cnn_max_pool_len[i])]))
+                    LayerNorm([N_filt, int((current_input - self.cnn_len_filt[i] + 1) / self.cnn_max_pool_len[i])]))
 
             self.bn.append(
                     nn.BatchNorm1d(N_filt, int((current_input - self.cnn_len_filt[i] + 1) / self.cnn_max_pool_len[i]),
@@ -237,33 +252,62 @@ class SincNet(nn.Module):
 
         self.out_dim = current_input * N_filt
 
-    def forward(self, x):
-        batch = x.shape[0]
-        seq_len = x.shape[1]
+        self.conv1 = nn.Conv1d(1, 40, 4, 3)
+        self.pool1 = nn.MaxPool1d(4, 2)
+        self.conv2 = nn.Conv1d(40, 40, 4, 3)
+        self.pool2 = nn.MaxPool1d(4, 2)
 
-        if bool(self.cnn_use_laynorm_inp):
-            x = self.ln0((x))
+        self.drp1 = nn.Dropout(0.3)
+        self.fc1 = nn.Linear(285240, 4096)
+        self.drp2 = nn.Dropout(0.3)
+        self.fc2 = nn.Linear(4096, 256)
+        self.fc3 = nn.Linear(256, 1)
 
-        if bool(self.cnn_use_batchnorm_inp):
-            x = self.bn0((x))
+    def forward(self, sample):
+        output = None
+        sample = sample.view(self.batch_size, 40, self.input_dim)
+        print(sample.shape, sample[:, 0, :].shape)
 
-        x = x.view(batch, 1, seq_len)
+        for e in range(sample.shape[1]):
+            x = sample[:, e, :]
+            batch = x.shape[0]
+            seq_len = x.shape[1]
 
-        for i in range(self.N_cnn_lay):
+            if bool(self.cnn_use_laynorm_inp):
+                x = self.ln0((x))
 
-            if self.cnn_use_laynorm[i]:
-                if i == 0:
-                    x = self.drop[i](
-                            self.act[i](self.ln[i](F.max_pool1d(torch.abs(self.conv[i](x)), self.cnn_max_pool_len[i]))))
-                else:
-                    x = self.drop[i](self.act[i](self.ln[i](F.max_pool1d(self.conv[i](x), self.cnn_max_pool_len[i]))))
+            if bool(self.cnn_use_batchnorm_inp):
+                x = self.bn0((x))
 
-            if self.cnn_use_batchnorm[i]:
-                x = self.drop[i](self.act[i](self.bn[i](F.max_pool1d(self.conv[i](x), self.cnn_max_pool_len[i]))))
+            x = x.view(batch, 1, seq_len)
+            for i in range(self.N_cnn_lay):
 
-            if self.cnn_use_batchnorm[i] == False and self.cnn_use_laynorm[i] == False:
-                x = self.drop[i](self.act[i](F.max_pool1d(self.conv[i](x), self.cnn_max_pool_len[i])))
+                if self.cnn_use_laynorm[i]:
+                    if i == 0:
+                        x = self.drop[i](
+                                self.act[i](
+                                        self.ln[i](F.max_pool1d(torch.abs(self.conv[i](x)), self.cnn_max_pool_len[i]))))
+                    else:
+                        x = self.drop[i](
+                                self.act[i](self.ln[i](F.max_pool1d(self.conv[i](x), self.cnn_max_pool_len[i]))))
 
-        x = x.view(batch, -1)
+                if self.cnn_use_batchnorm[i]:
+                    x = self.drop[i](self.act[i](self.bn[i](F.max_pool1d(self.conv[i](x), self.cnn_max_pool_len[i]))))
 
-        return x
+                if self.cnn_use_batchnorm[i] == False and self.cnn_use_laynorm[i] == False:
+                    x = self.drop[i](self.act[i](F.max_pool1d(self.conv[i](x), self.cnn_max_pool_len[i])))
+
+            x = x.view(batch, -1)
+            if e == 0:
+                output = x
+            else:
+                output = torch.cat((output, x), dim=1)
+        output = self.drp1(output)
+        output = self.pool1(F.leaky_relu(self.conv1(output.view(batch, 1, -1))))
+        # output = self.drp2(output)
+        output = self.pool2(F.leaky_relu(self.conv2(output)))
+        output = output.view(batch,-1)
+        output = F.leaky_relu(self.fc1(output))
+        output = F.leaky_relu(self.fc2(output))
+        output = F.leaky_relu(self.fc3(output))
+        return output

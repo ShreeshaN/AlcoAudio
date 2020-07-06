@@ -1,5 +1,5 @@
 {
-  "run_name": "emotion_alco_audio_challenge_data_more_metrics",
+  "run_name": "emotion_alco_audio_challenge_data_sincnet",
   "epochs": 1000,
   "batch_size": 32,
   "learning_rate": 0.001,
@@ -19,11 +19,11 @@
   "normalise_while_creating": false,
   "normalise_while_training": true,
   "num_classes": 1,
-  "data_augment": true,
+  "data_augment": false,
   "network_save_interval": 3,
   "display_interval": 50,
   "dropout": 0.2,
-  "sampling_rate": 44100,
+  "sampling_rate": 16000,
   "sample_size_in_seconds": 8,
   "overlap": 1,
   "data_save_path": "/home/aostapenko/dr_alcocudio/AlcoAudio/",
@@ -43,7 +43,6 @@
   "cnn_use_batchnorm": [false,false,false],
   "cnn_use_laynorm_inp": true,
   "cnn_use_batchnorm_inp": false,
-  "input_dim": "",
-  "fs": "44100",
-  "sincnet_saved_model": "raw_model.pkl"
+  "input_dim": 3200,
+  "sincnet_saved_model": "model_raw.pkl"
 }

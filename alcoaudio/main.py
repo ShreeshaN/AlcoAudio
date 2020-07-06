@@ -20,7 +20,7 @@ def parse():
     parser.add_argument('--train_net', type=bool)
     parser.add_argument('--test_net', type=bool)
     parser.add_argument('--configs_file', type=str)
-    parser.add_argument('--network', type=str, choices=['convnet', 'lstm', 'crnn', 'ocnn', 'cae'])
+    parser.add_argument('--network', type=str, choices=['convnet', 'lstm', 'crnn', 'ocnn', 'cae', 'sincnet'])
     args = parser.parse_args()
     return args
 
@@ -41,6 +41,9 @@ def run(args):
     elif args.network == 'cae':
         from alcoaudio.runners.convautoencoder_runner import ConvAutoEncoderRunner
         network = ConvAutoEncoderRunner(args=args)
+    elif args.network == 'sincnet':
+        from alcoaudio.runners.sincnet_runner import SincNetRunner
+        network = SincNetRunner(args=args)
     if args.network is None:  # Default network
         from alcoaudio.runners.convnet_runner import ConvNetRunner
         network = ConvNetRunner(args=args)

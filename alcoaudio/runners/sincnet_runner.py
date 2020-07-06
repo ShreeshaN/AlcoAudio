@@ -63,6 +63,8 @@ class SincNetRunner:
         paths = [self.network_save_path, self.tensorboard_summary_path]
         file_utils.create_dirs(paths)
 
+        args.sincnet_saved_model = args.data_save_path + args.sincnet_saved_model
+
         self.network = SincNet(args).to(self.device)
         self.pos_weight = None
         self.loss_function = None
@@ -117,27 +119,6 @@ class SincNetRunner:
                     self._min = min(np.min(x), self._min)
                     self._max = max(np.max(x), self._max)
 
-                print('Data Augmentation starts . . .')
-                print('Data Augmentation starts . . .', file=self.log_file)
-                label_to_augment = 1
-                amount_to_augment = 1.3
-                ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_augment]
-                random_idxs = random.choices(ones_ids,
-                                             k=int(len(ones_ids) * amount_to_augment))
-                data_to_augment = input_data[random_idxs]
-                augmented_data = []
-                augmented_labels = []
-                for x in data_to_augment:
-                    x = librosaSpectro_to_torchTensor(x)
-                    x = random.choice([time_mask, freq_mask])(x)[0].numpy()
-                    augmented_data.append(x), augmented_labels.append(label_to_augment)
-
-                input_data = np.concatenate((input_data, augmented_data))
-                labels = np.concatenate((labels, augmented_labels))
-
-                print('Data Augmentation done . . .')
-                print('Data Augmentation done . . .', file=self.log_file)
-
                 data = [(x, y) for x, y in zip(input_data, labels)]
                 random.shuffle(data)
                 input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
@@ -157,6 +138,8 @@ class SincNetRunner:
 
             print('Min max values used for normalisation ', self._min, self._max)
             print('Min max values used for normalisation ', self._min, self._max, file=self.log_file)
+
+
 
             # Normalizing `input data` on train dataset's min and max values
             if self.normalise:
@@ -225,15 +208,15 @@ class SincNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_with_d1_data.npy',
-                                                    self.data_read_path + 'train_challenge_with_d1_labels.npy',
+        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_with_d1_raw_16k_data.npy',
+                                                    self.data_read_path + 'train_challenge_with_d1_raw_16k_labels.npy',
                                                     shuffle=True,
                                                     train=True)
-        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_data.npy',
-                                                self.data_read_path + 'dev_challenge_with_d1_labels.npy',
+        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_raw_16k_data.npy',
+                                                self.data_read_path + 'dev_challenge_with_d1_raw_16k_labels.npy',
                                                 shuffle=False, train=False)
-        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_data.npy',
-                                                  self.data_read_path + 'test_challenge_labels.npy',
+        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_with_d1_raw_16k_data.npy',
+                                                  self.data_read_path + 'test_challenge_with_d1_raw_16k_labels.npy',
                                                   shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
