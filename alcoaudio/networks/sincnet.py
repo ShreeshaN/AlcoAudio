@@ -281,8 +281,7 @@ class SincNet(nn.Module):
 
     def forward(self, sample):
         output = None
-        print(sample.shape)
-        sample = sample.view(self.batch_size, 40, self.input_dim)
+        sample = sample.view(sample.shape[0], 40, self.input_dim)
 
         for e in range(sample.shape[1]):
             x = sample[:, e, :]
