@@ -206,7 +206,7 @@ class SincNet(nn.Module):
         self.cnn_use_laynorm_inp = options['cnn_use_laynorm_inp']
         self.cnn_use_batchnorm_inp = options['cnn_use_batchnorm_inp']
 
-        self.input_dim = int(options['input_dim'])
+        self.input_dim = options['input_dim']
 
         self.fs = options['sampling_rate']
 
@@ -281,6 +281,7 @@ class SincNet(nn.Module):
 
     def forward(self, sample):
         output = None
+        print(sample.shape)
         sample = sample.view(self.batch_size, 40, self.input_dim)
 
         for e in range(sample.shape[1]):
@@ -289,10 +290,10 @@ class SincNet(nn.Module):
             seq_len = x.shape[1]
 
             if bool(self.cnn_use_laynorm_inp):
-                x = self.ln0((x))
+                x = self.ln0(x)
 
             if bool(self.cnn_use_batchnorm_inp):
-                x = self.bn0((x))
+                x = self.bn0(x)
 
             x = x.view(batch, 1, seq_len)
             for i in range(self.N_cnn_lay):
