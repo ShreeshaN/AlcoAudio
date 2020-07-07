@@ -133,7 +133,7 @@ class SincNetRunner:
         if infer:
             pass
         else:
-            input_data, labels = read_npy(data_filepath)[:50], read_npy(label_filepath)[:50]
+            input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
             if train:
 
                 print('Original data size - before Augmentation')
