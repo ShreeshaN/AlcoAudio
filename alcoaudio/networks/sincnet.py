@@ -320,7 +320,7 @@ class SincNet(nn.Module):
             else:
                 output = torch.cat((output, x), dim=1)
         output = self.drp1(output)
-        output = self.pool1(self.bn1(F.relu(self.conv1(output.view(batch, -1)))))
+        output = self.pool1(self.bn1(F.relu(self.conv1(output.view(batch, 1, -1)))))
         # output = self.drp2(output)
         output = self.pool2(self.bn1(F.relu(self.conv2(output))))
         output = output.view(batch, -1)
