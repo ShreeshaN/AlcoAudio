@@ -276,11 +276,11 @@ class SincNetRunner:
                 self.batch_recall.append(recall)
 
                 if i % self.display_interval == 0:
-                    print("predictions mean", np.mean(predictions))
-                    print("predictions sum", np.sum(predictions))
-                    print("predictions range", np.min(predictions), np.max(predictions))
+                    print("predictions mean", torch.mean(predictions))
+                    print("predictions sum", torch.sum(predictions))
+                    print("predictions range", torch.min(predictions), np.max(predictions))
                     print("predictions hist", np.histogram(predictions))
-                    print("predictions variance", np.var(predictions))
+                    print("predictions variance", torch.var(predictions))
                     print(
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {'%.3f' % loss} | Accuracy: {'%.3f' % accuracy} | UAR: {'%.3f' % uar}| F1:{'%.3f' % f1} | Precision: {'%.3f' % precision} | Recall: {'%.3f' % recall}")
                     print(
