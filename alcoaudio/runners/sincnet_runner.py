@@ -238,10 +238,10 @@ class SincNetRunner:
 
         # For purposes of calculating normalized values, call this method with train data followed by test
         train_data, train_labels = self.data_reader(
-            self.data_read_path + 'train_challenge_with_d1_raw_16k_data_4sec.npy',
-            self.data_read_path + 'train_challenge_with_d1_raw_16k_labels_4sec.npy',
-            shuffle=True,
-            train=True)
+                self.data_read_path + 'train_challenge_with_d1_raw_16k_data_4sec.npy',
+                self.data_read_path + 'train_challenge_with_d1_raw_16k_labels_4sec.npy',
+                shuffle=True,
+                train=True)
         dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_raw_16k_data_4sec.npy',
                                                 self.data_read_path + 'dev_challenge_with_d1_raw_16k_labels_4sec.npy',
                                                 shuffle=False, train=False)
@@ -276,6 +276,11 @@ class SincNetRunner:
                 self.batch_recall.append(recall)
 
                 if i % self.display_interval == 0:
+                    print("predictions mean", np.mean(predictions))
+                    print("predictions sum", np.sum(predictions))
+                    print("predictions range", np.min(predictions), np.max(predictions))
+                    print("predictions hist", np.histogram(predictions))
+                    print("predictions variance", np.var(predictions))
                     print(
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {'%.3f' % loss} | Accuracy: {'%.3f' % accuracy} | UAR: {'%.3f' % uar}| F1:{'%.3f' % f1} | Precision: {'%.3f' % precision} | Recall: {'%.3f' % recall}")
                     print(
