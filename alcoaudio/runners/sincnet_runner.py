@@ -276,11 +276,20 @@ class SincNetRunner:
                 self.batch_recall.append(recall)
 
                 if i % self.display_interval == 0:
-                    print("predictions mean", torch.mean(predictions))
-                    print("predictions sum", torch.sum(predictions))
-                    print("predictions range", torch.min(predictions), torch.max(predictions))
+                    print("****************************************************************")
+                    print("predictions mean", torch.mean(predictions).detach().cpu().numpy())
+                    print("predictions mean", torch.mean(predictions).detach().cpu().numpy(), file=self.log_file)
+                    print("predictions sum", torch.sum(predictions).detach().cpu().numpy())
+                    print("predictions sum", torch.sum(predictions).detach().cpu().numpy(), file=self.log_file)
+                    print("predictions range", torch.min(predictions).detach().cpu().numpy(),
+                          torch.max(predictions).detach().cpu().numpy())
+                    print("predictions range", torch.min(predictions).detach().cpu().numpy(),
+                          torch.max(predictions).detach().cpu().numpy(), file=self.log_file)
                     print("predictions hist", np.histogram(predictions.detach().cpu().numpy()))
-                    print("predictions variance", torch.var(predictions))
+                    print("predictions hist", np.histogram(predictions.detach().cpu().numpy()), file=self.log_file)
+                    print("predictions variance", torch.var(predictions).detach().cpu().numpy())
+                    print("predictions variance", torch.var(predictions).detach().cpu().numpy(), file=self.log_file)
+                    print("****************************************************************")
                     print(
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {'%.3f' % loss} | Accuracy: {'%.3f' % accuracy} | UAR: {'%.3f' % uar}| F1:{'%.3f' % f1} | Precision: {'%.3f' % precision} | Recall: {'%.3f' % recall}")
                     print(
