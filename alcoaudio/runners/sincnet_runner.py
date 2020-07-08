@@ -279,7 +279,7 @@ class SincNetRunner:
                     print("predictions mean", torch.mean(predictions))
                     print("predictions sum", torch.sum(predictions))
                     print("predictions range", torch.min(predictions), torch.max(predictions))
-                    print("predictions hist", np.histogram(predictions))
+                    print("predictions hist", np.histogram(predictions.detach().cpu().numpy()))
                     print("predictions variance", torch.var(predictions))
                     print(
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {'%.3f' % loss} | Accuracy: {'%.3f' % accuracy} | UAR: {'%.3f' % uar}| F1:{'%.3f' % f1} | Precision: {'%.3f' % precision} | Recall: {'%.3f' % recall}")
