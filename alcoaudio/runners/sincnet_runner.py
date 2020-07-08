@@ -78,7 +78,7 @@ class SincNetRunner:
         # exit()
         for i, param in enumerate(self.network.parameters()):
             # if name in self.sincnet_params:
-                # self.network.state_dict()[name].requires_grad = False
+            # self.network.state_dict()[name].requires_grad = False
             if i <= 19:
                 param.requires_grad = False
         # for x in self.network.state_dict().keys():
@@ -237,15 +237,16 @@ class SincNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_with_d1_raw_16k_data.npy',
-                                                    self.data_read_path + 'train_challenge_with_d1_raw_16k_labels.npy',
-                                                    shuffle=True,
-                                                    train=True)
-        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_raw_16k_data.npy',
-                                                self.data_read_path + 'dev_challenge_with_d1_raw_16k_labels.npy',
+        train_data, train_labels = self.data_reader(
+            self.data_read_path + 'train_challenge_with_d1_raw_16k_data_4sec.npy',
+            self.data_read_path + 'train_challenge_with_d1_raw_16k_labels_4sec.npy',
+            shuffle=True,
+            train=True)
+        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_raw_16k_data_4sec.npy',
+                                                self.data_read_path + 'dev_challenge_with_d1_raw_16k_labels_4sec.npy',
                                                 shuffle=False, train=False)
-        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_with_d1_raw_16k_data.npy',
-                                                  self.data_read_path + 'test_challenge_with_d1_raw_16k_labels.npy',
+        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_with_d1_raw_16k_data_4sec.npy',
+                                                  self.data_read_path + 'test_challenge_with_d1_raw_16k_labels_4sec.npy',
                                                   shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
