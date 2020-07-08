@@ -269,9 +269,11 @@ class SincNet(nn.Module):
         self.out_dim = current_input * N_filt
 
         self.conv1 = nn.Conv1d(1, 40, 4, 3)
-        self.pool1 = nn.MaxPool1d(4, 2)
+        self.bn1 = nn.BatchNorm1d(40)
+        self.pool1 = nn.MaxPool1d(2, 2)
         self.conv2 = nn.Conv1d(40, 40, 4, 3)
-        self.pool2 = nn.MaxPool1d(4, 2)
+        self.bn2 = nn.BatchNorm1d(40)
+        self.pool2 = nn.MaxPool1d(2, 2)
 
         self.drp1 = nn.Dropout(0.3)
         self.fc1 = nn.Linear(142600, 4096)
@@ -318,11 +320,11 @@ class SincNet(nn.Module):
             else:
                 output = torch.cat((output, x), dim=1)
         output = self.drp1(output)
-        output = self.pool1(F.leaky_relu(self.conv1(output.view(batch, 1, -1))))
+        output = self.pool1(self.bn1(F.relu(self.conv1(output.view(batch, 1, -1)))))
         # output = self.drp2(output)
-        output = self.pool2(F.leaky_relu(self.conv2(output)))
+        output = self.pool2(self.bn1(F.relu(self.conv2(output))))
         output = output.view(batch, -1)
-        output = F.leaky_relu(self.fc1(output))
-        output = F.leaky_relu(self.fc2(output))
+        output = F.relu(self.fc1(output))
+        output = F.relu(self.fc2(output))
         output = self.fc3(output)
         return output
