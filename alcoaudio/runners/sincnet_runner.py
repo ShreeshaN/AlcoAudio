@@ -278,7 +278,7 @@ class SincNetRunner:
                 if i % self.display_interval == 0:
                     print("predictions mean", torch.mean(predictions))
                     print("predictions sum", torch.sum(predictions))
-                    print("predictions range", torch.min(predictions), np.max(predictions))
+                    print("predictions range", torch.min(predictions), torch.max(predictions))
                     print("predictions hist", np.histogram(predictions))
                     print("predictions variance", torch.var(predictions))
                     print(
