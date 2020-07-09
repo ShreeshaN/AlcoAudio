@@ -228,6 +228,21 @@ class SincNetRunner:
                 f"Loss: {'%.3f' % np.mean(self.test_batch_loss)} | Accuracy: {'%.3f' % np.mean(self.test_batch_accuracy)} | UAR: {'%.3f' % np.mean(self.test_batch_uar)}| F1:{'%.3f' % np.mean(self.test_batch_f1)} | Precision:{'%.3f' % np.mean(self.test_batch_precision)} | Recall:{'%.3f' % np.mean(self.test_batch_recall)}",
                 file=self.log_file)
 
+        print("****************************************************************")
+        print("Test predictions mean", np.mean(predictions))
+        print("Test predictions mean", np.mean(predictions), file=self.log_file)
+        print("Test predictions sum", np.sum(predictions))
+        print("Test predictions sum", np.sum(predictions), file=self.log_file)
+        print("Test predictions range", np.min(predictions),
+              np.max(predictions))
+        print("Test predictions range", np.min(predictions),
+              np.max(predictions), file=self.log_file)
+        print("Test predictions hist", np.histogram(predictions))
+        print("Test predictions hist", np.histogram(predictions), file=self.log_file)
+        print("Test predictions variance", np.var(predictions))
+        print("Test predictions variance", np.var(predictions), file=self.log_file)
+        print("****************************************************************")
+
         log_summary(self.writer, epoch, accuracy=np.mean(self.test_batch_accuracy),
                     loss=np.mean(self.test_batch_loss),
                     uar=np.mean(self.test_batch_uar), lr=self.optimiser.state_dict()['param_groups'][0]['lr'],
