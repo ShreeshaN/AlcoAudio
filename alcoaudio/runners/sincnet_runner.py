@@ -196,6 +196,7 @@ class SincNetRunner:
                 m.track_running_stats = False
         predictions_dict = {"tp": [], "fp": [], "tn": [], "fn": []}
         overall_predictions = []
+
         self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, self.test_batch_f1, self.test_batch_precision, self.test_batch_recall, audio_for_tensorboard_test = [], [], [], [], [], [], [], None
         with torch.no_grad():
             for i, (audio_data, label) in enumerate(zip(x, y)):
@@ -204,7 +205,7 @@ class SincNetRunner:
                 test_predictions = self.network(audio_data).squeeze(1)
                 test_loss = self.loss_function(test_predictions, label)
                 test_predictions = nn.Sigmoid()(test_predictions)
-                overall_predictions.append(to_numpy(test_predictions))
+                overall_predictions.extend(to_numpy(test_predictions))
                 test_accuracy, test_uar, test_precision, test_recall, test_f1 = accuracy_fn(test_predictions, label,
                                                                                             self.threshold)
                 self.test_batch_loss.append(to_numpy(test_loss))
@@ -230,7 +231,6 @@ class SincNetRunner:
 
         print("****************************************************************")
         print(np.array(overall_predictions).shape)
-        print(np.mean(np.array(overall_predictions)))
         print(f"{type} predictions mean", np.mean(overall_predictions))
         print(f"{type} predictions mean", np.mean(overall_predictions), file=self.log_file)
         print(f"{type} predictions sum", np.sum(overall_predictions))
