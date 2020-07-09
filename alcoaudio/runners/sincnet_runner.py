@@ -195,7 +195,7 @@ class SincNetRunner:
             if isinstance(m, nn.BatchNorm2d):
                 m.track_running_stats = False
         predictions_dict = {"tp": [], "fp": [], "tn": [], "fn": []}
-        predictions = []
+        overall_predictions = []
         self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, self.test_batch_f1, self.test_batch_precision, self.test_batch_recall, audio_for_tensorboard_test = [], [], [], [], [], [], [], None
         with torch.no_grad():
             for i, (audio_data, label) in enumerate(zip(x, y)):
@@ -204,7 +204,7 @@ class SincNetRunner:
                 test_predictions = self.network(audio_data).squeeze(1)
                 test_loss = self.loss_function(test_predictions, label)
                 test_predictions = nn.Sigmoid()(test_predictions)
-                predictions.append(to_numpy(test_predictions))
+                overall_predictions.append(to_numpy(test_predictions))
                 test_accuracy, test_uar, test_precision, test_recall, test_f1 = accuracy_fn(test_predictions, label,
                                                                                             self.threshold)
                 self.test_batch_loss.append(to_numpy(test_loss))
@@ -229,20 +229,20 @@ class SincNetRunner:
                 file=self.log_file)
 
         print("****************************************************************")
-        print(np.array(predictions).shape)
-        print(np.mean(np.array(predictions)))
-        print(f"{type} predictions mean", np.mean(predictions))
-        print(f"{type} predictions mean", np.mean(predictions), file=self.log_file)
-        print(f"{type} predictions sum", np.sum(predictions))
-        print(f"{type} predictions sum", np.sum(predictions), file=self.log_file)
-        print(f"{type} predictions range", np.min(predictions),
-              np.max(predictions))
-        print(f"{type} predictions range", np.min(predictions),
-              np.max(predictions), file=self.log_file)
-        print(f"{type} predictions hist", np.histogram(predictions))
-        print(f"{type} predictions hist", np.histogram(predictions), file=self.log_file)
-        print(f"{type} predictions variance", np.var(predictions))
-        print(f"{type} predictions variance", np.var(predictions), file=self.log_file)
+        print(np.array(overall_predictions).shape)
+        print(np.mean(np.array(overall_predictions)))
+        print(f"{type} predictions mean", np.mean(overall_predictions))
+        print(f"{type} predictions mean", np.mean(overall_predictions), file=self.log_file)
+        print(f"{type} predictions sum", np.sum(overall_predictions))
+        print(f"{type} predictions sum", np.sum(overall_predictions), file=self.log_file)
+        print(f"{type} predictions range", np.min(overall_predictions),
+              np.max(overall_predictions))
+        print(f"{type} predictions range", np.min(overall_predictions),
+              np.max(overall_predictions), file=self.log_file)
+        print(f"{type} predictions hist", np.histogram(overall_predictions))
+        print(f"{type} predictions hist", np.histogram(overall_predictions), file=self.log_file)
+        print(f"{type} predictions variance", np.var(overall_predictions))
+        print(f"{type} predictions variance", np.var(overall_predictions), file=self.log_file)
         print("****************************************************************")
 
         log_summary(self.writer, epoch, accuracy=np.mean(self.test_batch_accuracy),
@@ -252,7 +252,7 @@ class SincNetRunner:
         log_conf_matrix(self.writer, epoch, predictions_dict=predictions_dict, type=type)
 
         y = [element for sublist in y for element in sublist]
-        predictions = [element for sublist in predictions for element in sublist]
+        predictions = [element for sublist in overall_predictions for element in sublist]
         write_to_npy(filename=self.debug_filename, predictions=predictions, labels=y, epoch=epoch, accuracy=np.mean(
                 self.test_batch_accuracy), loss=np.mean(self.test_batch_loss), uar=np.mean(self.test_batch_uar),
                      lr=self.optimiser.state_dict()['param_groups'][0]['lr'], predictions_dict=predictions_dict,
@@ -281,6 +281,8 @@ class SincNetRunner:
             self.network.train()
             self.batch_loss, self.batch_accuracy, self.batch_uar, self.batch_f1, self.batch_precision, self.batch_recall, audio_for_tensorboard_train = [], [], [], [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
+                if i >0:
+                    continue
                 self.optimiser.zero_grad()
                 label = to_tensor(label, device=self.device).float()
                 audio_data = to_tensor(audio_data, device=self.device)
