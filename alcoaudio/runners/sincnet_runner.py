@@ -136,11 +136,18 @@ class SincNetRunner:
             input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
             if train:
 
-                print('Original data size - before Augmentation')
-                print('Original data size - before Augmentation', file=self.log_file)
                 print('Total data ', len(input_data))
                 print('Event rate', sum(labels) / len(labels))
                 print(np.array(input_data).shape, np.array(labels).shape)
+
+                print("Under sampling train data")
+                # Under-sampling train data. Balancing the classes
+                ones_idx, zeros_idx = [idx for idx, label in enumerate(labels) if label == 1], [idx for idx, label in
+                                                                                                enumerate(labels) if
+                                                                                                label == 0]
+                zeros_idx = zeros_idx[:len(ones_idx)]
+                ids = ones_idx + zeros_idx
+                input_data, labels = input_data[ids], labels[ids]
 
                 print('Total data ', len(input_data), file=self.log_file)
                 print('Event rate', sum(labels) / len(labels), file=self.log_file)
