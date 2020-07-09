@@ -245,15 +245,15 @@ class SincNetRunner:
 
         # For purposes of calculating normalized values, call this method with train data followed by test
         train_data, train_labels = self.data_reader(
-                self.data_read_path + 'train_challenge_with_d1_raw_16k_data_2sec.npy',
-                self.data_read_path + 'train_challenge_with_d1_raw_16k_labels_2sec.npy',
+                self.data_read_path + 'train_challenge_with_d1_raw_16k_data_4sec.npy',
+                self.data_read_path + 'train_challenge_with_d1_raw_16k_labels_4sec.npy',
                 shuffle=True,
                 train=True)
-        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_raw_16k_data_2sec.npy',
-                                                self.data_read_path + 'dev_challenge_with_d1_raw_16k_labels_2sec.npy',
+        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_raw_16k_data_4sec.npy',
+                                                self.data_read_path + 'dev_challenge_with_d1_raw_16k_labels_4sec.npy',
                                                 shuffle=False, train=False)
-        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_with_d1_raw_16k_data_2sec.npy',
-                                                  self.data_read_path + 'test_challenge_with_d1_raw_16k_labels_2sec.npy',
+        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_with_d1_raw_16k_data_4sec.npy',
+                                                  self.data_read_path + 'test_challenge_with_d1_raw_16k_labels_4sec.npy',
                                                   shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
