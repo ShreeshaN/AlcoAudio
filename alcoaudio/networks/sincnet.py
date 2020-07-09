@@ -276,14 +276,14 @@ class SincNet(nn.Module):
         self.pool2 = nn.MaxPool1d(2, 2)
 
         self.drp1 = nn.Dropout(0.3)
-        self.fc1 = nn.Linear(142640, 4096)
+        self.fc1 = nn.Linear(71320, 4096)
         self.drp2 = nn.Dropout(0.3)
         self.fc2 = nn.Linear(4096, 256)
         self.fc3 = nn.Linear(256, 1)
 
     def forward(self, sample):
         output = None
-        sample = sample.view(sample.shape[0], 20, self.input_dim)
+        sample = sample.view(sample.shape[0], 10, self.input_dim)
 
         for e in range(sample.shape[1]):
             x = sample[:, e, :]
