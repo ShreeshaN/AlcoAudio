@@ -280,8 +280,6 @@ class SincNetRunner:
             self.network.train()
             self.batch_loss, self.batch_accuracy, self.batch_uar, self.batch_f1, self.batch_precision, self.batch_recall, audio_for_tensorboard_train = [], [], [], [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
-                if i >0:
-                    continue
                 self.optimiser.zero_grad()
                 label = to_tensor(label, device=self.device).float()
                 audio_data = to_tensor(audio_data, device=self.device)
