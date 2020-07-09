@@ -252,8 +252,7 @@ class SincNetRunner:
         log_conf_matrix(self.writer, epoch, predictions_dict=predictions_dict, type=type)
 
         y = [element for sublist in y for element in sublist]
-        predictions = [element for sublist in overall_predictions for element in sublist]
-        write_to_npy(filename=self.debug_filename, predictions=predictions, labels=y, epoch=epoch, accuracy=np.mean(
+        write_to_npy(filename=self.debug_filename, predictions=overall_predictions, labels=y, epoch=epoch, accuracy=np.mean(
                 self.test_batch_accuracy), loss=np.mean(self.test_batch_loss), uar=np.mean(self.test_batch_uar),
                      lr=self.optimiser.state_dict()['param_groups'][0]['lr'], predictions_dict=predictions_dict,
                      type=type)
