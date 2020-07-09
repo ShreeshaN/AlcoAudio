@@ -191,9 +191,9 @@ class SincNetRunner:
 
     def run_for_epoch(self, epoch, x, y, type):
         self.network.eval()
-        for m in self.network.modules():
-            if isinstance(m, nn.BatchNorm2d):
-                m.track_running_stats = False
+        # for m in self.network.modules():
+        #     if isinstance(m, nn.BatchNorm2d):
+        #         m.track_running_stats = False
         predictions_dict = {"tp": [], "fp": [], "tn": [], "fn": []}
         overall_predictions = []
 
