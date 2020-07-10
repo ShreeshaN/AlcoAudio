@@ -26,6 +26,10 @@ from alcoaudio.utils.network_utils import accuracy_fn, log_summary, custom_confu
 from alcoaudio.utils.data_utils import read_npy
 from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask
 
+# setting seed
+torch.manual_seed(1234)
+np.random.seed(1234)
+
 
 class SincNetRunner:
     def __init__(self, args):
@@ -77,10 +81,10 @@ class SincNetRunner:
         print(self.sincnet_params)
         # exit()
         # for i, param in enumerate(self.network.parameters()):
-            # if name in self.sincnet_params:
-            # self.network.state_dict()[name].requires_grad = False
-            # if i <= 19:
-            #     param.requires_grad = False
+        # if name in self.sincnet_params:
+        # self.network.state_dict()[name].requires_grad = False
+        # if i <= 19:
+        #     param.requires_grad = False
         # for x in self.network.state_dict().keys():
         #     # if isinstance(self.network.state_dict()[x], float):
         #     print(x, torch.max(self.network.state_dict()[x]), torch.min(self.network.state_dict()[x]))
@@ -157,6 +161,8 @@ class SincNetRunner:
                     self._min = min(np.min(x), self._min)
                     self._max = max(np.max(x), self._max)
 
+                self._mean, self._std = np.mean(input_data), np.std(input_data)
+
                 data = [(x, y) for x, y in zip(input_data, labels)]
                 random.shuffle(data)
                 input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
@@ -179,7 +185,8 @@ class SincNetRunner:
 
             # Normalizing `input data` on train dataset's min and max values
             if self.normalise:
-                input_data = (input_data - self._min) / (self._max - self._min)
+                # input_data = (input_data - self._min) / (self._max - self._min)
+                input_data = (input_data - self._mean) / self._std
 
             if should_batch:
                 batched_input = [input_data[pos:pos + self.batch_size] for pos in
@@ -191,9 +198,9 @@ class SincNetRunner:
 
     def run_for_epoch(self, epoch, x, y, type):
         self.network.eval()
-        # for m in self.network.modules():
-        #     if isinstance(m, nn.BatchNorm2d):
-        #         m.track_running_stats = False
+        for m in self.network.modules():
+            if isinstance(m, nn.BatchNorm2d):
+                m.track_running_stats = False
         predictions_dict = {"tp": [], "fp": [], "tn": [], "fn": []}
         overall_predictions = []
 
@@ -252,8 +259,10 @@ class SincNetRunner:
         log_conf_matrix(self.writer, epoch, predictions_dict=predictions_dict, type=type)
 
         y = [element for sublist in y for element in sublist]
-        write_to_npy(filename=self.debug_filename, predictions=overall_predictions, labels=y, epoch=epoch, accuracy=np.mean(
-                self.test_batch_accuracy), loss=np.mean(self.test_batch_loss), uar=np.mean(self.test_batch_uar),
+        write_to_npy(filename=self.debug_filename, predictions=overall_predictions, labels=y, epoch=epoch,
+                     accuracy=np.mean(
+                             self.test_batch_accuracy), loss=np.mean(self.test_batch_loss),
+                     uar=np.mean(self.test_batch_uar),
                      lr=self.optimiser.state_dict()['param_groups'][0]['lr'], predictions_dict=predictions_dict,
                      type=type)
 
