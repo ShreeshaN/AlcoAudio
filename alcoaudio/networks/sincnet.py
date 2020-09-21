@@ -284,7 +284,6 @@ class SincNet(nn.Module):
     def forward(self, sample):
         output = None
         sample = sample.view(sample.shape[0], 20, self.input_dim)
-        print('Data shape after split ', sample.shape)
 
         for e in range(sample.shape[1]):
             x = sample[:, e, :]
@@ -320,7 +319,6 @@ class SincNet(nn.Module):
                 output = x
             else:
                 output = torch.cat((output, x), dim=1)
-        print('final output shape', output.shape)
         output = self.drp1(output)
         output = self.pool1(self.bn1(F.relu(self.conv1(output.view(batch, 1, -1)))))
         # output = self.drp2(output)
