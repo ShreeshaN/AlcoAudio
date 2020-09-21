@@ -269,16 +269,23 @@ class SincNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
+        train_inp_file, train_out_file ='train_challenge_with_d1_raw_16k_data_4sec.npy','train_challenge_with_d1_raw_16k_labels_4sec.npy'
+        dev_inp_file, dev_out_file ='dev_challenge_with_d1_raw_16k_data_4sec.npy','dev_challenge_with_d1_raw_16k_labels_4sec.npy'
+        test_inp_file, test_out_file ='test_challenge_with_d1_raw_16k_data_4sec.npy','test_challenge_with_d1_raw_16k_labels_4sec.npy'
+
+        print('Reading train file ', train_inp_file, train_out_file)
         train_data, train_labels = self.data_reader(
-                self.data_read_path + 'train_challenge_with_d1_raw_16k_data_4sec.npy',
-                self.data_read_path + 'train_challenge_with_d1_raw_16k_labels_4sec.npy',
+                self.data_read_path + train_inp_file,
+                self.data_read_path + train_out_file,
                 shuffle=True,
                 train=True)
-        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_raw_16k_data_4sec.npy',
-                                                self.data_read_path + 'dev_challenge_with_d1_raw_16k_labels_4sec.npy',
+        print('Reading dev file ', train_inp_file, train_out_file)
+        dev_data, dev_labels = self.data_reader(self.data_read_path + dev_inp_file,
+                                                self.data_read_path + dev_out_file,
                                                 shuffle=False, train=False)
-        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_with_d1_raw_16k_data_4sec.npy',
-                                                  self.data_read_path + 'test_challenge_with_d1_raw_16k_labels_4sec.npy',
+        print('Reading test file ', train_inp_file, train_out_file)
+        test_data, test_labels = self.data_reader(self.data_read_path + test_inp_file,
+                                                  self.data_read_path + test_out_file,
                                                   shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here

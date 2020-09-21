@@ -1,5 +1,5 @@
 {
-  "run_name": "emotion_alco_audio_challenge_data_sincnet",
+  "run_name": "emotion_alco_audio_challenge_data_sincnet_4sec",
   "epochs": 1000,
   "batch_size": 32,
   "learning_rate": 0.0001,
