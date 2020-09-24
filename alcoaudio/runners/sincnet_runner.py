@@ -79,7 +79,6 @@ class SincNetRunner:
                 'CNN_model_par']
         self.load_my_state_dict(self.saved_model)
         print(self.sincnet_params)
-        # exit()
         # for i, param in enumerate(self.network.parameters()):
         # if name in self.sincnet_params:
         # self.network.state_dict()[name].requires_grad = False
