@@ -268,9 +268,9 @@ class SincNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_inp_file, train_out_file ='train_challenge_with_d1_raw_16k_data_4sec.npy','train_challenge_with_d1_raw_16k_labels_4sec.npy'
-        dev_inp_file, dev_out_file ='dev_challenge_with_d1_raw_16k_data_4sec.npy','dev_challenge_with_d1_raw_16k_labels_4sec.npy'
-        test_inp_file, test_out_file ='test_challenge_with_d1_raw_16k_data_4sec.npy','test_challenge_with_d1_raw_16k_labels_4sec.npy'
+        train_inp_file, train_out_file ='train_challenge_with_d1_raw_16k_data_2sec.npy','train_challenge_with_d1_raw_16k_labels_2sec.npy'
+        dev_inp_file, dev_out_file ='dev_challenge_with_d1_raw_16k_data_2sec.npy','dev_challenge_with_d1_raw_16k_labels_2sec.npy'
+        test_inp_file, test_out_file ='test_challenge_with_d1_raw_16k_data_2sec.npy','test_challenge_with_d1_raw_16k_labels_2sec.npy'
 
         print('Reading train file ', train_inp_file, train_out_file)
         train_data, train_labels = self.data_reader(
