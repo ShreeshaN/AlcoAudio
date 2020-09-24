@@ -11,4 +11,4 @@
 #SBATCH --mem 16G
 
 # Train
-python3 -u ../alcoaudio/main.py --train_net True --configs_file ../alcoaudio/configs/turing_configs.json
+python3 -u ../alcoaudio/datagen/data_processor.py --configs_file ../alcoaudio/configs/turing_configs.json
