@@ -26,7 +26,7 @@
   "sampling_rate": 16000,
   "sample_size_in_seconds": 4,
   "overlap": 1,
-  "data_save_path": "/home/aostapenko/dr_alcocudio/AlcoAudio/",
+  "data_save_path": "/home/snarasimhamurthy/AlcoProcessedData/",
   "image_data_save_path": "/home/snarasimhamurthy/images/",
   "data_processing_method": "fbank",
   "debug_filename": "predictions_debug.npy",
