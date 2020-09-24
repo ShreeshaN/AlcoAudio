@@ -13,6 +13,7 @@ Description:
 from alcoaudio.utils.class_utils import AttributeDict
 import json
 import argparse
+import torch
 
 
 def parse():
@@ -56,8 +57,15 @@ def run(args):
 
 
 if __name__ == '__main__':
+
     args = parse().__dict__
     configs = json.load(open(args['configs_file']))
+    if configs['use_gpu']:
+        if not torch.cuda.is_available():
+            print('GPU is not available. The program is exiting . . . ')
+            exit()
+        else:
+            print('GPU device found: ', torch.cuda.get_device_name(0))
     configs = {**configs, **args}
     configs = AttributeDict(configs)
     run(configs)

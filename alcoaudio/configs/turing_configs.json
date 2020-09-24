@@ -31,6 +31,7 @@
   "data_processing_method": "fbank",
   "debug_filename": "predictions_debug.npy",
   "cae_model_restore_path": "/home/aostapenko/dr_alcocudio/shell_scripts/results/emotion_alco_audio_challenge_data_cae_both_classes_1587421865/alco_trained_models/emotion_alco_audio_challenge_data_cae_both_classes_1587421865_27.pt",
+  "use_gpu":true,
 
 
   "sincnet_configs": "",
