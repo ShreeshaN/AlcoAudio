@@ -80,19 +80,19 @@ class SincNetRunner:
                 'CNN_model_par']
         # self.load_my_state_dict(self.saved_model)
         # for i, param in enumerate(self.network.parameters()):
-        # if name in self.sincnet_params:
-        # self.network.state_dict()[name].requires_grad = False
-        # if i <= 19:
-        #     param.requires_grad = False
-        # for x in self.network.state_dict().keys():
-        #     # if isinstance(self.network.state_dict()[x], float):
-        #     print(x, torch.max(self.network.state_dict()[x]), torch.min(self.network.state_dict()[x]))
+        #     if param in self.sincnet_params:
+        #         self.network.state_dict()[param].requires_grad = False
+        #     if i <= 19:
+        #         param.requires_grad = False
+        #     for x in self.network.state_dict().keys():
+        #         # if isinstance(self.network.state_dict()[x], float):
+        #         print(x, torch.max(self.network.state_dict()[x]), torch.min(self.network.state_dict()[x]))
 
         self.pos_weight = None
         self.loss_function = None
         self.learning_rate_decay = args.learning_rate_decay
 
-        self.optimiser = optim.RMSprop(self.network.parameters(), lr=self.learning_rate, alpha=0.95, eps=1e-8)
+        self.optimiser = optim.Adam(self.network.parameters(), lr=self.learning_rate)
         self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimiser, gamma=self.learning_rate_decay)
 
         self._min, self._max = float('inf'), -float('inf')
