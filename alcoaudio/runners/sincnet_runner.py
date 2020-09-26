@@ -71,14 +71,14 @@ class SincNetRunner:
         self.sincnet_params = []
 
         self.network = SincNet(args).to(self.device)
-        # for x in self.network.state_dict().keys():
-        #     # if isinstance(self.network.state_dict()[x], float):
-        #     print(x, torch.max(self.network.state_dict()[x]), torch.min(self.network.state_dict()[x]))
+        print(self.network)
+        for x in self.network.state_dict().keys():
+            # if isinstance(self.network.state_dict()[x], float):
+            print(x, torch.max(self.network.state_dict()[x]), torch.min(self.network.state_dict()[x]))
         self.saved_model = \
             torch.load(args['sincnet_saved_model'], map_location=self.device)[
                 'CNN_model_par']
-        self.load_my_state_dict(self.saved_model)
-        print(self.sincnet_params)
+        # self.load_my_state_dict(self.saved_model)
         # for i, param in enumerate(self.network.parameters()):
         # if name in self.sincnet_params:
         # self.network.state_dict()[name].requires_grad = False
@@ -110,6 +110,9 @@ class SincNetRunner:
             print('Testing Model - ', self.network_restore_path)
             print('Testing Model - ', self.network_restore_path, file=self.log_file)
             print('********************************************************', file=self.log_file)
+
+        print(self.sincnet_params)
+        print(self.sincnet_params, file=self.log_file)
 
         self.writer = SummaryWriter(self.tensorboard_summary_path)
         print("Network config:\n", self.network)
@@ -314,20 +317,20 @@ class SincNetRunner:
                 self.batch_recall.append(recall)
 
                 if i % self.display_interval == 0:
-                    print("****************************************************************")
-                    print("predictions mean", torch.mean(predictions).detach().cpu().numpy())
-                    print("predictions mean", torch.mean(predictions).detach().cpu().numpy(), file=self.log_file)
-                    print("predictions sum", torch.sum(predictions).detach().cpu().numpy())
-                    print("predictions sum", torch.sum(predictions).detach().cpu().numpy(), file=self.log_file)
-                    print("predictions range", torch.min(predictions).detach().cpu().numpy(),
-                          torch.max(predictions).detach().cpu().numpy())
-                    print("predictions range", torch.min(predictions).detach().cpu().numpy(),
-                          torch.max(predictions).detach().cpu().numpy(), file=self.log_file)
-                    print("predictions hist", np.histogram(predictions.detach().cpu().numpy()))
-                    print("predictions hist", np.histogram(predictions.detach().cpu().numpy()), file=self.log_file)
-                    print("predictions variance", torch.var(predictions).detach().cpu().numpy())
-                    print("predictions variance", torch.var(predictions).detach().cpu().numpy(), file=self.log_file)
-                    print("****************************************************************")
+                    # print("****************************************************************")
+                    # print("predictions mean", torch.mean(predictions).detach().cpu().numpy())
+                    # print("predictions mean", torch.mean(predictions).detach().cpu().numpy(), file=self.log_file)
+                    # print("predictions sum", torch.sum(predictions).detach().cpu().numpy())
+                    # print("predictions sum", torch.sum(predictions).detach().cpu().numpy(), file=self.log_file)
+                    # print("predictions range", torch.min(predictions).detach().cpu().numpy(),
+                    #       torch.max(predictions).detach().cpu().numpy())
+                    # print("predictions range", torch.min(predictions).detach().cpu().numpy(),
+                    #       torch.max(predictions).detach().cpu().numpy(), file=self.log_file)
+                    # print("predictions hist", np.histogram(predictions.detach().cpu().numpy()))
+                    # print("predictions hist", np.histogram(predictions.detach().cpu().numpy()), file=self.log_file)
+                    # print("predictions variance", torch.var(predictions).detach().cpu().numpy())
+                    # print("predictions variance", torch.var(predictions).detach().cpu().numpy(), file=self.log_file)
+                    # print("****************************************************************")
                     print(
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {'%.3f' % loss} | Accuracy: {'%.3f' % accuracy} | UAR: {'%.3f' % uar}| F1:{'%.3f' % f1} | Precision: {'%.3f' % precision} | Recall: {'%.3f' % recall}")
                     print(

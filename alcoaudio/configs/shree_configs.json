@@ -33,7 +33,7 @@
   "data_processing_method": "raw",
   "debug_filename": "predictions_debug.npy",
   "cae_model_restore_path": "/Users/badgod/badgod_documents/Alco_audio/server_data/2d/emotion_alco_audio_challenge_data_cae_both_classes_1587421865/alco_trained_models/emotion_alco_audio_challenge_data_cae_both_classes_1587421865_27.pt",
-  "use_gpu":true,
+  "use_gpu":false,
 
   "sincnet_configs": "",
   "cnn_N_filt": [80,60,60],

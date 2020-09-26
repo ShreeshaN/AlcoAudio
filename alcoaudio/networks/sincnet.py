@@ -268,23 +268,30 @@ class SincNet(nn.Module):
 
         self.out_dim = current_input * N_filt
 
-        self.conv1 = nn.Conv1d(1, 40, 4, 3)
-        self.bn1 = nn.BatchNorm1d(40)
-        self.pool1 = nn.MaxPool1d(2, 2)
-        self.conv2 = nn.Conv1d(40, 40, 4, 3)
-        self.bn2 = nn.BatchNorm1d(40)
-        self.pool2 = nn.MaxPool1d(2, 2)
+        # self.conv1 = nn.Conv1d(1, 40, 4, 3)
+        # self.bn1 = nn.BatchNorm1d(40)
+        # self.pool1 = nn.MaxPool1d(2, 2)
+        # self.conv2 = nn.Conv1d(40, 40, 4, 3)
+        # self.bn2 = nn.BatchNorm1d(40)
+        # self.pool2 = nn.MaxPool1d(2, 2)
 
+        self.conv1 = nn.Conv2d(1, 30, (2,3), 2)
+        self.bn1 = nn.BatchNorm2d(30)
+        self.pool1 = nn.MaxPool2d((1,2), 2)
+        self.conv2 = nn.Conv2d(30, 30, (2,3), 2)
+        self.bn2 = nn.BatchNorm2d(30)
+        self.pool2 = nn.MaxPool2d((1,2), 1 )
+
+
+        self.fc1 = nn.Linear(55650, 4096)
         self.drp1 = nn.Dropout(0.3)
-        self.fc1 = nn.Linear(142640, 4096)
+        self.fc2 = nn.Linear(4096, 512)
         self.drp2 = nn.Dropout(0.3)
-        self.fc2 = nn.Linear(4096, 256)
-        self.fc3 = nn.Linear(256, 1)
+        self.fc3 = nn.Linear(512, 1)
 
     def forward(self, sample):
         output = None
         sample = sample.view(sample.shape[0], 20, self.input_dim)
-
         for e in range(sample.shape[1]):
             x = sample[:, e, :]
             batch = x.shape[0]
@@ -313,18 +320,18 @@ class SincNet(nn.Module):
 
                 if self.cnn_use_batchnorm[i] == False and self.cnn_use_laynorm[i] == False:
                     x = self.drop[i](self.act[i](F.max_pool1d(self.conv[i](x), self.cnn_max_pool_len[i])))
-
-            x = x.view(batch, -1)
+            # xdim = x.shape[1]
+            # x = x.view(batch, xdim -1)
             if e == 0:
                 output = x
             else:
-                output = torch.cat((output, x), dim=1)
-        output = self.drp1(output)
-        output = self.pool1(self.bn1(F.relu(self.conv1(output.view(batch, 1, -1)))))
-        # output = self.drp2(output)
+                output = torch.cat((output, x), dim=2)
+        output = self.pool1(self.bn1(F.relu(self.conv1(output.unsqueeze(1)))))
         output = self.pool2(self.bn2(F.relu(self.conv2(output))))
         output = output.view(batch, -1)
         output = F.relu(self.fc1(output))
+        output = self.drp1(output)
         output = F.relu(self.fc2(output))
+        output = self.drp2(output)
         output = self.fc3(output)
         return output
