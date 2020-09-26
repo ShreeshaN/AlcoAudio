@@ -170,7 +170,7 @@ class SincNetRunner:
                 input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
 
                 # Initialize pos_weight based on training data
-                self.pos_weight = len([x for x in labels if x == 0]) / len([x for x in labels if x == 1])
+                self.pos_weight = 1  # len([x for x in labels if x == 0]) / len([x for x in labels if x == 1])
                 print('Pos weight for the train data - ', self.pos_weight)
                 print('Pos weight for the train data - ', self.pos_weight, file=self.log_file)
 
@@ -271,9 +271,9 @@ class SincNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_inp_file, train_out_file ='train_challenge_with_d1_raw_16k_data_4sec.npy','train_challenge_with_d1_raw_16k_labels_4sec.npy'
-        dev_inp_file, dev_out_file ='dev_challenge_with_d1_raw_16k_data_4sec.npy','dev_challenge_with_d1_raw_16k_labels_4sec.npy'
-        test_inp_file, test_out_file ='test_challenge_with_d1_raw_16k_data_4sec.npy','test_challenge_with_d1_raw_16k_labels_4sec.npy'
+        train_inp_file, train_out_file = 'train_challenge_with_d1_raw_16k_data_4sec.npy', 'train_challenge_with_d1_raw_16k_labels_4sec.npy'
+        dev_inp_file, dev_out_file = 'dev_challenge_with_d1_raw_16k_data_4sec.npy', 'dev_challenge_with_d1_raw_16k_labels_4sec.npy'
+        test_inp_file, test_out_file = 'test_challenge_with_d1_raw_16k_data_4sec.npy', 'test_challenge_with_d1_raw_16k_labels_4sec.npy'
 
         print('Reading train file ', train_inp_file, train_out_file)
         train_data, train_labels = self.data_reader(
