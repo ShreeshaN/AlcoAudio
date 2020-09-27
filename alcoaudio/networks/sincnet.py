@@ -333,7 +333,7 @@ class SincNet(nn.Module):
         output = output.view(batch, -1)
         output = F.relu(self.ln1(self.fc1(output)))
         output = self.drp1(output)
-        output = F.relu(self.ln1(self.fc2(output)))
+        output = F.relu(self.ln2(self.fc2(output)))
         output = self.drp2(output)
         output = self.fc3(output)
         return output
