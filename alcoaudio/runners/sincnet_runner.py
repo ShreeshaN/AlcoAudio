@@ -81,11 +81,11 @@ class SincNetRunner:
         # print('------------------------------------')
         # print([(k,v.float().mean()) for k,v in self.network.state_dict().items()])
 
-        # self.load_my_state_dict(self.saved_model)
-        # for i, param in enumerate(self.network.parameters()):
-        #     print(i, param.shape)
-        #     if i <= 19:
-        #         param.requires_grad = False
+        self.load_my_state_dict(self.saved_model)
+        for i, param in enumerate(self.network.parameters()):
+            print(i, param.shape)
+            if i <= 19:
+                param.requires_grad = False
         # exit()
         # print([(i, x.shape) for i, x in enumerate(self.network.parameters())])
         # exit()
@@ -299,13 +299,13 @@ class SincNetRunner:
 
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
-            # if epoch > 10:
-            #     print('Network is now fine tuning SincNet parameters . . . ')
-            #     print('Network is now fine tuning SincNet parameters . . . ', file=self.log_file)
-            #     for i, param in enumerate(self.network.parameters()):
-            #         print(i, param.shape)
-            #         if i <= 19:
-            #             param.requires_grad = True
+            if epoch > 10:
+                print('Network is now fine tuning SincNet parameters . . . ')
+                print('Network is now fine tuning SincNet parameters . . . ', file=self.log_file)
+                for i, param in enumerate(self.network.parameters()):
+                    print(i, param.shape)
+                    if i <= 19:
+                        param.requires_grad = True
             self.network.train()
             self.batch_loss, self.batch_accuracy, self.batch_uar, self.batch_f1, self.batch_precision, self.batch_recall, audio_for_tensorboard_train = [], [], [], [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
