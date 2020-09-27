@@ -174,7 +174,7 @@ class SincNetRunner:
                 input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
 
                 # Initialize pos_weight based on training data
-                self.pos_weight = len([x for x in labels if x == 0]) / len([x for x in labels if x == 1])
+                self.pos_weight = 1 #len([x for x in labels if x == 0]) / len([x for x in labels if x == 1])
                 print('Pos weight for the train data - ', self.pos_weight)
                 print('Pos weight for the train data - ', self.pos_weight, file=self.log_file)
 
