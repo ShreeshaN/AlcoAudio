@@ -284,8 +284,10 @@ class SincNet(nn.Module):
 
 
         self.fc1 = nn.Linear(55650, 4096)
+        self.ln1 = nn.LayerNorm(4096)
         self.drp1 = nn.Dropout(0.3)
         self.fc2 = nn.Linear(4096, 512)
+        self.ln2 = nn.LayerNorm(512)
         self.drp2 = nn.Dropout(0.3)
         self.fc3 = nn.Linear(512, 1)
 
@@ -329,9 +331,9 @@ class SincNet(nn.Module):
         output = self.pool1(self.bn1(F.relu(self.conv1(output.unsqueeze(1)))))
         output = self.pool2(self.bn2(F.relu(self.conv2(output))))
         output = output.view(batch, -1)
-        output = F.relu(self.fc1(output))
+        output = F.relu(self.ln1(self.fc1(output)))
         output = self.drp1(output)
-        output = F.relu(self.fc2(output))
+        output = F.relu(self.ln1(self.fc2(output)))
         output = self.drp2(output)
         output = self.fc3(output)
         return output
