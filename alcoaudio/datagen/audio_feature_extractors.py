@@ -153,6 +153,7 @@ def remove_silent_parts(filepath, sr):
         audio_pieces.extend(audio[int(segment[0] * sr):int(segment[1] * sr)])
     return np.array(audio_pieces)
 
+
 def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap, normalise, method):
     """
     This method is called by the preprocess data method
@@ -217,7 +218,7 @@ def remove_silent_parts_from_audio(base_path, files, sampling_rate):
         if os.path.exists(filepath):
             sr = sampling_rate
             audio = remove_silent_parts(filepath, sr=sampling_rate)
-            path_to_create = base_path+'removed/'+file
+            path_to_create = base_path + 'removed/' + file
             os.makedirs('/'.join(path_to_create.split('/')[:-1]), exist_ok=True)
             librosa.output.write_wav(path_to_create, audio, sr)
         else:
