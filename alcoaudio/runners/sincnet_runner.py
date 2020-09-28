@@ -96,7 +96,7 @@ class SincNetRunner:
         self.loss_function = None
         self.learning_rate_decay = args.learning_rate_decay
 
-        self.optimiser = optim.RMSprop(self.network.parameters(), lr=self.learning_rate, alpha=0.95, eps=1e-8)
+        self.optimiser = optim.Adam(self.network.parameters(), lr=self.learning_rate)
         self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimiser, gamma=self.learning_rate_decay)
 
         self._min, self._max = float('inf'), -float('inf')
