@@ -174,7 +174,7 @@ class SincNetRunner:
                 input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
 
                 # Initialize pos_weight based on training data
-                self.pos_weight = 1 #len([x for x in labels if x == 0]) / len([x for x in labels if x == 1])
+                self.pos_weight = 1  # len([x for x in labels if x == 0]) / len([x for x in labels if x == 1])
                 print('Pos weight for the train data - ', self.pos_weight)
                 print('Pos weight for the train data - ', self.pos_weight, file=self.log_file)
 
@@ -208,7 +208,7 @@ class SincNetRunner:
             if isinstance(m, nn.BatchNorm2d):
                 m.track_running_stats = False
         predictions_dict = {"tp": [], "fp": [], "tn": [], "fn": []}
-        overall_predictions = []
+        overall_predictions, overall_logits = [], []
 
         self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, self.test_batch_f1, self.test_batch_precision, self.test_batch_recall, audio_for_tensorboard_test = [], [], [], [], [], [], [], None
         with torch.no_grad():
@@ -216,6 +216,7 @@ class SincNetRunner:
                 label = to_tensor(label, device=self.device).float()
                 audio_data = to_tensor(audio_data, device=self.device)
                 test_predictions = self.network(audio_data).squeeze(1)
+                overall_logits.extend(to_numpy(test_predictions))
                 test_loss = self.loss_function(test_predictions, label)
                 test_predictions = nn.Sigmoid()(test_predictions)
                 overall_predictions.extend(to_numpy(test_predictions))
@@ -254,6 +255,8 @@ class SincNetRunner:
               np.max(overall_predictions), file=self.log_file)
         print(f"{type} predictions hist", np.histogram(overall_predictions))
         print(f"{type} predictions hist", np.histogram(overall_predictions), file=self.log_file)
+        print(f"{type} logits hist", np.histogram(overall_logits))
+        print(f"{type} logits hist", np.histogram(overall_logits), file=self.log_file)
         print(f"{type} predictions variance", np.var(overall_predictions))
         print(f"{type} predictions variance", np.var(overall_predictions), file=self.log_file)
         print("****************************************************************")
