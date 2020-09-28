@@ -284,10 +284,10 @@ class SincNet(nn.Module):
 
 
         self.fc1 = nn.Linear(55650, 4096)
-        self.ln1 = nn.LayerNorm(4096)
+        self.ln1 = nn.BatchNorm1d(4096)
         self.drp1 = nn.Dropout(0.3)
         self.fc2 = nn.Linear(4096, 512)
-        self.ln2 = nn.LayerNorm(512)
+        self.ln2 = nn.BatchNorm1d(512)
         self.drp2 = nn.Dropout(0.3)
         self.fc3 = nn.Linear(512, 1)
 
