@@ -331,9 +331,9 @@ class SincNet(nn.Module):
         output = self.pool1(self.bn1(F.relu(self.conv1(output.unsqueeze(1)))))
         output = self.pool2(self.bn2(F.relu(self.conv2(output))))
         output = output.view(batch, -1)
-        output = F.relu(self.ln1(self.fc1(output)))
+        output = F.relu(self.ffn_bn1(self.fc1(output)))
         output = self.drp1(output)
-        output = F.relu(self.ln2(self.fc2(output)))
+        output = F.relu(self.ffn_bn2(self.fc2(output)))
         output = self.drp2(output)
         output = self.fc3(output)
         return output
