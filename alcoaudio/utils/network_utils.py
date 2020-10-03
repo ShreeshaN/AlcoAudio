@@ -52,6 +52,15 @@ def log_summary(writer, global_step, accuracy, loss, uar, lr, type):
     writer.flush()
 
 
+def log_learnable_parameter(writer, global_step, parameter, name):
+    mean = torch.mean(parameter)
+    writer.add_scalar(f'{name}/Mean', mean, global_step)
+    writer.add_scalar(f'{name}/Min', torch.max(parameter), global_step)
+    writer.add_scalar(f'{name}/Max', torch.min(parameter), global_step)
+    writer.add_scalar(f'{name}/Std', torch.std(parameter), global_step)
+    writer.add_histogram(f'{name}/Histogram', parameter, global_step)
+
+
 def log_conf_matrix(writer, global_step, predictions_dict, type):
     writer.add_scalars(f'{type}/Predictions Average', {x: np.mean(predictions_dict[x]) for x in predictions_dict},
                        global_step)

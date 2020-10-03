@@ -18,10 +18,9 @@ import numpy as np
 import time
 import json
 import random
-
 from alcoaudio.networks.sincnet import SincNet
 from alcoaudio.utils import file_utils
-from alcoaudio.utils.network_utils import accuracy_fn, log_summary, custom_confusion_matrix, \
+from alcoaudio.utils.network_utils import accuracy_fn, log_summary, log_learnable_parameter, custom_confusion_matrix, \
     log_conf_matrix, write_to_npy, to_tensor, to_numpy
 from alcoaudio.utils.data_utils import read_npy
 from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask
@@ -119,6 +118,7 @@ class SincNetRunner:
         print(self.sincnet_params, file=self.log_file)
 
         self.writer = SummaryWriter(self.tensorboard_summary_path)
+
         print("Network config:\n", self.network)
         print("Network config:\n", self.network, file=self.log_file)
 
@@ -126,6 +126,10 @@ class SincNetRunner:
 
         print('Configs used:\n', json.dumps(args, indent=4))
         print('Configs used:\n', json.dumps(args, indent=4), file=self.log_file)
+        self.network_parameters_to_log = ["conv.1.weight", "conv.2.weight", "conv1.weight",
+                                          "bn1.weight", "conv2.weight", "bn2.weight",
+                                          "fc1.weight", "ffn_bn1.weight", "fc2.weight",
+                                          "ffn_bn2.weight", "fc3.weight"]
 
     def load_my_state_dict(self, state_dict):
 
@@ -352,11 +356,14 @@ class SincNetRunner:
                             file=self.log_file)
 
             # Decay learning rate
-            # self.scheduler.step(epoch=epoch)
+            self.scheduler.step(epoch=epoch)
             log_summary(self.writer, epoch, accuracy=np.mean(self.batch_accuracy),
                         loss=np.mean(self.batch_loss),
                         uar=np.mean(self.batch_uar), lr=self.optimiser.state_dict()['param_groups'][0]['lr'],
                         type='Train')
+            for parameter in self.network_parameters_to_log:
+                log_learnable_parameter(self.writer, epoch, self.network.state_dict()[parameter], parameter)
+
             print('***** Overall Train Metrics ***** ')
             print('***** Overall Train Metrics ***** ', file=self.log_file)
             print(
