@@ -72,19 +72,20 @@ class SincNetRunner:
         self.network = SincNet(args).to(self.device)
         # for x in self.network.state_dict().keys():
         #     print(x, torch.max(self.network.state_dict()[x]), torch.min(self.network.state_dict()[x]), torch.mean(self.network.state_dict()[x].float()))
-        self.saved_model = \
-            torch.load(args['sincnet_saved_model'], map_location=self.device)[
-                'CNN_model_par']
+
         # print('------------------------------------')
         # print([(k, v.float().mean()) for k, v in self.saved_model.items()])
         # print('------------------------------------')
         # print([(k,v.float().mean()) for k,v in self.network.state_dict().items()])
 
-        self.load_my_state_dict(self.saved_model)
-        for i, param in enumerate(self.network.parameters()):
-            print(i, param.shape)
-            if i <= 19:
-                param.requires_grad = False
+        # self.saved_model = \
+        #     torch.load(args['sincnet_saved_model'], map_location=self.device)[
+        #         'CNN_model_par']
+        # self.load_my_state_dict(self.saved_model)
+        # for i, param in enumerate(self.network.parameters()):
+        #     print(i, param.shape)
+        #     if i <= 19:
+        #         param.requires_grad = False
         # exit()
         # print([(i, x.shape) for i, x in enumerate(self.network.parameters())])
         # exit()
@@ -95,7 +96,7 @@ class SincNetRunner:
         self.loss_function = None
         self.learning_rate_decay = args.learning_rate_decay
 
-        self.optimiser = optim.RMSprop(self.network.parameters(), lr=self.learning_rate, alpha=0.95, eps=1e-8)
+        self.optimiser = optim.Adam(self.network.parameters(), lr=self.learning_rate) # , alpha=0.95, eps=1e-8
         self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimiser, gamma=self.learning_rate_decay)
 
         self._min, self._max = float('inf'), -float('inf')
@@ -306,13 +307,13 @@ class SincNetRunner:
 
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
-            if epoch > 10:
-                print('Network is now fine tuning SincNet parameters . . . ')
-                print('Network is now fine tuning SincNet parameters . . . ', file=self.log_file)
-                for i, param in enumerate(self.network.parameters()):
-                    print(i, param.shape)
-                    if i <= 19:
-                        param.requires_grad = True
+            # if epoch > 10:
+            #     print('Network is now fine tuning SincNet parameters . . . ')
+            #     print('Network is now fine tuning SincNet parameters . . . ', file=self.log_file)
+            #     for i, param in enumerate(self.network.parameters()):
+            #         print(i, param.shape)
+            #         if i <= 19:
+            #             param.requires_grad = True
             self.network.train()
             self.batch_loss, self.batch_accuracy, self.batch_uar, self.batch_f1, self.batch_precision, self.batch_recall, audio_for_tensorboard_train = [], [], [], [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
