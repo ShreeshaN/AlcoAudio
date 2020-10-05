@@ -1,9 +1,9 @@
 {
-  "run_name": "emotion_alco_audio_challenge_data_sincnet_4sec_freshtrain_adam_removed_bn",
+  "run_name": "emotion_alco_audio_challenge_data_sincnet_4sec_freshtrain_adam_removed_bn_and_lrdecay",
   "epochs": 50,
   "batch_size": 32,
   "learning_rate": 0.00005,
-  "transfer_learning_rate": 0.00005,
+  "transfer_learning_rate": 0.0001,
   "learning_rate_decay": 0.95,
   "threshold": 0.5,
   "alpha": 2,

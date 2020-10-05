@@ -307,6 +307,8 @@ class SincNetRunner:
 
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
+            for parameter in self.network_parameters_to_log:
+                log_learnable_parameter(self.writer, epoch-1, self.network.state_dict()[parameter], parameter)
             # if epoch > 10:
             #     print('Network is now fine tuning SincNet parameters . . . ')
             #     print('Network is now fine tuning SincNet parameters . . . ', file=self.log_file)
@@ -357,13 +359,11 @@ class SincNetRunner:
                             file=self.log_file)
 
             # Decay learning rate
-            self.scheduler.step(epoch=epoch)
+            # self.scheduler.step(epoch=epoch)
             log_summary(self.writer, epoch, accuracy=np.mean(self.batch_accuracy),
                         loss=np.mean(self.batch_loss),
                         uar=np.mean(self.batch_uar), lr=self.optimiser.state_dict()['param_groups'][0]['lr'],
                         type='Train')
-            for parameter in self.network_parameters_to_log:
-                log_learnable_parameter(self.writer, epoch, self.network.state_dict()[parameter], parameter)
 
             print('***** Overall Train Metrics ***** ')
             print('***** Overall Train Metrics ***** ', file=self.log_file)
