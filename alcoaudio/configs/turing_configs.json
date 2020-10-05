@@ -1,5 +1,5 @@
 {
-  "run_name": "emotion_alco_audio_challenge_data_sincnet_4sec_freshtrain_adam",
+  "run_name": "emotion_alco_audio_challenge_data_sincnet_4sec_freshtrain_adam_removed_bn",
   "epochs": 50,
   "batch_size": 32,
   "learning_rate": 0.00005,
