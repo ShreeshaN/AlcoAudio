@@ -25,6 +25,7 @@ from alcoaudio.utils.network_utils import accuracy_fn, log_summary, custom_confu
     log_conf_matrix, write_to_npy, to_tensor, to_numpy, log_learnable_parameter
 from alcoaudio.utils.data_utils import read_npy
 from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask
+from alcoaudio.utils.logger import Logger
 
 # setting seed
 torch.manual_seed(1234)
@@ -79,26 +80,22 @@ class ConvNetRunner:
 
         if self.train_net:
             self.network.train()
-            self.log_file = open(self.network_save_path + '/' + self.run_name + '.log', 'w')
-            self.log_file.write(json.dumps(args))
+            self.logger = Logger(name=self.run_name, log_path=self.network_save_path).get_logger()
+            self.logger.info(str(json.dumps(args, indent=4)))
         if self.test_net:
-            print('Loading Network')
+            self.logger.info('Loading Network')
             self.network.load_state_dict(torch.load(self.network_restore_path, map_location=self.device))
             self.network.eval()
-            self.log_file = open(self.network_restore_path.replace('_40.pt', '.log'), 'a')
-            print('\n\n\n********************************************************', file=self.log_file)
-            print('Testing Model - ', self.network_restore_path)
-            print('Testing Model - ', self.network_restore_path, file=self.log_file)
-            print('********************************************************', file=self.log_file)
+            self.logger.info('\n\n\n********************************************************')
+            self.logger.info(f'Testing Model - {self.network_restore_path}')
+            self.logger.info('********************************************************')
 
         self.writer = SummaryWriter(self.tensorboard_summary_path)
-        print("Network config:\n", self.network)
-        print("Network config:\n", self.network, file=self.log_file)
+        self.logger.info(f"Network Architecture:\n,{self.network}")
 
         self.batch_loss, self.batch_accuracy, self.uar = [], [], []
 
-        print('Configs used:\n', json.dumps(args, indent=4))
-        print('Configs used:\n', json.dumps(args, indent=4), file=self.log_file)
+        self.logger.info(f'Configs used:\n{json.dumps(args, indent=4)}')
 
     def data_reader(self, data_filepath, label_filepath, train, should_batch=True, shuffle=True, infer=False):
         if infer:
@@ -107,23 +104,18 @@ class ConvNetRunner:
             input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
             if train:
 
-                print('Original data size - before Augmentation')
-                print('Original data size - before Augmentation', file=self.log_file)
-                print('Total data ', len(input_data))
-                print('Event rate', sum(labels) / len(labels))
-                print(np.array(input_data).shape, np.array(labels).shape)
-
-                print('Total data ', len(input_data), file=self.log_file)
-                print('Event rate', sum(labels) / len(labels), file=self.log_file)
-                print(np.array(input_data).shape, np.array(labels).shape, file=self.log_file)
+                self.logger.info(f'Original data size - before Augmentation')
+                self.logger.info(f'Total data {str(len(input_data))}')
+                self.logger.info(f'Event rate {str(sum(labels) / len(labels))}')
+                self.logger.info(
+                        f'Input data shape:{np.array(input_data).shape} | Output data shape:{np.array(labels).shape}')
 
                 for x in input_data:
                     self._min = min(np.min(x), self._min)
                     self._max = max(np.max(x), self._max)
                 self._mean, self._std = np.mean(input_data), np.std(input_data)
 
-                print('Data Augmentation starts . . .')
-                print('Data Augmentation starts . . .', file=self.log_file)
+                self.logger.info(f'Data Augmentation starts . . .')
                 label_to_augment = 1
                 amount_to_augment = 1.3
                 ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_augment]
@@ -140,8 +132,7 @@ class ConvNetRunner:
                 input_data = np.concatenate((input_data, augmented_data))
                 labels = np.concatenate((labels, augmented_labels))
 
-                print('Data Augmentation done . . .')
-                print('Data Augmentation done . . .', file=self.log_file)
+                self.logger.info(f'Data Augmentation done . . .')
 
                 data = [(x, y) for x, y in zip(input_data, labels)]
                 random.shuffle(data)
@@ -149,19 +140,15 @@ class ConvNetRunner:
 
                 # Initialize pos_weight based on training data
                 self.pos_weight = len([x for x in labels if x == 0]) / len([x for x in labels if x == 1])
-                print('Pos weight for the train data - ', self.pos_weight)
-                print('Pos weight for the train data - ', self.pos_weight, file=self.log_file)
+                self.logger.info('Pos weight for the train data - ', self.pos_weight)
 
-            print('Total data ', len(input_data))
-            print('Event rate', sum(labels) / len(labels))
-            print(np.array(input_data).shape, np.array(labels).shape)
+            self.logger.info(f'Total data {str(len(input_data))}')
+            self.logger.info(f'Event rate {str(sum(labels) / len(labels))}')
+            self.logger.info(
+                    f'Input data shape:{np.array(input_data).shape} | Output data shape:{np.array(labels).shape}')
 
-            print('Total data ', len(input_data), file=self.log_file)
-            print('Event rate', sum(labels) / len(labels), file=self.log_file)
-            print(np.array(input_data).shape, np.array(labels).shape, file=self.log_file)
-
-            print('Min max values used for normalisation ', self._min, self._max)
-            print('Min max values used for normalisation ', self._min, self._max, file=self.log_file)
+            self.logger.info(f'Min max values used for normalisation {self._min, self._max}')
+            self.logger.info(f'Min max values used for normalisation {self._min, self._max}')
 
             # Normalizing `input data` on train dataset's min and max values
             if self.normalise:
@@ -206,13 +193,9 @@ class ConvNetRunner:
                 predictions_dict['tn'].extend(tn)
                 predictions_dict['fn'].extend(fn)
 
-        print(f'***** {type} Metrics ***** ')
-        print(f'***** {type} Metrics ***** ', file=self.log_file)
-        print(
+        self.logger.info(f'***** {type} Metrics ***** ')
+        self.logger.info(
                 f"Loss: {'%.3f' % np.mean(self.test_batch_loss)} | Accuracy: {'%.3f' % np.mean(self.test_batch_accuracy)} | UAR: {'%.3f' % np.mean(self.test_batch_uar)}| F1:{'%.3f' % np.mean(self.test_batch_f1)} | Precision:{'%.3f' % np.mean(self.test_batch_precision)} | Recall:{'%.3f' % np.mean(self.test_batch_recall)}")
-        print(
-                f"Loss: {'%.3f' % np.mean(self.test_batch_loss)} | Accuracy: {'%.3f' % np.mean(self.test_batch_accuracy)} | UAR: {'%.3f' % np.mean(self.test_batch_uar)}| F1:{'%.3f' % np.mean(self.test_batch_f1)} | Precision:{'%.3f' % np.mean(self.test_batch_precision)} | Recall:{'%.3f' % np.mean(self.test_batch_recall)}",
-                file=self.log_file)
 
         log_summary(self.writer, epoch, accuracy=np.mean(self.test_batch_accuracy),
                     loss=np.mean(self.test_batch_loss),
@@ -234,17 +217,17 @@ class ConvNetRunner:
         dev_inp_file, dev_out_file = 'dev_challenge_with_d1_data.npy', 'dev_challenge_with_d1_labels.npy'
         test_inp_file, test_out_file = 'test_challenge_data.npy', 'test_challenge_labels.npy'
 
-        print('Reading train file ', train_inp_file, train_out_file)
+        self.logger.info(f'Reading train file {train_inp_file, train_out_file}')
         train_data, train_labels = self.data_reader(
                 self.data_read_path + train_inp_file,
                 self.data_read_path + train_out_file,
                 shuffle=True,
                 train=True)
-        print('Reading dev file ', train_inp_file, train_out_file)
+        self.logger.info(f'Reading dev file {dev_inp_file, dev_out_file}')
         dev_data, dev_labels = self.data_reader(self.data_read_path + dev_inp_file,
                                                 self.data_read_path + dev_out_file,
                                                 shuffle=False, train=False)
-        print('Reading test file ', train_inp_file, train_out_file)
+        self.logger.info(f'Reading test file {test_inp_file, test_out_file}')
         test_data, test_labels = self.data_reader(self.data_read_path + test_inp_file,
                                                   self.data_read_path + test_out_file,
                                                   shuffle=False, train=False)
@@ -280,11 +263,8 @@ class ConvNetRunner:
                 self.batch_recall.append(recall)
 
                 if i % self.display_interval == 0:
-                    print(
+                    self.logger.info(
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {'%.3f' % loss} | Accuracy: {'%.3f' % accuracy} | UAR: {'%.3f' % uar}| F1:{'%.3f' % f1} | Precision: {'%.3f' % precision} | Recall: {'%.3f' % recall}")
-                    print(
-                            f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {'%.3f' % loss} | Accuracy: {accuracy} | UAR: {'%.3f' % uar}| F1:{'%.3f' % f1} | Precision: {'%.3f' % precision} | Recall: {'%.3f' % recall}",
-                            file=self.log_file)
 
             log_learnable_parameter(self.writer, epoch, train_logits, name='train_logits')
             log_learnable_parameter(self.writer, epoch, train_predictions, name='train_activated')
@@ -295,15 +275,10 @@ class ConvNetRunner:
                         loss=np.mean(self.batch_loss),
                         uar=np.mean(self.batch_uar), lr=self.optimiser.state_dict()['param_groups'][0]['lr'],
                         type='Train')
-            print('***** Overall Train Metrics ***** ')
-            print('***** Overall Train Metrics ***** ', file=self.log_file)
-            print(
+            self.logger.info('***** Overall Train Metrics ***** ')
+            self.logger.info(
                     f"Loss: {'%.3f' % np.mean(self.batch_loss)} | Accuracy: {'%.3f' % np.mean(self.batch_accuracy)} | UAR: {'%.3f' % np.mean(self.batch_uar)} | F1:{'%.3f' % np.mean(self.batch_f1)} | Precision:{'%.3f' % np.mean(self.batch_precision)} | Recall:{'%.3f' % np.mean(self.batch_recall)}")
-            print(
-                    f"Loss: {'%.3f' % np.mean(self.batch_loss)} | Accuracy: {'%.3f' % np.mean(self.batch_accuracy)} | UAR: {'%.3f' % np.mean(self.batch_uar)} | F1:{'%.3f' % np.mean(self.batch_f1)} | Precision:{'%.3f' % np.mean(self.batch_precision)} | Recall:{'%.3f' % np.mean(self.batch_recall)}",
-                    file=self.log_file)
-            print('Learning rate ', self.optimiser.state_dict()['param_groups'][0]['lr'])
-            print('Learning rate ', self.optimiser.state_dict()['param_groups'][0]['lr'], file=self.log_file)
+            self.logger.info(f"Learning rate {self.optimiser.state_dict()['param_groups'][0]['lr']}")
 
             # dev data
             self.run_for_epoch(epoch, dev_data, dev_labels, type='Dev')
@@ -314,7 +289,7 @@ class ConvNetRunner:
             if epoch % self.network_save_interval == 0:
                 save_path = self.network_save_path + '/' + self.run_name + '_' + str(epoch) + '.pt'
                 torch.save(self.network.state_dict(), save_path)
-                print('Network successfully saved: ' + save_path)
+                self.logger.info(f'Network successfully saved: {save_path}')
 
     def test(self):
         test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_data.npy',
@@ -323,8 +298,8 @@ class ConvNetRunner:
         test_predictions = self.network(test_data).squeeze(1)
         test_predictions = nn.Sigmoid()(test_predictions)
         test_accuracy, test_uar = accuracy_fn(test_predictions, test_labels, self.threshold)
-        print(f"Accuracy: {test_accuracy} | UAR: {test_uar}")
-        print(f"Accuracy: {test_accuracy} | UAR: {test_uar}", file=self.log_file)
+        self.logger.info(f"Accuracy: {test_accuracy} | UAR: {test_uar}")
+        self.logger.info(f"Accuracy: {test_accuracy} | UAR: {test_uar}")
 
     def infer(self, data_file):
         test_data = self.data_reader(data_file, shuffle=False, train=False, infer=True)
