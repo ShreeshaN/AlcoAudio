@@ -52,9 +52,9 @@ def log_summary(writer, global_step, accuracy, loss, uar, lr, type):
     writer.flush()
 
 
-def log_learnable_parameter(writer, global_step, parameter=None, name=None, network=None):
+def log_learnable_parameter(writer, global_step, parameter=None, name=None, network_params=None):
     """
-    If network is not none, then parameter and name arguments are ignored. If network is none,
+    If network_params is not none, then parameter and name arguments are ignored. If network_params is none,
     parameter and name must be passed
     :param writer:
     :param global_step:
@@ -72,8 +72,8 @@ def log_learnable_parameter(writer, global_step, parameter=None, name=None, netw
         writer.add_scalar(f'{param_name}/Std', torch.std(param), global_step)
         writer.add_histogram(f'{param_name}/Histogram', param, global_step)
 
-    if network:
-        for parameter in network.named_parameters():
+    if network_params:
+        for parameter in network_params.named_parameters():
             log(parameter[0], parameter[1])
     else:
         log(name, parameter)
