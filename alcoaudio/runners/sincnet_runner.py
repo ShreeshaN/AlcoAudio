@@ -73,6 +73,11 @@ class SincNetRunner:
         # for x in self.network.state_dict().keys():
         #     print(x, torch.max(self.network.state_dict()[x]), torch.min(self.network.state_dict()[x]), torch.mean(self.network.state_dict()[x].float()))
 
+        for x in self.network.named_parameters():
+            print(x[0])
+            # print('-----')
+            # print(x[1])
+        # exit()
         # print('------------------------------------')
         # print([(k, v.float().mean()) for k, v in self.saved_model.items()])
         # print('------------------------------------')

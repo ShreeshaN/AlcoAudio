@@ -52,13 +52,31 @@ def log_summary(writer, global_step, accuracy, loss, uar, lr, type):
     writer.flush()
 
 
-def log_learnable_parameter(writer, global_step, parameter, name):
-    mean = torch.mean(parameter)
-    writer.add_scalar(f'{name}/Mean', mean, global_step)
-    writer.add_scalar(f'{name}/Min', torch.max(parameter), global_step)
-    writer.add_scalar(f'{name}/Max', torch.min(parameter), global_step)
-    writer.add_scalar(f'{name}/Std', torch.std(parameter), global_step)
-    writer.add_histogram(f'{name}/Histogram', parameter, global_step)
+def log_learnable_parameter(writer, global_step, parameter=None, name=None, network=None):
+    """
+    If network is not none, then parameter and name arguments are ignored. If network is none,
+    parameter and name must be passed
+    :param writer:
+    :param global_step:
+    :param parameter:
+    :param name:
+    :param network:
+    :return:
+    """
+
+    def log(param_name, param):
+        mean = torch.mean(param)
+        writer.add_scalar(f'{param_name}/Mean', mean, global_step)
+        writer.add_scalar(f'{param_name}/Min', torch.max(param), global_step)
+        writer.add_scalar(f'{param_name}/Max', torch.min(param), global_step)
+        writer.add_scalar(f'{param_name}/Std', torch.std(param), global_step)
+        writer.add_histogram(f'{param_name}/Histogram', param, global_step)
+
+    if network:
+        for parameter in network.named_parameters():
+            log(parameter[0], parameter[1])
+    else:
+        log(name, parameter)
 
 
 def log_conf_matrix(writer, global_step, predictions_dict, type):

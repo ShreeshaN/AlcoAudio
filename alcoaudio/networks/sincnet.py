@@ -275,13 +275,12 @@ class SincNet(nn.Module):
         # self.bn2 = nn.BatchNorm1d(40)
         # self.pool2 = nn.MaxPool1d(2, 2)
 
-        self.conv1 = nn.Conv2d(1, 30, (2,3), 2)
+        self.conv1 = nn.Conv2d(1, 30, (2, 3), 2)
         self.bn1 = nn.BatchNorm2d(30)
-        self.pool1 = nn.MaxPool2d((1,2), 2)
-        self.conv2 = nn.Conv2d(30, 30, (2,3), 2)
+        self.pool1 = nn.MaxPool2d((1, 2), 2)
+        self.conv2 = nn.Conv2d(30, 30, (2, 3), 2)
         self.bn2 = nn.BatchNorm2d(30)
-        self.pool2 = nn.MaxPool2d((1,2), 1 )
-
+        self.pool2 = nn.MaxPool2d((1, 2), 1)
 
         self.fc1 = nn.Linear(55650, 4096)
         self.ffn_bn1 = nn.BatchNorm1d(4096)

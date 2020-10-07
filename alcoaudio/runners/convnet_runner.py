@@ -22,9 +22,13 @@ import random
 from alcoaudio.networks.convnet import ConvNet
 from alcoaudio.utils import file_utils
 from alcoaudio.utils.network_utils import accuracy_fn, log_summary, custom_confusion_matrix, \
-    log_conf_matrix, write_to_npy, to_tensor, to_numpy
+    log_conf_matrix, write_to_npy, to_tensor, to_numpy, log_learnable_parameter
 from alcoaudio.utils.data_utils import read_npy
 from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask
+
+# setting seed
+torch.manual_seed(1234)
+np.random.seed(1234)
 
 
 class ConvNetRunner:
@@ -116,6 +120,7 @@ class ConvNetRunner:
                 for x in input_data:
                     self._min = min(np.min(x), self._min)
                     self._max = max(np.max(x), self._max)
+                self._mean, self._std = np.mean(input_data), np.std(input_data)
 
                 print('Data Augmentation starts . . .')
                 print('Data Augmentation starts . . .', file=self.log_file)
@@ -225,15 +230,23 @@ class ConvNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_data, train_labels = self.data_reader(self.data_read_path + 'train_challenge_with_d1_data.npy',
-                                                    self.data_read_path + 'train_challenge_with_d1_labels.npy',
-                                                    shuffle=True,
-                                                    train=True)
-        dev_data, dev_labels = self.data_reader(self.data_read_path + 'dev_challenge_with_d1_data.npy',
-                                                self.data_read_path + 'dev_challenge_with_d1_labels.npy',
+        train_inp_file, train_out_file = 'train_challenge_with_d1_data.npy', 'train_challenge_with_d1_labels.npy'
+        dev_inp_file, dev_out_file = 'dev_challenge_with_d1_data.npy', 'dev_challenge_with_d1_labels.npy'
+        test_inp_file, test_out_file = 'test_challenge_data.npy', 'test_challenge_labels.npy'
+
+        print('Reading train file ', train_inp_file, train_out_file)
+        train_data, train_labels = self.data_reader(
+                self.data_read_path + train_inp_file,
+                self.data_read_path + train_out_file,
+                shuffle=True,
+                train=True)
+        print('Reading dev file ', train_inp_file, train_out_file)
+        dev_data, dev_labels = self.data_reader(self.data_read_path + dev_inp_file,
+                                                self.data_read_path + dev_out_file,
                                                 shuffle=False, train=False)
-        test_data, test_labels = self.data_reader(self.data_read_path + 'test_challenge_data.npy',
-                                                  self.data_read_path + 'test_challenge_labels.npy',
+        print('Reading test file ', train_inp_file, train_out_file)
+        test_data, test_labels = self.data_reader(self.data_read_path + test_inp_file,
+                                                  self.data_read_path + test_out_file,
                                                   shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
@@ -241,8 +254,10 @@ class ConvNetRunner:
 
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
+            log_learnable_parameter(self.writer, epoch - 1, network=self.network.named_parameters())
             self.network.train()
-            self.batch_loss, self.batch_accuracy, self.batch_uar, self.batch_f1, self.batch_precision, self.batch_recall, audio_for_tensorboard_train = [], [], [], [], [], [], None
+            self.batch_loss, self.batch_accuracy, self.batch_uar, self.batch_f1, self.batch_precision, \
+            self.batch_recall, train_predictions, train_logits, audio_for_tensorboard_train = [], [], [], [], [], [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
                 self.optimiser.zero_grad()
                 label = to_tensor(label, device=self.device).float()
@@ -250,8 +265,10 @@ class ConvNetRunner:
                 if i == 0:
                     self.writer.add_graph(self.network, audio_data)
                 predictions = self.network(audio_data).squeeze(1)
+                train_logits.extend(predictions)
                 loss = self.loss_function(predictions, label)
                 predictions = nn.Sigmoid()(predictions)
+                train_predictions.extend(predictions)
                 loss.backward()
                 self.optimiser.step()
                 accuracy, uar, precision, recall, f1 = accuracy_fn(predictions, label, self.threshold)
@@ -268,6 +285,9 @@ class ConvNetRunner:
                     print(
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {'%.3f' % loss} | Accuracy: {accuracy} | UAR: {'%.3f' % uar}| F1:{'%.3f' % f1} | Precision: {'%.3f' % precision} | Recall: {'%.3f' % recall}",
                             file=self.log_file)
+
+            log_learnable_parameter(self.writer, epoch, train_logits, name='train_logits')
+            log_learnable_parameter(self.writer, epoch, train_predictions, name='train_activated')
 
             # Decay learning rate
             self.scheduler.step(epoch=epoch)
