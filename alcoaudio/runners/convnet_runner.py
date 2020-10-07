@@ -140,7 +140,7 @@ class ConvNetRunner:
 
                 # Initialize pos_weight based on training data
                 self.pos_weight = len([x for x in labels if x == 0]) / len([x for x in labels if x == 1])
-                self.logger.info('Pos weight for the train data - ', self.pos_weight)
+                self.logger.info(f'Pos weight for the train data - {self.pos_weight}')
 
             self.logger.info(f'Total data {str(len(input_data))}')
             self.logger.info(f'Event rate {str(sum(labels) / len(labels))}')
@@ -266,8 +266,10 @@ class ConvNetRunner:
                     self.logger.info(
                             f"Epoch: {epoch}/{self.epochs} | Step: {i}/{total_step} | Loss: {'%.3f' % loss} | Accuracy: {'%.3f' % accuracy} | UAR: {'%.3f' % uar}| F1:{'%.3f' % f1} | Precision: {'%.3f' % precision} | Recall: {'%.3f' % recall}")
 
-            log_learnable_parameter(self.writer, epoch, train_logits, name='train_logits')
-            log_learnable_parameter(self.writer, epoch, train_predictions, name='train_activated')
+            log_learnable_parameter(self.writer, epoch, to_tensor(train_logits, device=self.device),
+                                    name='train_logits')
+            log_learnable_parameter(self.writer, epoch, to_tensor(train_predictions, device=self.device),
+                                    name='train_activated')
 
             # Decay learning rate
             self.scheduler.step(epoch=epoch)
