@@ -73,7 +73,7 @@ def log_learnable_parameter(writer, global_step, parameter=None, name=None, netw
         writer.add_histogram(f'{param_name}/Histogram', param, global_step)
 
     if network_params:
-        for parameter in network_params.named_parameters():
+        for parameter in network_params:
             log(parameter[0], parameter[1])
     else:
         log(name, parameter)
