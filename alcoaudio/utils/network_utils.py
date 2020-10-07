@@ -60,7 +60,7 @@ def log_learnable_parameter(writer, global_step, parameter=None, name=None, netw
     :param global_step:
     :param parameter:
     :param name:
-    :param network:
+    :param network_params:
     :return:
     """
 

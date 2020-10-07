@@ -237,7 +237,7 @@ class ConvNetRunner:
 
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
-            log_learnable_parameter(self.writer, epoch - 1, network=self.network.named_parameters())
+            log_learnable_parameter(self.writer, epoch - 1, network_params=self.network.named_parameters())
             self.network.train()
             self.batch_loss, self.batch_accuracy, self.batch_uar, self.batch_f1, self.batch_precision, \
             self.batch_recall, train_predictions, train_logits, audio_for_tensorboard_train = [], [], [], [], [], [], [], [], None
