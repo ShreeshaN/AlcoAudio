@@ -23,7 +23,7 @@
   "network_save_interval": 3,
   "display_interval": 50,
   "dropout": 0.2,
-  "sampling_rate": 16000,
+  "sampling_rate": 22050,
   "sample_size_in_seconds": 8,
   "overlap": 1,
   "data_save_path": "/home/snarasimhamurthy/AlcoProcessedData/",

@@ -34,7 +34,9 @@ def mfcc_features(audio, sampling_rate, normalise=False):
 
 
 def mel_filters(audio, sampling_rate, normalise=False):
+    print(audio.shape)
     mel_spec = librosa.feature.melspectrogram(y=audio, n_mels=40, sr=sampling_rate)
+    print("mel_spec.shape", mel_spec.shape)
     if normalise:
         return np.mean(mel_spec.T)
     else:
@@ -172,11 +174,13 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
         # audio = audio[mask]
         sr = sampling_rate
         # audio = remove_silent_parts(filepath, sr=sampling_rate)
+        print("sample_size_in_seconds", sample_size_in_seconds)
         chunks = cut_audio(audio, sampling_rate=sr, sample_size_in_seconds=sample_size_in_seconds,
                            overlap=overlap)
         for chunk in chunks:
             if method == 'fbank':
                 features = mel_filters(chunk, sr, normalise)
+                # print("features.shape", features.shape)
             elif method == 'mfcc':
                 features = mfcc_features(chunk, sr, normalise)
             elif method == 'gaf':
