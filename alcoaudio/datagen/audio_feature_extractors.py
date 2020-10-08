@@ -34,9 +34,7 @@ def mfcc_features(audio, sampling_rate, normalise=False):
 
 
 def mel_filters(audio, sampling_rate, normalise=False):
-    print(audio.shape)
     mel_spec = librosa.feature.melspectrogram(y=audio, n_mels=40, sr=sampling_rate)
-    print("mel_spec.shape", mel_spec.shape)
     if normalise:
         return np.mean(mel_spec.T)
     else:
