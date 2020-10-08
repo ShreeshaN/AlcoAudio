@@ -11,7 +11,7 @@
   "audio_basepath": "/home/snarasimhamurthy/ALC/DATA/",
   "train_data_file": "/home/snarasimhamurthy/ALC/DOC/IS2011CHALLENGE/TRAIN_altered.TBL",
   "dev_data_file": "/home/snarasimhamurthy/ALC/DOC/IS2011CHALLENGE/D1_altered.TBL",
-  "test_data_file": "/home/snarasimhamurthy/ALC/DOC/IS2011CHALLENGE/TEST_altered.TBL",
+  "test_data_file": "/home/snarasimhamurthy/ALC/DOC/IS2011CHALLENGE/TEST.TBL",
   "network_metrics_basepath": "results/",
   "network_save_path": "alco_trained_models/",
   "tensorboard_summary_path": "tensorboard_summary",
