@@ -11,3 +11,5 @@ tqdm
 joblib
 torchvision
 plotly
+pyannote.audio
+pyts

@@ -23,8 +23,6 @@ from pyts.image import GramianAngularField
 import torch
 from pyannote.audio.utils.signal import Binarize
 
-sad = torch.hub.load('pyannote/pyannote-audio', 'sad_ami')
-
 
 def mfcc_features(audio, sampling_rate, normalise=False):
     mfcc = librosa.feature.mfcc(y=audio, n_mfcc=40, sr=sampling_rate)
@@ -131,12 +129,12 @@ def envelope(y, rate, threshold):
     return mask
 
 
-def remove_silent_parts(filepath, sr):
+def remove_silent_parts(filepath, sr, model):
     audio, sr = librosa.load(filepath, sr=sr)
     test_file = {'uri': filepath.split('/')[-1], 'audio': filepath}
 
     # obtain raw SAD scores (as `pyannote.core.SlidingWindowFeature` instance)
-    sad_scores = sad(test_file)
+    sad_scores = model(test_file)
 
     # binarize raw SAD scores
     # NOTE: both onset/offset values were tuned on AMI dataset.
@@ -213,11 +211,12 @@ def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds,
 
 
 def remove_silent_parts_from_audio(base_path, files, sampling_rate):
+    sad = torch.hub.load('pyannote/pyannote-audio', 'sad_ami')
     for file in tqdm(files):
         filepath = base_path + file
         if os.path.exists(filepath):
             sr = sampling_rate
-            audio = remove_silent_parts(filepath, sr=sampling_rate)
+            audio = remove_silent_parts(filepath, sr=sampling_rate, model=sad)
             path_to_create = base_path + 'removed/' + file
             os.makedirs('/'.join(path_to_create.split('/')[:-1]), exist_ok=True)
             librosa.output.write_wav(path_to_create, audio, sr)
