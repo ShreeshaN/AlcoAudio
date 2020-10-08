@@ -213,9 +213,9 @@ class ConvNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_inp_file, train_out_file = 'train_challenge_with_d1_data.npy', 'train_challenge_with_d1_labels.npy'
-        dev_inp_file, dev_out_file = 'dev_challenge_with_d1_data.npy', 'dev_challenge_with_d1_labels.npy'
-        test_inp_file, test_out_file = 'test_challenge_data.npy', 'test_challenge_labels.npy'
+        train_inp_file, train_out_file = 'train_challenge_with_d1_mel_data.npy', 'train_challenge_with_d1_mel_labels.npy'
+        dev_inp_file, dev_out_file = 'dev_challenge_with_d1_mel_data.npy', 'dev_challenge_with_d1_mel_labels.npy'
+        test_inp_file, test_out_file = 'test_challenge_with_d1_mel_data.npy', 'test_challenge_with_d1_mel_labels.npy'
 
         self.logger.info(f'Reading train file {train_inp_file, train_out_file}')
         train_data, train_labels = self.data_reader(
