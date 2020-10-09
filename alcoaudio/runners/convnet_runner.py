@@ -163,10 +163,10 @@ class ConvNetRunner:
                 return input_data, labels
 
     def run_for_epoch(self, epoch, x, y, type):
-        self.network.eval()
-        for m in self.network.modules():
-            if isinstance(m, nn.BatchNorm2d):
-                m.track_running_stats = False
+        # self.network.eval()
+        # for m in self.network.modules():
+        #     if isinstance(m, nn.BatchNorm2d):
+        #         m.track_running_stats = False
         predictions_dict = {"tp": [], "fp": [], "tn": [], "fn": []}
         logits, predictions = [], []
         self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, self.test_batch_f1, self.test_batch_precision, self.test_batch_recall, audio_for_tensorboard_test = [], [], [], [], [], [], [], None
@@ -243,7 +243,7 @@ class ConvNetRunner:
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
             log_learnable_parameter(self.writer, epoch - 1, network_params=self.network.named_parameters())
-            self.network.train()
+            # self.network.train()
             self.batch_loss, self.batch_accuracy, self.batch_uar, self.batch_f1, self.batch_precision, \
             self.batch_recall, train_predictions, train_logits, audio_for_tensorboard_train = [], [], [], [], [], [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
