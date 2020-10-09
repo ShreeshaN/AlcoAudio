@@ -168,13 +168,14 @@ class ConvNetRunner:
             if isinstance(m, nn.BatchNorm2d):
                 m.track_running_stats = False
         predictions_dict = {"tp": [], "fp": [], "tn": [], "fn": []}
-        predictions = []
+        logits, predictions = [], []
         self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, self.test_batch_f1, self.test_batch_precision, self.test_batch_recall, audio_for_tensorboard_test = [], [], [], [], [], [], [], None
         with torch.no_grad():
             for i, (audio_data, label) in enumerate(zip(x, y)):
                 label = to_tensor(label, device=self.device).float()
                 audio_data = to_tensor(audio_data, device=self.device)
                 test_predictions = self.network(audio_data).squeeze(1)
+                logits.extend(to_numpy(test_predictions))
                 test_loss = self.loss_function(test_predictions, label)
                 test_predictions = nn.Sigmoid()(test_predictions)
                 predictions.append(to_numpy(test_predictions))
@@ -193,6 +194,7 @@ class ConvNetRunner:
                 predictions_dict['tn'].extend(tn)
                 predictions_dict['fn'].extend(fn)
 
+        predictions = [element for sublist in predictions for element in sublist]
         self.logger.info(f'***** {type} Metrics ***** ')
         self.logger.info(
                 f"Loss: {'%.3f' % np.mean(self.test_batch_loss)} | Accuracy: {'%.3f' % np.mean(self.test_batch_accuracy)} | UAR: {'%.3f' % np.mean(self.test_batch_uar)}| F1:{'%.3f' % np.mean(self.test_batch_f1)} | Precision:{'%.3f' % np.mean(self.test_batch_precision)} | Recall:{'%.3f' % np.mean(self.test_batch_recall)}")
@@ -203,8 +205,11 @@ class ConvNetRunner:
                     type=type)
         log_conf_matrix(self.writer, epoch, predictions_dict=predictions_dict, type=type)
 
-        y = [element for sublist in y for element in sublist]
-        predictions = [element for sublist in predictions for element in sublist]
+        log_learnable_parameter(self.writer, epoch, to_tensor(logits, device=self.device),
+                                name=f'{type}_logits')
+        log_learnable_parameter(self.writer, epoch, to_tensor(predictions, device=self.device),
+                                name=f'{type}_predictions')
+
         write_to_npy(filename=self.debug_filename, predictions=predictions, labels=y, epoch=epoch, accuracy=np.mean(
                 self.test_batch_accuracy), loss=np.mean(self.test_batch_loss), uar=np.mean(self.test_batch_uar),
                      lr=self.optimiser.state_dict()['param_groups'][0]['lr'], predictions_dict=predictions_dict,
