@@ -115,24 +115,24 @@ class ConvNetRunner:
                     self._max = max(np.max(x), self._max)
                 self._mean, self._std = np.mean(input_data), np.std(input_data)
 
-                # self.logger.info(f'Data Augmentation starts . . .')
-                # label_to_augment = 1
-                # amount_to_augment = 1.3
-                # ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_augment]
-                # random_idxs = random.choices(ones_ids,
-                #                              k=int(len(ones_ids) * amount_to_augment))
-                # data_to_augment = input_data[random_idxs]
-                # augmented_data = []
-                # augmented_labels = []
-                # for x in data_to_augment:
-                #     x = librosaSpectro_to_torchTensor(x)
-                #     x = random.choice([time_mask, freq_mask])(x)[0].numpy()
-                #     augmented_data.append(x), augmented_labels.append(label_to_augment)
-                #
-                # input_data = np.concatenate((input_data, augmented_data))
-                # labels = np.concatenate((labels, augmented_labels))
-                #
-                # self.logger.info(f'Data Augmentation done . . .')
+                self.logger.info(f'Data Augmentation starts . . .')
+                label_to_augment = 1
+                amount_to_augment = 1.3
+                ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_augment]
+                random_idxs = random.choices(ones_ids,
+                                             k=int(len(ones_ids) * amount_to_augment))
+                data_to_augment = input_data[random_idxs]
+                augmented_data = []
+                augmented_labels = []
+                for x in data_to_augment:
+                    x = librosaSpectro_to_torchTensor(x)
+                    x = random.choice([time_mask, freq_mask])(x)[0].numpy()
+                    augmented_data.append(x), augmented_labels.append(label_to_augment)
+
+                input_data = np.concatenate((input_data, augmented_data))
+                labels = np.concatenate((labels, augmented_labels))
+
+                self.logger.info(f'Data Augmentation done . . .')
 
                 data = [(x, y) for x, y in zip(input_data, labels)]
                 random.shuffle(data)
