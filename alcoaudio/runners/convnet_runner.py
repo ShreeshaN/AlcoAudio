@@ -74,7 +74,7 @@ class ConvNetRunner:
         self.learning_rate_decay = args.learning_rate_decay
 
         self.optimiser = optim.Adam(self.network.parameters(), lr=self.learning_rate)
-        self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimiser, gamma=self.learning_rate_decay)
+        # self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimiser, gamma=self.learning_rate_decay)
 
         self._min, self._max = float('inf'), -float('inf')
 
@@ -243,7 +243,7 @@ class ConvNetRunner:
         total_step = len(train_data)
         for epoch in range(1, self.epochs):
             log_learnable_parameter(self.writer, epoch - 1, network_params=self.network.named_parameters())
-            # self.network.train()
+            self.network.train()
             self.batch_loss, self.batch_accuracy, self.batch_uar, self.batch_f1, self.batch_precision, \
             self.batch_recall, train_predictions, train_logits, audio_for_tensorboard_train = [], [], [], [], [], [], [], [], None
             for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
@@ -277,7 +277,7 @@ class ConvNetRunner:
                                     name='train_activated')
 
             # Decay learning rate
-            self.scheduler.step(epoch=epoch)
+            # self.scheduler.step(epoch=epoch)
             log_summary(self.writer, epoch, accuracy=np.mean(self.batch_accuracy),
                         loss=np.mean(self.batch_loss),
                         uar=np.mean(self.batch_uar), lr=self.optimiser.state_dict()['param_groups'][0]['lr'],
