@@ -13,3 +13,4 @@ torchvision
 plotly
 pyannote.audio
 pyts
+pysptk
