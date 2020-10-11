@@ -25,7 +25,7 @@
   "display_interval": 50,
   "dropout": 0.2,
   "keras_model_weights": "/Users/badgod/badgod_documents/github/AlcoAudio/keras_model.npy",
-  "sampling_rate": 22050,
+  "sampling_rate": 44100,
   "sample_size_in_seconds": 8,
   "overlap": 1,
   "data_save_path": "/Users/badgod/badgod_documents/Projects/Alco_audio/small_data/40_mels/",

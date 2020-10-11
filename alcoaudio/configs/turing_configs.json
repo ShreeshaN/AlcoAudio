@@ -2,7 +2,7 @@
   "run_name": "emotion_alco_audio_challenge_data_convnet",
   "epochs": 50,
   "batch_size": 32,
-  "learning_rate": 0.00001,
+  "learning_rate": 0.0001,
   "transfer_learning_rate": 0.0001,
   "learning_rate_decay": 0.95,
   "threshold": 0.5,

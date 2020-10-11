@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 from tqdm import tqdm
-import time
+import pysptk
 from joblib import Parallel, delayed
 from pyts.image import GramianAngularField
 import torch
@@ -172,13 +172,16 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
         # audio = audio[mask]
         sr = sampling_rate
         # audio = remove_silent_parts(filepath, sr=sampling_rate)
-        print("sample_size_in_seconds", sample_size_in_seconds)
         chunks = cut_audio(audio, sampling_rate=sr, sample_size_in_seconds=sample_size_in_seconds,
                            overlap=overlap)
         for chunk in chunks:
+            f0 = pysptk.swipe(chunk.astype(np.float64), fs=sr, hopsize=510, min=60, max=240, otype="f0").reshape(1, -1)
+            pitch = pysptk.swipe(chunk.astype(np.float64), fs=sr, hopsize=510, min=60, max=240, otype="pitch").reshape(
+                    1, -1)
+
             if method == 'fbank':
                 features = mel_filters(chunk, sr, normalise)
-                # print("features.shape", features.shape)
+                features = np.concatenate((features, f0[:, :features.shape[1]], pitch[:, :features.shape[1]]), axis=0)
             elif method == 'mfcc':
                 features = mfcc_features(chunk, sr, normalise)
             elif method == 'gaf':
