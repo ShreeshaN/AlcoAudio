@@ -52,7 +52,7 @@ class ConvNet(nn.Module):
         # self.conv5_bn.track_running_stats = False
         self.pool3 = nn.MaxPool2d(kernel_size=3, stride=[1, 2])
 
-        self.fc1 = nn.Linear(42 * 64, 256)
+        self.fc1 = nn.Linear(60 * 64, 256)
         self.dropout1 = nn.Dropout(p=0.3)
         self.fc2 = nn.Linear(256, 32)
         self.fc3 = nn.Linear(32, 1)
@@ -77,7 +77,6 @@ class ConvNet(nn.Module):
 
         x = F.relu(self.conv5_bn(self.conv5(x)))
         x = self.pool3(x)
-        x = x.unsqueeze(2)
 
         # Flattening to feed it to FFN
         x = x.view(-1, x.shape[1:].numel())
