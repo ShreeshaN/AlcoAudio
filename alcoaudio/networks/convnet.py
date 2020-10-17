@@ -52,11 +52,11 @@ class ConvNet(nn.Module):
         # self.conv5_bn.track_running_stats = False
         self.pool3 = nn.MaxPool2d(kernel_size=3, stride=[1, 2])
 
-        self.fc1 = nn.Linear(80 * 64, 1024)
+        self.fc1 = nn.Linear(80 * 64, 256)
         self.dropout1 = nn.Dropout(p=0.3)
-        self.fc2 = nn.Linear(1024, 256)
-        self.dropout2 = nn.Dropout(p=0.3)
-        self.fc3 = nn.Linear(256, 1)
+        self.fc2 = nn.Linear(256, 32)
+        # self.dropout2 = nn.Dropout(p=0.3)
+        self.fc3 = nn.Linear(32, 1)
 
     def forward(self, x):
         """
@@ -85,6 +85,6 @@ class ConvNet(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.dropout1(x)
         x = F.relu(self.fc2(x))
-        x = self.dropout2(x)
+        # x = self.dropout2(x)
         x = self.fc3(x)
         return x
