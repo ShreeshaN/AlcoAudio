@@ -175,13 +175,14 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
         chunks = cut_audio(audio, sampling_rate=sr, sample_size_in_seconds=sample_size_in_seconds,
                            overlap=overlap)
         for chunk in chunks:
-            f0 = pysptk.swipe(chunk.astype(np.float64), fs=sr, hopsize=127, min=60, max=240, otype="f0").reshape(1, -1)
-            pitch = pysptk.swipe(chunk.astype(np.float64), fs=sr, hopsize=127, min=60, max=240, otype="pitch").reshape(
+            f0 = pysptk.swipe(chunk.astype(np.float64), fs=sr, hopsize=510, min=60, max=240, otype="f0").reshape(1, -1)
+            pitch = pysptk.swipe(chunk.astype(np.float64), fs=sr, hopsize=510, min=60, max=240, otype="pitch").reshape(
                     1, -1)
+            f0_pitch_multiplier = 1
             if method == 'fbank':
                 features = mel_filters(chunk, sr, normalise)
-                f0 = np.reshape(f0[:, :features.shape[1] * 4], newshape=(4, -1))
-                pitch = np.reshape(pitch[:, :features.shape[1] * 4], newshape=(4, -1))
+                f0 = np.reshape(f0[:, :features.shape[1] * f0_pitch_multiplier], newshape=(f0_pitch_multiplier, -1))
+                pitch = np.reshape(pitch[:, :features.shape[1] * f0_pitch_multiplier], newshape=(f0_pitch_multiplier, -1))
                 features = np.concatenate((features, f0, pitch), axis=0)
             elif method == 'mfcc':
                 features = mfcc_features(chunk, sr, normalise)
