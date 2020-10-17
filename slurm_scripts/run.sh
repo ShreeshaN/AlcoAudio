@@ -11,9 +11,9 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=snarasimhamurthy@wpi.edu
 #SBATCH --requeue
-#SBATCH --mem 16G
+#SBATCH --mem 32G
 
 # Train
-python3 -u ../alcoaudio/main.py --train_net True --configs_file ../alcoaudio/configs/turing_configs.json
+python3 -u ../alcoaudio/main.py --train_net True --configs_file ../alcoaudio/configs/turing_configs.json --network convnet
 
 

@@ -8,7 +8,7 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=snarasimhamurthy@wpi.edu
 #SBATCH --requeue
-#SBATCH --mem 16G
+#SBATCH --mem 32G
 
 # Train
 python3 -u ../alcoaudio/datagen/data_processor.py --configs_file ../alcoaudio/configs/turing_configs.json
