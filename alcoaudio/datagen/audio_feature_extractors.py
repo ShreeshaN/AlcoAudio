@@ -178,7 +178,6 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
             f0 = pysptk.swipe(chunk.astype(np.float64), fs=sr, hopsize=127, min=60, max=240, otype="f0").reshape(1, -1)
             pitch = pysptk.swipe(chunk.astype(np.float64), fs=sr, hopsize=127, min=60, max=240, otype="pitch").reshape(
                     1, -1)
-            print(f0.shape)
             if method == 'fbank':
                 features = mel_filters(chunk, sr, normalise)
                 f0 = np.reshape(f0[:, :features.shape[1] * 4], newshape=(4, -1))
