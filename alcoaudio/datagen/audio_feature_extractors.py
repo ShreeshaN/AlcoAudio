@@ -162,7 +162,7 @@ def get_shimmer_jitter_from_opensmile(audio, index, sr):
              f"temp_{str(index)}.wav", "-O",
              f"temp_{str(index)}.arff"])
     # Read file and extract shimmer and jitter features from the generated arff file
-    file = open(f"temp_{str(index)}", "r")
+    file = open(f"temp_{str(index)}.arff", "r")
     data = file.readlines()
 
     # First 3 values are title, empty line and name | Last 5 values are numeric data,
