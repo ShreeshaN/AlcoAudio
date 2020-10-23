@@ -9,19 +9,21 @@ Description:
 ..todo::
 
 """
+import math
+import os
+import subprocess
 
 import librosa
 import librosa.display
-import numpy as np
 import matplotlib.pyplot as plt
-import os
+import numpy as np
 import pandas as pd
-from tqdm import tqdm
 import pysptk
-from joblib import Parallel, delayed
-from pyts.image import GramianAngularField
 import torch
+from joblib import Parallel, delayed
 from pyannote.audio.utils.signal import Binarize
+from pyts.image import GramianAngularField
+from tqdm import tqdm
 
 
 def mfcc_features(audio, sampling_rate, normalise=False):
@@ -152,6 +154,31 @@ def remove_silent_parts(filepath, sr, model):
     return np.array(audio_pieces)
 
 
+def get_shimmer_jitter_from_opensmile(audio, index, sr):
+    librosa.output.write_wav(f'temp_{str(index)}.wav', audio, sr=sr)
+
+    subprocess.call(
+            ["SMILExtract", "-C", "$OPENSMILE_CONFIG_DIR/IS10_paraling.conf", "-I", f"temp_{str(index)}.wav", "-O",
+             f"temp_{str(index)}.arff"])
+    # Read file and extract shimmer and jitter features from the generated arff file
+    file = open(f"temp_{str(index)}", "r")
+    data = file.readlines()
+
+    # First 3 values are title, empty line and name | Last 5 values are numeric data,
+    # and bunch of empty lines and unwanted text
+    headers = data[3:-5]
+
+    # Last line of data is where the actual numeric data is. It is in comma separated string format. After splitting,
+    # remove the first value which is name and the last value which is class
+    numeric_data = data[-1].split(',')[1:-1]
+
+    assert len(headers) == len(numeric_data), "Features generated from opensmile are not matching with its headers"
+
+    # data_needed = {x.strip(): float(numeric_data[e]) for e, x in enumerate(headers) if 'jitter' in x or 'shimmer' in x}
+    data_needed = [float(numeric_data[e]) for e, x in enumerate(headers) if 'jitter' in x or 'shimmer' in x]
+    return data_needed
+
+
 def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap, normalise, method):
     """
     This method is called by the preprocess data method
@@ -174,17 +201,20 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
         # audio = remove_silent_parts(filepath, sr=sampling_rate)
         chunks = cut_audio(audio, sampling_rate=sr, sample_size_in_seconds=sample_size_in_seconds,
                            overlap=overlap)
-        for chunk in chunks:
+        for e, chunk in enumerate(chunks):
             zero_crossing = librosa.feature.zero_crossing_rate(chunk)
             f0 = pysptk.swipe(chunk.astype(np.float64), fs=sr, hopsize=510, min=60, max=240, otype="f0").reshape(1, -1)
             pitch = pysptk.swipe(chunk.astype(np.float64), fs=sr, hopsize=510, min=60, max=240, otype="pitch").reshape(
                     1, -1)
             f0_pitch_multiplier = 1
+            features = mel_filters(chunk, sr, normalise)
+            f0 = np.reshape(f0[:, :features.shape[1] * f0_pitch_multiplier], newshape=(f0_pitch_multiplier, -1))
+            pitch = np.reshape(pitch[:, :features.shape[1] * f0_pitch_multiplier], newshape=(f0_pitch_multiplier, -1))
+            shimmer_jitter = get_shimmer_jitter_from_opensmile(chunk, e, sr)
+            shimmer_jitter = np.tile(shimmer_jitter, math.floor(len(features) / len(shimmer_jitter)))[
+                             :len(shimmer_jitter)]  # Repeating the values to match the features length of filterbanks
             if method == 'fbank':
-                features = mel_filters(chunk, sr, normalise)
-                f0 = np.reshape(f0[:, :features.shape[1] * f0_pitch_multiplier], newshape=(f0_pitch_multiplier, -1))
-                pitch = np.reshape(pitch[:, :features.shape[1] * f0_pitch_multiplier], newshape=(f0_pitch_multiplier, -1))
-                features = np.concatenate((features, zero_crossing, f0, pitch), axis=0)
+                features = np.concatenate((features, zero_crossing, f0, pitch, shimmer_jitter), axis=0)
             elif method == 'mfcc':
                 features = mfcc_features(chunk, sr, normalise)
             elif method == 'gaf':

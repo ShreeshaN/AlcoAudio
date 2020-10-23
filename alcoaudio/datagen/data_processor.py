@@ -9,14 +9,15 @@ Description:
 ..todo::
 
 """
-import pandas as pd
 import argparse
 import json
-import numpy as np
 
-from alcoaudio.utils.class_utils import AttributeDict
+import numpy as np
+import pandas as pd
+
 from alcoaudio.datagen.audio_feature_extractors import preprocess_data, preprocess_data_images, \
     remove_silent_parts_from_audio
+from alcoaudio.utils.class_utils import AttributeDict
 from alcoaudio.utils.data_utils import save_h5py, save_npy, save_csv
 
 
@@ -114,13 +115,13 @@ class DataProcessor:
     def run(self):
         print('Started processing train data . . .')
         self.process_audio_and_save_npy_challenge(self.train_data_file,
-                                                  filename_to_save='train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing')
+                                                  filename_to_save='train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile')
         print('Started processing dev data . . .')
         self.process_audio_and_save_npy_challenge(self.dev_data_file,
-                                                  filename_to_save='dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing')
+                                                  filename_to_save='dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile')
         print('Started processing test data . . .')
         self.process_audio_and_save_npy_challenge(self.test_data_file,
-                                                  filename_to_save='test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing')
+                                                  filename_to_save='test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile')
 
         # print('Started processing train data . . .')
         # self.silent_parts_removal(self.train_data_file)

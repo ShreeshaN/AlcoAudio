@@ -55,6 +55,8 @@ Below are the architectures tried. All the files are under [networks](https://gi
      
 2. Create a [config](https://github.com/ShreeshaN/AlcoAudio/blob/master/alcoaudio/configs/shree_configs.json) file of your own
 
+3. Install OpenSmile and set environment variable ```OPENSMILE_CONFIG_DIR``` to point to the config directory of OpenSmile installation.
+
 ## Usage
 
 ### **Data generation**
