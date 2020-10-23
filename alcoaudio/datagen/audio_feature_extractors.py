@@ -215,8 +215,8 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
             f0 = np.reshape(f0[:, :features.shape[1] * f0_pitch_multiplier], newshape=(f0_pitch_multiplier, -1))
             pitch = np.reshape(pitch[:, :features.shape[1] * f0_pitch_multiplier], newshape=(f0_pitch_multiplier, -1))
             shimmer_jitter = get_shimmer_jitter_from_opensmile(chunk, e, sr)
-            shimmer_jitter = np.tile(shimmer_jitter, math.floor(len(features) / len(shimmer_jitter)))[
-                             :len(shimmer_jitter)]  # Repeating the values to match the features length of filterbanks
+            shimmer_jitter = np.tile(shimmer_jitter, math.ceil(len(features) / len(shimmer_jitter)))[
+                             :len(features)]  # Repeating the values to match the features length of filterbanks
             shimmer_jitter = np.reshape(shimmer_jitter,newshape=(1,-1))
             if method == 'fbank':
                 features = np.concatenate((features, zero_crossing, f0, pitch, shimmer_jitter), axis=0)
