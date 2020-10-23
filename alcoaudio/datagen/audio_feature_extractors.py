@@ -12,6 +12,7 @@ Description:
 import math
 import os
 import subprocess
+import time
 
 import librosa
 import librosa.display
@@ -205,7 +206,7 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
         # audio = remove_silent_parts(filepath, sr=sampling_rate)
         chunks = cut_audio(audio, sampling_rate=sr, sample_size_in_seconds=sample_size_in_seconds,
                            overlap=overlap)
-        for e, chunk in enumerate(chunks):
+        for chunk in chunks:
             zero_crossing = librosa.feature.zero_crossing_rate(chunk)
             f0 = pysptk.swipe(chunk.astype(np.float64), fs=sr, hopsize=510, min=60, max=240, otype="f0").reshape(1, -1)
             pitch = pysptk.swipe(chunk.astype(np.float64), fs=sr, hopsize=510, min=60, max=240, otype="pitch").reshape(
@@ -214,10 +215,10 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
             features = mel_filters(chunk, sr, normalise)
             f0 = np.reshape(f0[:, :features.shape[1] * f0_pitch_multiplier], newshape=(f0_pitch_multiplier, -1))
             pitch = np.reshape(pitch[:, :features.shape[1] * f0_pitch_multiplier], newshape=(f0_pitch_multiplier, -1))
-            shimmer_jitter = get_shimmer_jitter_from_opensmile(chunk, e, sr)
+            shimmer_jitter = get_shimmer_jitter_from_opensmile(chunk, time.time(), sr)
             shimmer_jitter = np.tile(shimmer_jitter, math.ceil(len(features) / len(shimmer_jitter)))[
                              :len(features)]  # Repeating the values to match the features length of filterbanks
-            shimmer_jitter = np.reshape(shimmer_jitter,newshape=(1,-1))
+            shimmer_jitter = np.reshape(shimmer_jitter, newshape=(1, -1))
             if method == 'fbank':
                 features = np.concatenate((features, zero_crossing, f0, pitch, shimmer_jitter), axis=0)
             elif method == 'mfcc':
