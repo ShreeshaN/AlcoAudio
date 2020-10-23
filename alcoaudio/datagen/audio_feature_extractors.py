@@ -27,6 +27,8 @@ from pyannote.audio.utils.signal import Binarize
 from pyts.image import GramianAngularField
 from tqdm import tqdm
 
+from alcoaudio.utils.file_utils import delete_file
+
 
 def mfcc_features(audio, sampling_rate, normalise=False):
     mfcc = librosa.feature.mfcc(y=audio, n_mfcc=40, sr=sampling_rate)
@@ -181,6 +183,11 @@ def get_shimmer_jitter_from_opensmile(audio, index, sr):
 
     # data_needed = {x.strip(): float(numeric_data[e]) for e, x in enumerate(headers) if 'jitter' in x or 'shimmer' in x}
     data_needed = [float(numeric_data[e]) for e, x in enumerate(headers) if 'jitter' in x or 'shimmer' in x]
+
+    # clean up all files
+    delete_file(f'temp_{str(index)}.wav')
+    delete_file(f'temp_{str(index)}.arff')
+
     return data_needed
 
 

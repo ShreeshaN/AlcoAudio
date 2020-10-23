@@ -23,3 +23,8 @@ def create_dirs(paths):
 def cp_file(src, dst):
     print('Copying data from', src, 'to', dst)
     shutil.copyfile(src, dst)
+
+
+def delete_file(path):
+    if os.path.exists(path):
+        os.remove(path)
