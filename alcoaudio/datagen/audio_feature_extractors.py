@@ -23,6 +23,7 @@ import torch
 from joblib import Parallel, delayed
 from pyannote.audio.utils.signal import Binarize
 from pyts.image import GramianAngularField
+from scipy.io.wavfile import write
 from tqdm import tqdm
 
 
@@ -155,7 +156,7 @@ def remove_silent_parts(filepath, sr, model):
 
 
 def get_shimmer_jitter_from_opensmile(audio, index, sr):
-    librosa.output.write_wav(f'temp_{str(index)}.wav', audio, sr=sr)
+    write(f'temp_{str(index)}.wav', data=audio, rate=sr)
 
     subprocess.call(
             ["SMILExtract", "-C", "$OPENSMILE_CONFIG_DIR/IS10_paraling.conf", "-I", f"temp_{str(index)}.wav", "-O",
