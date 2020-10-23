@@ -20,10 +20,10 @@ import numpy as np
 import pandas as pd
 import pysptk
 import torch
+import wavio
 from joblib import Parallel, delayed
 from pyannote.audio.utils.signal import Binarize
 from pyts.image import GramianAngularField
-from scipy.io.wavfile import write
 from tqdm import tqdm
 
 
@@ -156,10 +156,10 @@ def remove_silent_parts(filepath, sr, model):
 
 
 def get_shimmer_jitter_from_opensmile(audio, index, sr):
-    write(f'temp_{str(index)}.wav', data=audio, rate=sr)
-
+    wavio.write(f'temp_{str(index)}.wav', audio, sr, sampwidth=3)
     subprocess.call(
-            ["SMILExtract", "-C", "$OPENSMILE_CONFIG_DIR/IS10_paraling.conf", "-I", f"temp_{str(index)}.wav", "-O",
+            ["SMILExtract", "-C", os.environ['OPENSMILE_CONFIG_DIR'] + "/IS10_paraling.conf", "-I",
+             f"temp_{str(index)}.wav", "-O",
              f"temp_{str(index)}.arff"])
     # Read file and extract shimmer and jitter features from the generated arff file
     file = open(f"temp_{str(index)}", "r")

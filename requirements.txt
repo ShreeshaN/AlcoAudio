@@ -1,3 +1,4 @@
+wavio
 torch
 numpy
 pandas
