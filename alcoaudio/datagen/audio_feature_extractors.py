@@ -167,7 +167,10 @@ def get_shimmer_jitter_from_opensmile(audio, index, sr):
 
     # First 3 values are title, empty line and name | Last 5 values are numeric data,
     # and bunch of empty lines and unwanted text
-    headers = data[3:-5]
+    # headers = data[3:-5]
+
+    headers = data[3:data.index('@data\n')]
+    headers = headers[:-headers.index('@attribute class numeric\n')]
 
     # Last line of data is where the actual numeric data is. It is in comma separated string format. After splitting,
     # remove the first value which is name and the last value which is class
