@@ -62,6 +62,7 @@ class ConvNetRunner:
         self.device = torch.device("cuda" if self.is_cuda_available else "cpu")
         self.network_save_interval = args.network_save_interval
         self.normalise = args.normalise_while_training
+        self.data_augment = args.data_augment
         self.dropout = args.dropout
         self.threshold = args.threshold
         self.debug_filename = self.current_run_basepath + '/' + args.debug_filename
@@ -116,24 +117,25 @@ class ConvNetRunner:
                     self._max = max(np.max(x), self._max)
                 self._mean, self._std = np.mean(input_data), np.std(input_data)
 
-                self.logger.info(f'Data Augmentation starts . . .')
-                label_to_augment = 1
-                amount_to_augment = 1.3
-                ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_augment]
-                random_idxs = random.choices(ones_ids,
-                                             k=int(len(ones_ids) * amount_to_augment))
-                data_to_augment = input_data[random_idxs]
-                augmented_data = []
-                augmented_labels = []
-                for x in data_to_augment:
-                    x = librosaSpectro_to_torchTensor(x)
-                    x = random.choice([time_mask, freq_mask])(x)[0].numpy()
-                    augmented_data.append(x), augmented_labels.append(label_to_augment)
+                if self.data_augment:
+                    self.logger.info(f'Data Augmentation starts . . .')
+                    label_to_augment = 1
+                    amount_to_augment = 1.3
+                    ones_ids = [idx for idx, x in enumerate(labels) if x == label_to_augment]
+                    random_idxs = random.choices(ones_ids,
+                                                 k=int(len(ones_ids) * amount_to_augment))
+                    data_to_augment = input_data[random_idxs]
+                    augmented_data = []
+                    augmented_labels = []
+                    for x in data_to_augment:
+                        x = librosaSpectro_to_torchTensor(x)
+                        x = random.choice([time_mask, freq_mask])(x)[0].numpy()
+                        augmented_data.append(x), augmented_labels.append(label_to_augment)
 
-                input_data = np.concatenate((input_data, augmented_data))
-                labels = np.concatenate((labels, augmented_labels))
+                    input_data = np.concatenate((input_data, augmented_data))
+                    labels = np.concatenate((labels, augmented_labels))
 
-                self.logger.info(f'Data Augmentation done . . .')
+                    self.logger.info(f'Data Augmentation done . . .')
 
                 data = [(x, y) for x, y in zip(input_data, labels)]
                 random.shuffle(data)
@@ -219,9 +221,9 @@ class ConvNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_inp_file, train_out_file = 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_data.npy', 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_labels.npy'
-        dev_inp_file, dev_out_file = 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_data.npy', 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_labels.npy'
-        test_inp_file, test_out_file = 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_data.npy', 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_labels.npy'
+        train_inp_file, train_out_file = 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy'
+        dev_inp_file, dev_out_file = 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy'
+        test_inp_file, test_out_file = 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy'
 
         self.logger.info(f'Reading train file {train_inp_file, train_out_file}')
         train_data, train_labels = self.data_reader(
