@@ -10,22 +10,23 @@ Description:
 
 """
 
-from torch.utils.tensorboard import SummaryWriter
+import json
+import random
+import time
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import numpy as np
-import time
-import json
-import random
+from torch.utils.tensorboard import SummaryWriter
 
+from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask
 from alcoaudio.networks.convnet import ConvNet
 from alcoaudio.utils import file_utils
+from alcoaudio.utils.data_utils import read_npy
+from alcoaudio.utils.logger import Logger
 from alcoaudio.utils.network_utils import accuracy_fn, log_summary, custom_confusion_matrix, \
     log_conf_matrix, write_to_npy, to_tensor, to_numpy, log_learnable_parameter
-from alcoaudio.utils.data_utils import read_npy
-from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask
-from alcoaudio.utils.logger import Logger
 
 # setting seed
 torch.manual_seed(1234)
@@ -218,9 +219,9 @@ class ConvNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_inp_file, train_out_file = 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy'
-        dev_inp_file, dev_out_file = 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy'
-        test_inp_file, test_out_file = 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy'
+        train_inp_file, train_out_file = 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_data.npy', 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_labels.npy'
+        dev_inp_file, dev_out_file = 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_data.npy', 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_labels.npy'
+        test_inp_file, test_out_file = 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_data.npy', 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_labels.npy'
 
         self.logger.info(f'Reading train file {train_inp_file, train_out_file}')
         train_data, train_labels = self.data_reader(
