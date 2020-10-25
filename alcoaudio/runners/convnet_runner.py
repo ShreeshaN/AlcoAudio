@@ -112,10 +112,10 @@ class ConvNetRunner:
                 self.logger.info(
                         f'Input data shape:{np.array(input_data).shape} | Output data shape:{np.array(labels).shape}')
 
-                for x in input_data:
+                for x in input_data[:, :-1, :]:
                     self._min = min(np.min(x), self._min)
                     self._max = max(np.max(x), self._max)
-                self._mean, self._std = np.mean(input_data), np.std(input_data)
+                self._mean, self._std = np.mean(input_data[:, :-1, :]), np.std(input_data[:, :-1, :])
 
                 if self.data_augment:
                     self.logger.info(f'Data Augmentation starts . . .')
@@ -155,7 +155,7 @@ class ConvNetRunner:
 
             # Normalizing `input data` on train dataset's min and max values
             if self.normalise:
-                input_data = (input_data - self._min) / (self._max - self._min)
+                input_data[:, :-1, :] = (input_data[:, :-1, :] - self._min) / (self._max - self._min)
 
             if should_batch:
                 batched_input = [input_data[pos:pos + self.batch_size] for pos in
@@ -221,9 +221,9 @@ class ConvNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_inp_file, train_out_file = 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy'
-        dev_inp_file, dev_out_file = 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy'
-        test_inp_file, test_out_file = 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy'
+        train_inp_file, train_out_file = 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_data.npy', 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_labels.npy'
+        dev_inp_file, dev_out_file = 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_data.npy', 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_labels.npy'
+        test_inp_file, test_out_file = 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_data.npy', 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile_labels.npy'
 
         self.logger.info(f'Reading train file {train_inp_file, train_out_file}')
         train_data, train_labels = self.data_reader(
