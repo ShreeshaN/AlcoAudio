@@ -214,19 +214,23 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
         chunks = cut_audio(audio, sampling_rate=sr, sample_size_in_seconds=sample_size_in_seconds,
                            overlap=overlap)
         for chunk in chunks:
-            zero_crossing = librosa.feature.zero_crossing_rate(chunk)
-            f0 = pysptk.swipe(chunk.astype(np.float64), fs=sr, hopsize=510, min=60, max=240, otype="f0").reshape(1, -1)
-            pitch = pysptk.swipe(chunk.astype(np.float64), fs=sr, hopsize=510, min=60, max=240, otype="pitch").reshape(
-                    1, -1)
-            f0_pitch_multiplier = 1
-            features = mel_filters(chunk, sr, normalise)
-            f0 = np.reshape(f0[:, :features.shape[1] * f0_pitch_multiplier], newshape=(f0_pitch_multiplier, -1))
-            pitch = np.reshape(pitch[:, :features.shape[1] * f0_pitch_multiplier], newshape=(f0_pitch_multiplier, -1))
-            shimmer_jitter = get_shimmer_jitter_from_opensmile(chunk, time.time(), sr)
-            shimmer_jitter = np.tile(shimmer_jitter, math.ceil(features.shape[-1] / len(shimmer_jitter)))[
-                             :features.shape[-1]]  # Repeating the values to match the features length of filterbanks
-            shimmer_jitter = np.reshape(shimmer_jitter, newshape=(1, -1))
             if method == 'fbank':
+                zero_crossing = librosa.feature.zero_crossing_rate(chunk)
+                f0 = pysptk.swipe(chunk.astype(np.float64), fs=sr, hopsize=510, min=60, max=240, otype="f0").reshape(1,
+                                                                                                                     -1)
+                pitch = pysptk.swipe(chunk.astype(np.float64), fs=sr, hopsize=510, min=60, max=240,
+                                     otype="pitch").reshape(
+                        1, -1)
+                f0_pitch_multiplier = 1
+                features = mel_filters(chunk, sr, normalise)
+                f0 = np.reshape(f0[:, :features.shape[1] * f0_pitch_multiplier], newshape=(f0_pitch_multiplier, -1))
+                pitch = np.reshape(pitch[:, :features.shape[1] * f0_pitch_multiplier],
+                                   newshape=(f0_pitch_multiplier, -1))
+                shimmer_jitter = get_shimmer_jitter_from_opensmile(chunk, time.time(), sr)
+                shimmer_jitter = np.tile(shimmer_jitter, math.ceil(features.shape[-1] / len(shimmer_jitter)))[
+                                 :features.shape[
+                                     -1]]  # Repeating the values to match the features length of filterbanks
+                shimmer_jitter = np.reshape(shimmer_jitter, newshape=(1, -1))
                 features = np.concatenate((features, zero_crossing, f0, pitch, shimmer_jitter), axis=0)
             elif method == 'mfcc':
                 features = mfcc_features(chunk, sr, normalise)
@@ -246,7 +250,7 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
 
 def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds, sampling_rate, overlap, method):
     data, out_labels = [], []
-    aggregated_data = Parallel(n_jobs=1, backend='multiprocessing')(
+    aggregated_data = Parallel(n_jobs=8, backend='multiprocessing')(
             delayed(read_audio_n_process)(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap,
                                           normalise, method) for file, label in
             tqdm(zip(files, labels), total=len(labels)))
