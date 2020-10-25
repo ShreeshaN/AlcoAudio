@@ -9,10 +9,8 @@ Description:
 ..todo::
 
 """
-import math
 import os
 import subprocess
-import time
 
 import librosa
 import librosa.display
@@ -226,12 +224,12 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
                 f0 = np.reshape(f0[:, :features.shape[1] * f0_pitch_multiplier], newshape=(f0_pitch_multiplier, -1))
                 pitch = np.reshape(pitch[:, :features.shape[1] * f0_pitch_multiplier],
                                    newshape=(f0_pitch_multiplier, -1))
-                shimmer_jitter = get_shimmer_jitter_from_opensmile(chunk, time.time(), sr)
-                shimmer_jitter = np.tile(shimmer_jitter, math.ceil(features.shape[-1] / len(shimmer_jitter)))[
-                                 :features.shape[
-                                     -1]]  # Repeating the values to match the features length of filterbanks
-                shimmer_jitter = np.reshape(shimmer_jitter, newshape=(1, -1))
-                features = np.concatenate((features, zero_crossing, f0, pitch, shimmer_jitter), axis=0)
+                # shimmer_jitter = get_shimmer_jitter_from_opensmile(chunk, time.time(), sr)
+                # shimmer_jitter = np.tile(shimmer_jitter, math.ceil(features.shape[-1] / len(shimmer_jitter)))[
+                #                  :features.shape[
+                #                      -1]]  # Repeating the values to match the features length of filterbanks
+                # shimmer_jitter = np.reshape(shimmer_jitter, newshape=(1, -1))
+                features = np.concatenate((features, zero_crossing, f0, pitch), axis=0)  # shimmer_jitter
             elif method == 'mfcc':
                 features = mfcc_features(chunk, sr, normalise)
             elif method == 'gaf':
@@ -243,13 +241,14 @@ def read_audio_n_process(file, label, base_path, sampling_rate, sample_size_in_s
                         'Specify a method to use for pre processing raw audio signal. Available options - {fbank, mfcc, gaf, raw}')
             data.append(features)
             out_labels.append(float(label))
+        return data, out_labels, chunks
     else:
         print('File not found ', filepath)
-    return data, out_labels
+        return [], [], []
 
 
 def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds, sampling_rate, overlap, method):
-    data, out_labels = [], []
+    data, out_labels, raw = [], [], []
     aggregated_data = Parallel(n_jobs=8, backend='multiprocessing')(
             delayed(read_audio_n_process)(file, label, base_path, sampling_rate, sample_size_in_seconds, overlap,
                                           normalise, method) for file, label in
@@ -261,8 +260,9 @@ def preprocess_data(base_path, files, labels, normalise, sample_size_in_seconds,
         for i, label in enumerate(per_file_data[1]):
             # per_file_data[0] is array of audio samples based on sample_size_in_seconds parameter
             data.append(per_file_data[0][i])
+            raw.append(per_file_data[2][i])
             out_labels.append(label)
-    return data, out_labels
+    return data, out_labels, raw
 
 
 def remove_silent_parts_from_audio(base_path, files, sampling_rate):

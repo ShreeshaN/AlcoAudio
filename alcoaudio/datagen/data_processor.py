@@ -75,12 +75,13 @@ class DataProcessor:
 
         # Irregular use of extensions in data, so handling it here
         df[0] = df[0].apply(lambda x: x.replace('WAV', 'wav'))
-        data, labels = preprocess_data(self.base_path, df[0].values, df[1].values,
-                                       self.normalise,
-                                       self.sample_size_in_seconds, self.sampling_rate, self.overlap, self.method)
+        data, labels, raw = preprocess_data(self.base_path, df[0].values, df[1].values,
+                                            self.normalise,
+                                            self.sample_size_in_seconds, self.sampling_rate, self.overlap, self.method)
         print('Number of audio files after processing ', len(data))
         save_npy(data, self.data_save_path + '/' + filename_to_save + '_data.npy')
         save_npy(labels, self.data_save_path + '/' + filename_to_save + '_labels.npy')
+        save_npy(raw, self.data_save_path + '/' + filename_to_save + '_inline_raw.npy')
         del data
         del labels
 
@@ -114,7 +115,8 @@ class DataProcessor:
 
     def run(self):
         print('Started processing train data . . .')
-        self.process_audio_and_save_npy_challenge(self.train_data_file, # train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile
+        self.process_audio_and_save_npy_challenge(self.train_data_file,
+                                                  # train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_opensmile
                                                   filename_to_save='train_challenge_with_d1_raw')
         print('Started processing dev data . . .')
         self.process_audio_and_save_npy_challenge(self.dev_data_file,
