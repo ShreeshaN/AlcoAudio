@@ -99,11 +99,18 @@ class ConvNetRunner:
 
         self.logger.info(f'Configs used:\n{json.dumps(args, indent=4)}')
 
-    def data_reader(self, data_filepath, label_filepath, train, should_batch=True, shuffle=True, infer=False):
+    def data_reader(self, data_filepath, label_filepath, jitter_filepath, train, should_batch=True, shuffle=True,
+                    infer=False):
         if infer:
             pass
         else:
-            input_data, labels = read_npy(data_filepath), read_npy(label_filepath)
+            input_data, labels, jitter = read_npy(data_filepath), read_npy(label_filepath), read_npy(jitter_filepath)
+            jitter = np.expand_dims(jitter, axis=1)
+            length_to_match = input_data.shape[2]
+            jitter = np.concatenate(
+                    [jitter, np.zeros([jitter.shape[0], jitter.shape[1], length_to_match - jitter.shape[2]])], axis=2)
+            input_data = np.concatenate((input_data, jitter), axis=2)
+
             if train:
 
                 self.logger.info(f'Original data size - before Augmentation')
@@ -221,23 +228,26 @@ class ConvNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_inp_file, train_out_file = 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy'
-        dev_inp_file, dev_out_file = 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy'
-        test_inp_file, test_out_file = 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy'
+        train_inp_file, train_out_file, train_jitter = 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy', 'train_challenge_with_shimmer_jitter.npy'
+        dev_inp_file, dev_out_file, dev_jitter = 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy', 'dev_challenge_with_shimmer_jitter.npy'
+        test_inp_file, test_out_file, test_jitter = 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy', 'test_challenge_with_shimmer_jitter.npy'
 
         self.logger.info(f'Reading train file {train_inp_file, train_out_file}')
         train_data, train_labels = self.data_reader(
                 self.data_read_path + train_inp_file,
                 self.data_read_path + train_out_file,
+                self.data_read_path + train_jitter,
                 shuffle=True,
                 train=True)
         self.logger.info(f'Reading dev file {dev_inp_file, dev_out_file}')
         dev_data, dev_labels = self.data_reader(self.data_read_path + dev_inp_file,
                                                 self.data_read_path + dev_out_file,
+                                                self.data_read_path + dev_jitter,
                                                 shuffle=False, train=False)
         self.logger.info(f'Reading test file {test_inp_file, test_out_file}')
         test_data, test_labels = self.data_reader(self.data_read_path + test_inp_file,
                                                   self.data_read_path + test_out_file,
+                                                  self.data_read_path + test_jitter,
                                                   shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
