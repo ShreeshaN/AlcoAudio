@@ -10,11 +10,12 @@
 #
 # """
 
-from torch import tensor
+import os
+
+import numpy as np
 import torch
 from sklearn.metrics import recall_score, precision_recall_fscore_support
-import numpy as np
-import os
+from torch import tensor
 
 
 def to_tensor(x, device=None):
@@ -34,7 +35,7 @@ def to_numpy(x):
 
 
 def accuracy_fn(preds, labels, threshold):
-    # todo: Remove F1, Precision, Recall from returm , or change all caller method dynamics
+    # todo: Remove F1, Precision, Recall from return , or change all caller method dynamics
 
     predictions = torch.where(preds > to_tensor(threshold), to_tensor(1), to_tensor(0))
     precision, recall, f1, _ = precision_recall_fscore_support(to_numpy(labels), to_numpy(predictions),

@@ -109,10 +109,9 @@ class ConvNetRunner:
             length_to_match = input_data.shape[2]
             jitter = np.concatenate(
                     [jitter, np.zeros([jitter.shape[0], jitter.shape[1], length_to_match - jitter.shape[2]])], axis=2)
-            input_data = np.concatenate((input_data, jitter), axis=2)
+            input_data = np.concatenate((input_data, jitter), axis=1)
 
             if train:
-
                 self.logger.info(f'Original data size - before Augmentation')
                 self.logger.info(f'Total data {str(len(input_data))}')
                 self.logger.info(f'Event rate {str(sum(labels) / len(labels))}')
