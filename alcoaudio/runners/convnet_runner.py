@@ -106,7 +106,7 @@ class ConvNetRunner:
             pass
         else:
             input_data, labels, jitter = read_npy(data_filepath), read_npy(label_filepath), read_npy(
-                jitter_filepath)
+                    jitter_filepath)
             # jitter = np.expand_dims(jitter, axis=1)
             # length_to_match = input_data.shape[2]
             # jitter = np.concatenate(
@@ -140,16 +140,23 @@ class ConvNetRunner:
                         x = random.choice([time_mask, freq_mask])(x)[0].numpy()
                         augmented_data.append(x), augmented_labels.append(label_to_augment)
 
+                    # print(len(input_data), len(jitter))
+
                     # Jitter and shimmer
                     jitter_augmented_data, jitter_labels = BorderlineSMOTE().fit_resample(X=jitter, y=labels)
+                    # print(len(input_data), len(jitter), len(jitter_augmented_data), len(jitter_labels), len(labels),
+                    #       sum(jitter_labels))
 
-                    #
                     assert np.mean(jitter_labels[len(jitter):][
                                    :len(augmented_data)]) == 1, 'Issue with Jitter Shimmer Augmentation'
 
                     jitter = np.concatenate((jitter, jitter_augmented_data[len(jitter):][:len(augmented_data)]))
                     input_data = np.concatenate((input_data, augmented_data))
                     labels = np.concatenate((labels, augmented_labels))
+
+                    # Temp fix
+                    input_data = input_data[:len(jitter)]
+                    labels = labels[:len(jitter)]
 
                     assert len(jitter) == len(
                             input_data), "Input data and Jitter Shimmer augmentations don't match in length"
