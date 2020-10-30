@@ -105,7 +105,7 @@ class ConvNetRunner:
         if infer:
             pass
         else:
-            input_data, labels, jitter = read_npy(data_filepath), read_npy(label_filepath), read_npy(jitter_filepath)
+            input_data, labels, jitter = read_npy(data_filepath)[:100], read_npy(label_filepath)[:100], read_npy(jitter_filepath)[:100]
             # jitter = np.expand_dims(jitter, axis=1)
             # length_to_match = input_data.shape[2]
             # jitter = np.concatenate(
@@ -140,7 +140,7 @@ class ConvNetRunner:
                         augmented_data.append(x), augmented_labels.append(label_to_augment)
 
                     # Jitter and shimmer
-                    jitter_augmented_data, jitter_labels = BorderlineSMOTE.fit_resample(jitter, labels)
+                    jitter_augmented_data, jitter_labels = BorderlineSMOTE().fit_resample(X=jitter, y=labels)
 
                     #
                     assert np.mean(jitter_labels[len(jitter):][
@@ -280,7 +280,7 @@ class ConvNetRunner:
                 audio_data = to_tensor(audio_data, device=self.device)
                 jitter_shimmer_data = to_tensor(jitter_shimmer_data, device=self.device)
                 if i == 0:
-                    self.writer.add_graph(self.network, audio_data)
+                    self.writer.add_graph(self.network, (audio_data, jitter_shimmer_data))
                 predictions = self.network(audio_data, jitter_shimmer_data).squeeze(1)
                 train_logits.extend(predictions)
                 loss = self.loss_function(predictions, label)
