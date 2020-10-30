@@ -10,13 +10,9 @@ Description:
 
 """
 
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import math
-import torch
-from torch import tensor
-import cv2
-import numpy as np
 
 
 class ConvNet(nn.Module):
@@ -58,7 +54,7 @@ class ConvNet(nn.Module):
         # self.dropout2 = nn.Dropout(p=0.3)
         self.fc3 = nn.Linear(32, 1)
 
-    def forward(self, x):
+    def forward(self, x, jitterx):
         """
         In the forward function we accept a Tensor of input data and we must return
         a Tensor of output data. We can use Modules defined in the constructor as
@@ -81,6 +77,8 @@ class ConvNet(nn.Module):
 
         # Flattening to feed it to FFN
         x = x.view(-1, x.shape[1:].numel())
+
+        x = torch.cat([x, jitterx], dim=1)
 
         x = F.relu(self.fc1(x))
         x = self.dropout1(x)

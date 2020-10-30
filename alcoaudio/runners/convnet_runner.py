@@ -18,6 +18,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from imblearn.over_sampling import BorderlineSMOTE
 from torch.utils.tensorboard import SummaryWriter
 
 from alcoaudio.datagen.augmentation_methods import librosaSpectro_to_torchTensor, time_mask, freq_mask
@@ -105,11 +106,11 @@ class ConvNetRunner:
             pass
         else:
             input_data, labels, jitter = read_npy(data_filepath), read_npy(label_filepath), read_npy(jitter_filepath)
-            jitter = np.expand_dims(jitter, axis=1)
-            length_to_match = input_data.shape[2]
-            jitter = np.concatenate(
-                    [jitter, np.zeros([jitter.shape[0], jitter.shape[1], length_to_match - jitter.shape[2]])], axis=2)
-            input_data = np.concatenate((input_data, jitter), axis=1)
+            # jitter = np.expand_dims(jitter, axis=1)
+            # length_to_match = input_data.shape[2]
+            # jitter = np.concatenate(
+            #         [jitter, np.zeros([jitter.shape[0], jitter.shape[1], length_to_match - jitter.shape[2]])], axis=2)
+            # input_data = np.concatenate((input_data, jitter), axis=1)
 
             if train:
                 self.logger.info(f'Original data size - before Augmentation')
@@ -131,15 +132,26 @@ class ConvNetRunner:
                     random_idxs = random.choices(ones_ids,
                                                  k=int(len(ones_ids) * amount_to_augment))
                     data_to_augment = input_data[random_idxs]
-                    augmented_data = []
+                    augmented_data, jitter_augmented_data = [], []
                     augmented_labels = []
                     for x in data_to_augment:
                         x = librosaSpectro_to_torchTensor(x)
                         x = random.choice([time_mask, freq_mask])(x)[0].numpy()
                         augmented_data.append(x), augmented_labels.append(label_to_augment)
 
+                    # Jitter and shimmer
+                    jitter_augmented_data, jitter_labels = BorderlineSMOTE.fit_resample(jitter, labels)
+
+                    #
+                    assert np.mean(jitter_labels[len(jitter):][
+                                   :len(augmented_data)]) == 1, 'Issue with Jitter Shimmer Augmentation'
+
+                    jitter = np.concatenate(jitter, jitter_augmented_data[len(jitter):][:len(augmented_data)])
                     input_data = np.concatenate((input_data, augmented_data))
                     labels = np.concatenate((labels, augmented_labels))
+
+                    assert len(jitter) == len(
+                            input_data), "Input data and Jitter Shimmer augmentations don't match in length"
 
                     self.logger.info(f'Data Augmentation done . . .')
 
@@ -167,11 +179,13 @@ class ConvNetRunner:
                 batched_input = [input_data[pos:pos + self.batch_size] for pos in
                                  range(0, len(input_data), self.batch_size)]
                 batched_labels = [labels[pos:pos + self.batch_size] for pos in range(0, len(labels), self.batch_size)]
-                return batched_input, batched_labels
+                batched_jitter = [jitter[pos:pos + self.batch_size] for pos in
+                                  range(0, len(jitter), self.batch_size)]
+                return batched_input, batched_labels, batched_jitter
             else:
-                return input_data, labels
+                return input_data, labels, jitter
 
-    def run_for_epoch(self, epoch, x, y, type):
+    def run_for_epoch(self, epoch, x, y, jitterx, type):
         # self.network.eval()
         # for m in self.network.modules():
         #     if isinstance(m, nn.BatchNorm2d):
@@ -180,10 +194,11 @@ class ConvNetRunner:
         logits, predictions = [], []
         self.test_batch_loss, self.test_batch_accuracy, self.test_batch_uar, self.test_batch_ua, self.test_batch_f1, self.test_batch_precision, self.test_batch_recall, audio_for_tensorboard_test = [], [], [], [], [], [], [], None
         with torch.no_grad():
-            for i, (audio_data, label) in enumerate(zip(x, y)):
+            for i, (audio_data, label, jitter_shimmer_data) in enumerate(zip(x, y, jitterx)):
                 label = to_tensor(label, device=self.device).float()
                 audio_data = to_tensor(audio_data, device=self.device)
-                test_predictions = self.network(audio_data).squeeze(1)
+                jitter_shimmer_data = to_tensor(jitter_shimmer_data, device=self.device)
+                test_predictions = self.network(audio_data, jitter_shimmer_data).squeeze(1)
                 logits.extend(to_numpy(test_predictions))
                 test_loss = self.loss_function(test_predictions, label)
                 test_predictions = nn.Sigmoid()(test_predictions)
@@ -227,27 +242,27 @@ class ConvNetRunner:
     def train(self):
 
         # For purposes of calculating normalized values, call this method with train data followed by test
-        train_inp_file, train_out_file, train_jitter = 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy', 'train_challenge_with_shimmer_jitter.npy'
-        dev_inp_file, dev_out_file, dev_jitter = 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy', 'dev_challenge_with_shimmer_jitter.npy'
-        test_inp_file, test_out_file, test_jitter = 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy', 'test_challenge_with_shimmer_jitter.npy'
+        train_inp_file, train_out_file, train_jitter_file = 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'train_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy', 'train_challenge_with_shimmer_jitter.npy'
+        dev_inp_file, dev_out_file, dev_jitter_file = 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'dev_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy', 'dev_challenge_with_shimmer_jitter.npy'
+        test_inp_file, test_out_file, test_jitter_file = 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_data.npy', 'test_challenge_with_d1_mel_power_to_db_fnot_zr_crossing_labels.npy', 'test_challenge_with_shimmer_jitter.npy'
 
         self.logger.info(f'Reading train file {train_inp_file, train_out_file}')
-        train_data, train_labels = self.data_reader(
+        train_data, train_labels, train_jitter_data = self.data_reader(
                 self.data_read_path + train_inp_file,
                 self.data_read_path + train_out_file,
-                self.data_read_path + train_jitter,
+                self.data_read_path + train_jitter_file,
                 shuffle=True,
                 train=True)
         self.logger.info(f'Reading dev file {dev_inp_file, dev_out_file}')
-        dev_data, dev_labels = self.data_reader(self.data_read_path + dev_inp_file,
-                                                self.data_read_path + dev_out_file,
-                                                self.data_read_path + dev_jitter,
-                                                shuffle=False, train=False)
+        dev_data, dev_labels, dev_jitter_data = self.data_reader(self.data_read_path + dev_inp_file,
+                                                                 self.data_read_path + dev_out_file,
+                                                                 self.data_read_path + dev_jitter_file,
+                                                                 shuffle=False, train=False)
         self.logger.info(f'Reading test file {test_inp_file, test_out_file}')
-        test_data, test_labels = self.data_reader(self.data_read_path + test_inp_file,
-                                                  self.data_read_path + test_out_file,
-                                                  self.data_read_path + test_jitter,
-                                                  shuffle=False, train=False)
+        test_data, test_labels, test_jitter_data = self.data_reader(self.data_read_path + test_inp_file,
+                                                                    self.data_read_path + test_out_file,
+                                                                    self.data_read_path + test_jitter_file,
+                                                                    shuffle=False, train=False)
 
         # For the purposes of assigning pos weight on the fly we are initializing the cost function here
         self.loss_function = nn.BCEWithLogitsLoss(pos_weight=to_tensor(self.pos_weight, device=self.device))
@@ -258,13 +273,15 @@ class ConvNetRunner:
             self.network.train()
             self.batch_loss, self.batch_accuracy, self.batch_uar, self.batch_f1, self.batch_precision, \
             self.batch_recall, train_predictions, train_logits, audio_for_tensorboard_train = [], [], [], [], [], [], [], [], None
-            for i, (audio_data, label) in enumerate(zip(train_data, train_labels)):
+            for i, (audio_data, label, jitter_shimmer_data) in enumerate(
+                    zip(train_data, train_labels, train_jitter_data)):
                 self.optimiser.zero_grad()
                 label = to_tensor(label, device=self.device).float()
                 audio_data = to_tensor(audio_data, device=self.device)
+                jitter_shimmer_data = to_tensor(jitter_shimmer_data, device=self.device)
                 if i == 0:
                     self.writer.add_graph(self.network, audio_data)
-                predictions = self.network(audio_data).squeeze(1)
+                predictions = self.network(audio_data, jitter_shimmer_data).squeeze(1)
                 train_logits.extend(predictions)
                 loss = self.loss_function(predictions, label)
                 predictions = nn.Sigmoid()(predictions)
@@ -300,10 +317,10 @@ class ConvNetRunner:
             self.logger.info(f"Learning rate {self.optimiser.state_dict()['param_groups'][0]['lr']}")
 
             # dev data
-            self.run_for_epoch(epoch, dev_data, dev_labels, type='Dev')
+            self.run_for_epoch(epoch, dev_data, dev_labels, dev_jitter_data, type='Dev')
 
             # test data
-            self.run_for_epoch(epoch, test_data, test_labels, type='Test')
+            self.run_for_epoch(epoch, test_data, test_labels, test_jitter_data, type='Test')
 
             if epoch % self.network_save_interval == 0:
                 save_path = self.network_save_path + '/' + self.run_name + '_' + str(epoch) + '.pt'
