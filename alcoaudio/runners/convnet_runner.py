@@ -163,9 +163,10 @@ class ConvNetRunner:
 
                     self.logger.info(f'Data Augmentation done . . .')
 
-                data = [(x, y) for x, y in zip(input_data, labels)]
+                data = [(x, y, z) for x, y, z in zip(input_data, labels, jitter)]
                 random.shuffle(data)
-                input_data, labels = np.array([x[0] for x in data]), [x[1] for x in data]
+                input_data, labels, jitter = np.array([x[0] for x in data]), [x[1] for x in data], np.array(
+                        [x[2] for x in data])
 
                 # Initialize pos_weight based on training data
                 self.pos_weight = len([x for x in labels if x == 0]) / len([x for x in labels if x == 1])
