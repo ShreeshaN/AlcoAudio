@@ -124,6 +124,8 @@ class ConvNetRunner:
                     self._min = min(np.min(x), self._min)
                     self._max = max(np.max(x), self._max)
                 self._mean, self._std = np.mean(input_data), np.std(input_data)
+                self._jmean, self._jstd = np.mean(jitter), np.std(jitter)
+                self._jmin, self._jmax = np.min(jitter), np.max(jitter)
 
                 if self.data_augment:
                     self.logger.info(f'Data Augmentation starts . . .')
@@ -183,10 +185,10 @@ class ConvNetRunner:
             # Normalizing `input data` on train dataset's min and max values
             if self.normalise:
                 input_data = (input_data - self._min) / (self._max - self._min)
-                input_data = (input_data - np.mean(input_data)) / np.std(input_data)
+                input_data = (input_data - self._mean) / self._std
 
-                jitter = (jitter - np.min(jitter)) / (np.max(jitter) - np.min(jitter))
-                jitter = (jitter - np.mean(jitter)) / np.std(jitter)
+                jitter = (jitter - self._jmin) / (self._jmax - self._jmin)
+                jitter = (jitter - self._jmean) / self._jstd
 
             if should_batch:
                 batched_input = [input_data[pos:pos + self.batch_size] for pos in
