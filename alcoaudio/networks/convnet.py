@@ -10,6 +10,7 @@ Description:
 
 """
 
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -47,7 +48,7 @@ class ConvNet(nn.Module):
         # self.conv5_bn.track_running_stats = False
         self.pool3 = nn.MaxPool2d(kernel_size=3, stride=[1, 2])
 
-        self.fc1 = nn.Linear((60 * 64) , 256) # + 114
+        self.fc1 = nn.Linear((60 * 64) + 114, 256)
         self.dropout1 = nn.Dropout(p=0.3)
         self.fc2 = nn.Linear(256, 32)
         # self.dropout2 = nn.Dropout(p=0.3)
@@ -77,7 +78,7 @@ class ConvNet(nn.Module):
         # Flattening to feed it to FFN
         x = x.view(-1, x.shape[1:].numel())
 
-        # x = torch.cat([x, jitterx], dim=1)
+        x = torch.cat([x, jitterx], dim=1)
 
         x = F.relu(self.fc1(x))
         x = self.dropout1(x)
