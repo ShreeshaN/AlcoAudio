@@ -185,6 +185,9 @@ class ConvNetRunner:
                 input_data = (input_data - self._min) / (self._max - self._min)
                 input_data = (input_data - np.mean(input_data)) / np.std(input_data)
 
+                jitter = (jitter - np.min(jitter)) / (np.max(jitter) - np.min(jitter))
+                jitter = (jitter - np.mean(jitter)) / np.std(jitter)
+
             if should_batch:
                 batched_input = [input_data[pos:pos + self.batch_size] for pos in
                                  range(0, len(input_data), self.batch_size)]
