@@ -120,10 +120,10 @@ class ConvNetRunner:
                 self.logger.info(
                         f'Input data shape:{np.array(input_data).shape} | Output data shape:{np.array(labels).shape}')
 
-                for x in input_data[:, :-1, :]:
+                for x in input_data:
                     self._min = min(np.min(x), self._min)
                     self._max = max(np.max(x), self._max)
-                self._mean, self._std = np.mean(input_data[:, :-1, :]), np.std(input_data[:, :-1, :])
+                self._mean, self._std = np.mean(input_data), np.std(input_data)
 
                 if self.data_augment:
                     self.logger.info(f'Data Augmentation starts . . .')
@@ -182,7 +182,7 @@ class ConvNetRunner:
 
             # Normalizing `input data` on train dataset's min and max values
             if self.normalise:
-                input_data[:, :-1, :] = (input_data[:, :-1, :] - self._min) / (self._max - self._min)
+                input_data = (input_data - self._min) / (self._max - self._min)
 
             if should_batch:
                 batched_input = [input_data[pos:pos + self.batch_size] for pos in
