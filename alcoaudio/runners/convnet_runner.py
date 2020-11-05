@@ -76,7 +76,7 @@ class ConvNetRunner:
         self.loss_function = None
         self.learning_rate_decay = args.learning_rate_decay
 
-        self.optimiser = optim.Adam(self.network.parameters(), lr=self.learning_rate)
+        self.optimiser = optim.AdamW(self.network.parameters(), lr=self.learning_rate)
         self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimiser, gamma=self.learning_rate_decay)
 
         self._min, self._max = float('inf'), -float('inf')
