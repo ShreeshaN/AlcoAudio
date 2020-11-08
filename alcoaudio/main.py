@@ -10,10 +10,12 @@ Description:
 
 """
 
-from alcoaudio.utils.class_utils import AttributeDict
-import json
 import argparse
+import json
+
 import torch
+
+from alcoaudio.utils.class_utils import AttributeDict
 
 
 def parse():
@@ -21,7 +23,7 @@ def parse():
     parser.add_argument('--train_net', type=bool)
     parser.add_argument('--test_net', type=bool)
     parser.add_argument('--configs_file', type=str)
-    parser.add_argument('--network', type=str, choices=['convnet', 'lstm', 'crnn', 'ocnn', 'cae', 'sincnet'])
+    parser.add_argument('--network', type=str, choices=['convnet', 'lstm', 'crnn', 'ocnn', 'cae', 'sincnet','resnet'])
     args = parser.parse_args()
     return args
 
@@ -45,6 +47,9 @@ def run(args):
     elif args.network == 'sincnet':
         from alcoaudio.runners.sincnet_runner import SincNetRunner
         network = SincNetRunner(args=args)
+    elif args.network == 'resnet':
+        from alcoaudio.runners.resnet_pretrain import ResNetRunner
+        network = ResNetRunner(args=args)
     if args.network is None:  # Default network
         from alcoaudio.runners.convnet_runner import ConvNetRunner
         network = ConvNetRunner(args=args)
