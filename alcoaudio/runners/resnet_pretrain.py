@@ -308,8 +308,8 @@ class ResNetRunner:
                                                      shuffle=False, train=False, type='test')
 
         model_ft = models.resnet18(pretrained=True)
-        # for param in model_ft.parameters():
-        #     param.requires_grad = False
+        for param in model_ft.parameters():
+            param.requires_grad = False
         num_ftrs = model_ft.fc.in_features
         # # Here the size of each output sample is set to 2.
         # # Alternatively, it can be generalized to nn.Linear(num_ftrs, len(class_names)).
