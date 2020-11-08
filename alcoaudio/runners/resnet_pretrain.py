@@ -175,7 +175,7 @@ class ResNetRunner:
                     TensorDataset(torch.Tensor(input_data).unsqueeze(1).repeat(1, 3, 1, 1),
                                   torch.Tensor(labels)),
                     batch_size=self.batch_size
-            #        ,sampler=torch.utils.data.SubsetRandomSampler(list([x for x in range(10)]))
+                    #        ,sampler=torch.utils.data.SubsetRandomSampler(list([x for x in range(10)]))
             )
 
     #
@@ -308,6 +308,8 @@ class ResNetRunner:
                                                      shuffle=False, train=False, type='test')
 
         model_ft = models.resnet18(pretrained=True)
+        # for param in model_ft.parameters():
+        #     param.requires_grad = False
         num_ftrs = model_ft.fc.in_features
         # # Here the size of each output sample is set to 2.
         # # Alternatively, it can be generalized to nn.Linear(num_ftrs, len(class_names)).
@@ -316,7 +318,7 @@ class ResNetRunner:
         criterion = nn.BCEWithLogitsLoss(pos_weight=to_tensor(self.pos_weight, device=self.device))
 
         # Observe that all parameters are being optimized
-        optimizer_ft = optim.SGD(model_ft.parameters(), lr=self.learning_rate, momentum=0.9)
+        optimizer_ft = optim.Adam(model_ft.parameters(), lr=self.learning_rate)
 
         # Decay LR by a factor of 0.1 every 7 epochs
         exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
