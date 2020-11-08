@@ -174,8 +174,9 @@ class ResNetRunner:
             return DataLoader(
                     TensorDataset(torch.Tensor(input_data).unsqueeze(1).repeat(1, 3, 1, 1),
                                   torch.Tensor(labels)),
-                    batch_size=self.batch_size,
-                    sampler=torch.utils.data.SubsetRandomSampler(list([x for x in range(10)])))
+                    batch_size=self.batch_size
+            #        ,sampler=torch.utils.data.SubsetRandomSampler(list([x for x in range(10)]))
+            )
 
     #
 
