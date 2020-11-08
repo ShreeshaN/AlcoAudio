@@ -238,7 +238,7 @@ class ResNetRunner:
                 for inputs, labels in self.data_loaders[phase]:
                     inputs = inputs.to(self.device)
                     labels = labels.to(self.device)
-                    total_labels.extend(labels)
+                    total_labels.extend(to_numpy(labels))
 
                     # zero the parameter gradients
                     optimizer.zero_grad()
@@ -247,7 +247,6 @@ class ResNetRunner:
                     # track history if only in train
                     with torch.set_grad_enabled(phase == 'train'):
                         outputs = model(inputs).squeeze(1)
-
                         loss = criterion(outputs, labels)
 
                         # backward + optimize only if in training phase
@@ -258,8 +257,7 @@ class ResNetRunner:
                     # statistics
                     running_loss += loss.item() * inputs.size(0)
                     binary_preds = torch.where(outputs > to_tensor(self.threshold), to_tensor(1), to_tensor(0))
-                    total_preds.extend(binary_preds)
-
+                    total_preds.extend(to_numpy(binary_preds))
                     running_corrects += torch.sum(binary_preds == labels)
                 if phase == 'train':
                     scheduler.step()
