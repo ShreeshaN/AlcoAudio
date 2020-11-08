@@ -1,5 +1,5 @@
 {
-  "run_name": "emotion_alco_audio_challenge_data_convnet_f0_pitch_zrc_opensmile",
+  "run_name": "emotion_alco_audio_challenge_data_convnet_f0_pitch_zrc_opensmile_resnet",
   "epochs": 50,
   "batch_size": 32,
   "learning_rate": 0.0005,
