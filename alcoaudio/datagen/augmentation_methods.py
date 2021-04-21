@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 @created on: 3/30/20,
-@author: Shreesha N,
+@author: Prathik Jawahar,
 @version: v0.0.1
 @system name: badgod
 Description:
